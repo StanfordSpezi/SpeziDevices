@@ -1,7 +1,7 @@
 // swift-tools-version:5.9
 
 //
-// This source file is part of the TemplatePackage open source project
+// This source file is part of the Stanford SpeziDevices open source project
 // 
 // SPDX-FileCopyrightText: 2022 Stanford University and the project authors (see CONTRIBUTORS.md)
 // 
@@ -10,9 +10,10 @@
 
 import PackageDescription
 
+// TODO: DOI in citation.cff
 
 let package = Package(
-    name: "TemplatePackage",
+    name: "SpeziDevices",
     platforms: [
         .iOS(.v17),
         .watchOS(.v10),
@@ -21,16 +22,16 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .library(name: "TemplatePackage", targets: ["TemplatePackage"])
+        .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     targets: [
         .target(
-            name: "TemplatePackage"
+            name: "SpeziOmron"
         ),
         .testTarget(
-            name: "TemplatePackageTests",
+            name: "SpeziOmronTests",
             dependencies: [
-                .target(name: "TemplatePackage")
+                .target(name: "SpeziOmron")
             ]
         )
     ]
