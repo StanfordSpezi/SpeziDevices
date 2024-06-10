@@ -24,14 +24,24 @@ let package = Package(
     products: [
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "main"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "1.0.0")
+    ],
     targets: [
         .target(
-            name: "SpeziOmron"
+            name: "SpeziOmron",
+            dependencies: [
+                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
+                .product(name: "BluetoothServices", package: "SpeziBluetooth")
+            ]
         ),
         .testTarget(
             name: "SpeziOmronTests",
             dependencies: [
-                .target(name: "SpeziOmron")
+                .target(name: "SpeziOmron"),
+                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
+                .product(name: "XCTByteCoding", package: "SpeziNetworking")
             ]
         )
     ]
