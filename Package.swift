@@ -25,8 +25,8 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "main"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "1.0.0")
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0")
     ],
     targets: [
         .target(
