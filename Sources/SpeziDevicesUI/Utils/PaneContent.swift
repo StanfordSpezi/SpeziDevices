@@ -37,7 +37,7 @@ struct SheetPreview<Content: View>: View {
 #endif
 
 
-struct PaneContent<Content: View, Action: View>: View { // TODO: SpeziViews candidate?
+struct PaneContent<Content: View, Action: View>: View {
     private let title: Text
     private let subtitle: Text
     private let content: Content
@@ -66,7 +66,8 @@ struct PaneContent<Content: View, Action: View>: View { // TODO: SpeziViews cand
 
             action
         }
-            .onAppear {
+            .task {
+                try? await Task.sleep(for: .milliseconds(500))
                 isHeaderFocused = true // TODO: doesn't work too great?
             }
     }

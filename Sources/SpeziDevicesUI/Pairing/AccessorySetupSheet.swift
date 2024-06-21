@@ -21,7 +21,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
     @Environment(DeviceManager.self) private var deviceManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var pairingState: PairingState = .discovery
+    @State private var pairingState: PairingViewState = .discovery
 
     public var body: some View {
         NavigationStack {
@@ -93,7 +93,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
             AccessorySetupSheet([], appName: "Example")
         }
         .previewWith {
-            Bluetooth()
+            Bluetooth {}
             DeviceManager()
         }
 }

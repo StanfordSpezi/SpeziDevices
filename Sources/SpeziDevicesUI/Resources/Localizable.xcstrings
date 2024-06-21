@@ -1,8 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "\"%@\" was successfully paired with the ENGAGE app." : {
-
+    "\"%@\" was successfully paired with the %@ app." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"%1$@\" was successfully paired with the %2$@ app."
+          }
+        }
+      }
     },
     "Accessory Paired" : {
 
@@ -31,8 +38,15 @@
     "Do you really want to forget this device?" : {
 
     },
-    "Do you want to pair %@ with the ENGAGE app?" : {
-
+    "Do you want to pair %@ with the %@ app?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Do you want to pair %1$@ with the %2$@ app?"
+          }
+        }
+      }
     },
     "Done" : {
 

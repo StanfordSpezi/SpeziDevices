@@ -19,7 +19,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 
     @Environment(\.dismiss) private var dismiss
 
-    @Binding private var pairingState: PairingState
+    @Binding private var pairingState: PairingViewState
     @State private var selectedDeviceIndex: Int = 0
 
     @AccessibilityFocusState private var isHeaderFocused: Bool
@@ -77,7 +77,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     }
 
 
-    init(devices: Collection, appName: String, state: Binding<PairingState>, pair: @escaping (any PairableDevice) async throws -> Void) {
+    init(devices: Collection, appName: String, state: Binding<PairingViewState>, pair: @escaping (any PairableDevice) async throws -> Void) {
         self.devices = devices
         self.appName = appName
         self._pairingState = state

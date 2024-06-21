@@ -50,7 +50,7 @@ public struct DevicesTab: View {
 
 #if DEBUG
 #Preview {
-    PairingSheet()
+    DevicesTab(appName: "Example")
         .previewWith {
             Bluetooth {}
             DeviceManager()

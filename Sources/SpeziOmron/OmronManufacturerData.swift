@@ -30,7 +30,7 @@ public struct OmronManufacturerData {
     }
 
     /// The services mode.
-    public enum ServiceMode {
+    public enum ServicesMode {
         /// Uses Bluetooth standard services and characteristics.
         case bluetoothStandard
         /// Uses services and characteristics of the Omron Extension.
@@ -88,7 +88,7 @@ public struct OmronManufacturerData {
     /// The type of data transmission mode.
     public let streamingMode: StreamingMode
     /// The type of services the peripheral is exposing.
-    public let servicesMode: ServiceMode
+    public let servicesMode: ServicesMode
 
     /// The advertised user slots.
     ///
@@ -107,7 +107,7 @@ public struct OmronManufacturerData {
         timeSet: Bool = true,
         pairingMode: PairingMode,
         streamingMode: StreamingMode = .dataCommunication,
-        servicesMode: Mode = .bluetoothStandard,
+        servicesMode: ServicesMode = .bluetoothStandard,
         users: [UserSlot]
     ) {
         // swiftlint:disable:next empty_count
@@ -115,7 +115,7 @@ public struct OmronManufacturerData {
         self.timeSet = timeSet
         self.pairingMode = pairingMode
         self.streamingMode = streamingMode
-        self.mode = servicesMode
+        self.servicesMode = servicesMode
         self.users = users
     }
 }

@@ -63,11 +63,9 @@ struct CarouselDots: View {
             .onChanged { value in
                 isDragging = true
                 updateIndexBasedOnDrag(value.location)
-                print("location: \(value.location)")
             }
             .onEnded { value in
                 isDragging = false
-                print("ended: \(value)")
                 updateIndexBasedOnDrag(value.location)
             }
     }
