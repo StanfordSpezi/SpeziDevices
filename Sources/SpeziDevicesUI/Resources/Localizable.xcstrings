@@ -1,0 +1,131 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "\"%@\" was successfully paired with the ENGAGE app." : {
+
+    },
+    "Accessory Paired" : {
+
+    },
+    "Add Device" : {
+
+    },
+    "Battery" : {
+
+    },
+    "Button" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Device Details" : {
+
+    },
+    "Devices" : {
+
+    },
+    "Discovering" : {
+
+    },
+    "Do you really want to forget this device?" : {
+
+    },
+    "Do you want to pair %@ with the ENGAGE app?" : {
+
+    },
+    "Done" : {
+
+    },
+    "enter device name" : {
+
+    },
+    "Failed to pair accessory." : {
+
+    },
+    "Forget Device" : {
+
+    },
+    "Forget This Device" : {
+
+    },
+    "Fully Unpair Device" : {
+
+    },
+    "Hold down the Bluetooth button for 3 seconds to put the device into pairing mode." : {
+
+    },
+    "Make sure to to remove the device from the Bluetooth settings to fully unpair the device." : {
+
+    },
+    "Model" : {
+
+    },
+    "Name" : {
+
+    },
+    "No Devices" : {
+
+    },
+    "OK" : {
+
+    },
+    "Open Settings" : {
+
+    },
+    "Page" : {
+
+    },
+    "Page %lld of %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Pair" : {
+
+    },
+    "Pair Accessory" : {
+
+    },
+    "Pair New Device" : {
+
+    },
+    "Paired devices will appear here once set up." : {
+
+    },
+    "Pairing Failed" : {
+
+    },
+    "Synchronizing ..." : {
+
+    },
+    "The device name cannot be longer than 50 characters." : {
+
+    },
+    "The Subtitle" : {
+
+    },
+    "The Title" : {
+
+    },
+    "This device was last seen at %@" : {
+
+    },
+    "This device was last seen on %@ at %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "This device was last seen on %1$@ at %2$@"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

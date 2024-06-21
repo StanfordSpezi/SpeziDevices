@@ -21,6 +21,10 @@ public final class OmronOptionService: BluetoothService, @unchecked Sendable {
     @Characteristic(id: "2A52", notify: true)
     private var recordAccessControlPoint: RecordAccessControlPoint<OmronRecordAccessOperand>?
 
+    // TODO: OMRON Measurement (BLM): C195DA8A-0E23-4582-ACD8-D446C77C45DE
+    //  - Getting extended blood pressure measurement index by OMRON.
+    // TODO: Body Composition: 8FF2DDFB-4A52-4CE5-85A4-D2F97917792A
+
     public init() {}
 
 

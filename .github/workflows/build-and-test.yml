@@ -20,14 +20,14 @@ jobs:
     name: Build and Test Swift Package iOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-iOS.xcresult
       artifactname: SpeziDevices-iOS.xcresult
   packagewatchos:
     name: Build and Test Swift Package watchOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
       destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
       resultBundle: SpeziDevices-watchOS.xcresult
       artifactname: SpeziDevices-watchOS.xcresult
@@ -35,7 +35,7 @@ jobs:
     name: Build and Test Swift Package visionOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       resultBundle: SpeziDevices-visionOS.xcresult
       artifactname: SpeziDevices-visionOS.xcresult
@@ -43,7 +43,7 @@ jobs:
     name: Build and Test Swift Package tvOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-tvOS.xcresult
       destination: 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)'
       artifactname: SpeziDevices-tvOS.xcresult
@@ -51,7 +51,7 @@ jobs:
     name: Build and Test Swift Package macOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-macOS.xcresult
       destination: 'platform=macOS,arch=arm64'
       artifactname: SpeziDevices-macOS.xcresult
@@ -110,7 +110,7 @@ jobs:
     with:
       codeql: true
       test: false
-      scheme: SpeziDevices
+      scheme: SpeziDevices-Package
     permissions:
       security-events: write
       actions: read
