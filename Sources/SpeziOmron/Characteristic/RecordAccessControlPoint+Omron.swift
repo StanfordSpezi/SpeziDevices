@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
+import SpeziBluetoothServices
 
 
 extension RecordAccessControlPoint {

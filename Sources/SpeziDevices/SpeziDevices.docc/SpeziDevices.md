@@ -20,6 +20,7 @@ SPDX-License-Identifier: MIT
 
 ### Devices
 
+- ``GenericBluetoothPeripheral``
 - ``GenericDevice``
 - ``BatteryPoweredDevice``
 - ``PairableDevice``

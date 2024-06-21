@@ -10,32 +10,31 @@ import Foundation
 
 
 /// Persistent information stored of a paired device.
-public struct PairedDeviceInfo { // TODO: observablen => resolves UI update issue!
+public struct PairedDeviceInfo {
+    // TODO: observablen => resolves UI update issue!
+    // TODO: update properties (model, lastSeen, battery) with Observation framework and not via explicit calls in the device class
+    //  => make some things have internal setters(?)
+    // TODO: additionalData: lastSequenceNumber: UInt16?, userDatabaseNumber: UInt32?, consentCode: UIntX
+
     /// The CoreBluetooth device identifier.
     public let id: UUID
     /// The device type.
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
-    public let deviceType: String // TODO: verify link
+    public let deviceType: String
     /// Visual representation of the device.
     public let icon: ImageReference?
     /// A model string of the device.
-    public let model: String? // TODO: this one as well!
+    public let model: String?
 
-    // TODO: make some things have internal setters?
     /// The user edit-able name of the device.
     public var name: String
     /// The date the device was last seen.
-    public var lastSeen: Date // TODO: don't set within the device class itself
+    public var lastSeen: Date
     /// The last reported battery percentage of the device.
-    public var lastBatteryPercentage: UInt8? // TODO: update those values based on the Observation framework?
+    public var lastBatteryPercentage: UInt8?
 
-
-    public var lastSequenceNumber: UInt16?
-    public var userDatabaseNumber: UInt32? // TODO: default value?
-    // TODO: consent code?
-    // TODO: last transfer time?
-    // TODO: handle extensibility?
+    // TODO: how with codability? public var additionalData: [String: Any]
 
     /// Create new paired device information.
     /// - Parameters:
@@ -46,8 +45,6 @@ public struct PairedDeviceInfo { // TODO: observablen => resolves UI update issu
     ///   - icon: The device icon.
     ///   - lastSeen: The date the device was last seen.
     ///   - batteryPercentage: The last known battery percentage of the device.
-    ///   - lastSequenceNumber: // TODO: docs
-    ///   - userDatabaseNumber: // TODO: docs
     public init(
         id: UUID,
         deviceType: String,
@@ -55,9 +52,7 @@ public struct PairedDeviceInfo { // TODO: observablen => resolves UI update issu
         model: String?,
         icon: ImageReference?,
         lastSeen: Date = .now,
-        batteryPercentage: UInt8? = nil,
-        lastSequenceNumber: UInt16? = nil,
-        userDatabaseNumber: UInt32? = nil
+        batteryPercentage: UInt8? = nil
     ) {
         self.id = id
         self.deviceType = deviceType
@@ -66,8 +61,6 @@ public struct PairedDeviceInfo { // TODO: observablen => resolves UI update issu
         self.icon = icon
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
-        self.lastSequenceNumber = lastSequenceNumber
-        self.userDatabaseNumber = userDatabaseNumber
     }
 }
 
@@ -84,29 +77,6 @@ extension PairedDeviceInfo: Hashable {
 
 #if DEBUG
 extension PairedDeviceInfo {
-    /*
-     // TODO: bring back those???
-    static var mockBP5250: PairedDeviceInfo {
-        PairedDeviceInfo(
-            id: UUID(),
-            deviceType: BloodPressureCuffDevice.deviceTypeIdentifier,
-            name: "BP5250",
-            model: OmronModel.bp5250,
-            icon: .asset("Omron-BP5250")
-        )
-    }
-
-    static var mockSC150: PairedDeviceInfo {
-        PairedDeviceInfo(
-            id: UUID(),
-            deviceType: WeightScaleDevice.deviceTypeIdentifier,
-            name: "SC-150",
-            model: OmronModel.sc150,
-            icon: .asset("Omron-SC-150")
-        )
-    }
-    */
-
     /// Mock Health Device 1 Data.
     @_spi(TestingSupport) public static var mockHealthDevice1: PairedDeviceInfo {
         PairedDeviceInfo(

@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
 import SpeziBluetooth
+import SpeziBluetoothServices
 
 
 /// A battery powered Bluetooth device.

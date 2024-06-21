@@ -18,6 +18,10 @@ SPDX-License-Identifier: MIT
 
 ## Topics
 
-### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->
+### Presenting nearby devices
 
-- <!--@START_MENU_TOKEN@-->``Symbol``<!--@END_MENU_TOKEN@-->
+Views that are helpful when building a nearby devices view.
+
+- ``BluetoothUnavailableView``
+- ``NearbyDeviceRow``
+- ``LoadingSectionHeader``

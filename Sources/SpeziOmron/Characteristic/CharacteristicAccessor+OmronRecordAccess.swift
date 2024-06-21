@@ -6,8 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(APISupport) import BluetoothServices // swiftlint:disable:this attributes
 import SpeziBluetooth
+@_spi(APISupport)
+import SpeziBluetoothServices 
 
 
 extension CharacteristicAccessor where Value == RecordAccessControlPoint<OmronRecordAccessOperand> {

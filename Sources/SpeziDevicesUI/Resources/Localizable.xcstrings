@@ -11,32 +11,195 @@
         }
       }
     },
+    "%@, Searching" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, Searching"
+          }
+        }
+      }
+    },
     "Accessory Paired" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessory Paired"
+          }
+        }
+      }
     },
     "Add Device" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Device"
+          }
+        }
+      }
     },
     "Battery" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Battery"
+          }
+        }
+      }
     },
-    "Button" : {
-
+    "Bluetooth Failure" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Failure"
+          }
+        }
+      }
+    },
+    "Bluetooth is required to make connections to nearby devices. ..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is required to make connections to a nearby device. Please allow Bluetooth connections in your Privacy settings."
+          }
+        }
+      }
+    },
+    "Bluetooth is turned off. ..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is turned off. Please turn on Bluetooth in Control Center or Settings, in order to connect to a nearby device."
+          }
+        }
+      }
+    },
+    "Bluetooth is unsupported on this device!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth is unsupported on this device!"
+          }
+        }
+      }
+    },
+    "Bluetooth Off" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Off"
+          }
+        }
+      }
+    },
+    "Bluetooth Prohibited" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Prohibited"
+          }
+        }
+      }
+    },
+    "Bluetooth Unsupported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth Unsupported"
+          }
+        }
+      }
     },
     "Cancel" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Connected" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "Connecting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting"
+          }
+        }
+      }
     },
     "Device Details" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Details"
+          }
+        }
+      }
     },
     "Devices" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devices"
+          }
+        }
+      }
+    },
+    "Disconnecting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnecting"
+          }
+        }
+      }
     },
     "Discovering" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discovering"
+          }
+        }
+      }
     },
     "Do you really want to forget this device?" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you really want to forget this device?"
+          }
+        }
+      }
     },
     "Do you want to pair %@ with the %@ app?" : {
       "localizations" : {
@@ -49,46 +212,154 @@
       }
     },
     "Done" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
     },
     "enter device name" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "enter device name"
+          }
+        }
+      }
     },
     "Failed to pair accessory." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to pair accessory."
+          }
+        }
+      }
     },
     "Forget Device" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forget Device"
+          }
+        }
+      }
     },
     "Forget This Device" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forget This Device"
+          }
+        }
+      }
     },
     "Fully Unpair Device" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fully Unpair Device"
+          }
+        }
+      }
     },
     "Hold down the Bluetooth button for 3 seconds to put the device into pairing mode." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold down the Bluetooth button for 3 seconds to put the device into pairing mode."
+          }
+        }
+      }
+    },
+    "Intervention Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intervention Required"
+          }
+        }
+      }
     },
     "Make sure to to remove the device from the Bluetooth settings to fully unpair the device." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make sure to to remove the device from the Bluetooth settings to fully unpair the device."
+          }
+        }
+      }
     },
     "Model" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model"
+          }
+        }
+      }
     },
     "Name" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
     },
     "No Devices" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Devices"
+          }
+        }
+      }
     },
     "OK" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     },
     "Open Settings" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
     },
     "Page" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Page"
+          }
+        }
+      }
     },
     "Page %lld of %lld" : {
       "localizations" : {
@@ -101,34 +372,94 @@
       }
     },
     "Pair" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair"
+          }
+        }
+      }
     },
     "Pair Accessory" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair Accessory"
+          }
+        }
+      }
     },
     "Pair New Device" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair New Device"
+          }
+        }
+      }
     },
     "Paired devices will appear here once set up." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paired devices will appear here once set up."
+          }
+        }
+      }
     },
     "Pairing Failed" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing Failed"
+          }
+        }
+      }
+    },
+    "Requires Attention" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires Attention"
+          }
+        }
+      }
     },
     "Synchronizing ..." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizing ..."
+          }
+        }
+      }
     },
     "The device name cannot be longer than 50 characters." : {
-
-    },
-    "The Subtitle" : {
-
-    },
-    "The Title" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The device name cannot be longer then 50 characters."
+          }
+        }
+      }
     },
     "This device was last seen at %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This device was last seen at %@"
+          }
+        }
+      }
     },
     "This device was last seen on %@ at %@" : {
       "localizations" : {
@@ -136,6 +467,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "This device was last seen on %1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "We have trouble with the Bluetooth communication. Please try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We have trouble with the Bluetooth communication. Please try again."
           }
         }
       }

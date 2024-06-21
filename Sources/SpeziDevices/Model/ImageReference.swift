@@ -10,7 +10,7 @@ import SwiftUI
 
 
 /// Reference an Image Resource.
-public enum ImageReference { // TODO: SpeziViews candidate!
+public enum ImageReference {
     /// Provides the system name for an image.
     case system(String)
     /// Reference an image from the asset catalog of a bundle.

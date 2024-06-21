@@ -93,7 +93,7 @@ struct PaneContent<Content: View, Action: View>: View {
 #if DEBUG
 #Preview {
     SheetPreview {
-        PaneContent(title: "The Title", subtitle: "The Subtitle") {
+        PaneContent(title: Text(verbatim: "The Title"), subtitle: Text(verbatim: "The Subtitle")) {
             Image(systemName: "person.crop.square.badge.camera.fill")
                 .symbolRenderingMode(.hierarchical)
                 .resizable()
@@ -104,7 +104,7 @@ struct PaneContent<Content: View, Action: View>: View {
         } action: {
             Button {
             } label: {
-                Text("Button")
+                Text(verbatim: "Button")
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
                 .buttonStyle(.borderedProminent)

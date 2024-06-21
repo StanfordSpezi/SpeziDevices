@@ -6,9 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
 import class CoreBluetooth.CBUUID
 import SpeziBluetooth
+import SpeziBluetoothServices
 
 
 /// The Omron Option Service.

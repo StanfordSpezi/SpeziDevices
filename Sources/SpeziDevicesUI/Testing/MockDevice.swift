@@ -6,14 +6,14 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
 import Foundation
 @_spi(TestingSupport) import SpeziBluetooth
+import SpeziBluetoothServices
 import SpeziDevices
 
 
 #if DEBUG
-final class MockDevice: PairableDevice, Identifiable {    
+final class MockDevice: PairableDevice, Identifiable {
     @DeviceState(\.id) var id
     @DeviceState(\.name) var name
     @DeviceState(\.state) var state

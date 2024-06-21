@@ -32,6 +32,7 @@ public struct DevicesGrid: View {
             if devices.isEmpty {
                 ZStack {
                     VStack {
+                        // TODO: message to check for ConfigureTipKit dependency!
                         TipView(ForgetDeviceTip.instance)
                             .padding([.leading, .trailing], 20)
                         Spacer()

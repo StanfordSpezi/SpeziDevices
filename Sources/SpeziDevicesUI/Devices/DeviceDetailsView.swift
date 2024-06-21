@@ -64,6 +64,7 @@ public struct DeviceDetailsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
                 Button("Forget Device", role: .destructive) {
+                    // TODO: message to check for ConfigureTipKit dependency!
                     ForgetDeviceTip.hasRemovedPairedDevice = true
                     deviceManager.forgetDevice(id: deviceInfo.id)
                     dismiss()

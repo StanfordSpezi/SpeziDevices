@@ -6,14 +6,10 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
-import BluetoothViews
 import Foundation
 import SpeziBluetooth
+import SpeziBluetoothServices
 
-
-// TODO: move GenericBluetoothPeripheral to here?
-// TODO: => merge BluetoothViews into SpeziDevicesUI?
 
 /// A generic Bluetooth device.
 ///

@@ -10,7 +10,8 @@ import HealthKit
 
 
 extension HealthDevice {
-    public var hkDevice: HKDevice { // TODO: doesn't necessarily need to be public if we move MeasurementManager!
+    /// The HealthKit Device description.
+    public var hkDevice: HKDevice {
         HKDevice(
             name: name,
             manufacturer: deviceInformation.manufacturerName,

@@ -17,6 +17,7 @@ public final class PairingContinuation {
     private var isInSession = false
     private var pairingContinuation: CheckedContinuation<Void, Error>?
 
+    /// Create a new pairing continuation management object.
     public init() {}
 
     func pairingSession<T>(_ action: () async throws -> T) async throws -> T {
@@ -30,7 +31,7 @@ public final class PairingContinuation {
         }
 
         defer {
-            lock.withLock{
+            lock.withLock {
                 isInSession = false
             }
         }

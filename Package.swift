@@ -45,8 +45,7 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "BluetoothServices", package: "SpeziBluetooth"),
-                .product(name: "BluetoothViews", package: "SpeziBluetooth") // TODO: just because of the One protocol???
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
             plugins: [swiftLintPlugin]
         ),
@@ -54,10 +53,9 @@ let package = Package(
             name: "SpeziDevicesUI",
             dependencies: [
                 .target(name: "SpeziDevices"),
-                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "BluetoothViews", package: "SpeziBluetooth"),
                 .product(name: "SpeziViews", package: "SpeziViews"),
                 .product(name: "SpeziValidation", package: "SpeziViews"),
+                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "ACarousel", package: "ACarousel")
             ],
             resources: [
@@ -70,7 +68,7 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziDevices"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "BluetoothServices", package: "SpeziBluetooth")
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
             plugins: [swiftLintPlugin]
         ),
