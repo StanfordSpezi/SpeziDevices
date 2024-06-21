@@ -23,9 +23,16 @@ public struct OmronManufacturerData {
     }
 
     public struct UserSlot {
-        let id: UInt8
-        let sequenceNumber: UInt16
-        let recordsNumber: UInt8
+        public let id: UInt8
+        public let sequenceNumber: UInt16
+        public let recordsNumber: UInt8
+
+
+        public init(id: UInt8, sequenceNumber: UInt16, recordsNumber: UInt8) {
+            self.id = id
+            self.sequenceNumber = sequenceNumber
+            self.recordsNumber = recordsNumber
+        }
     }
 
     public enum Mode {
@@ -79,6 +86,9 @@ public struct OmronManufacturerData {
         self.users = users
     }
 }
+
+
+extension OmronManufacturerData.UserSlot: Identifiable {}
 
 
 extension OmronManufacturerData.Flags: ByteCodable {
