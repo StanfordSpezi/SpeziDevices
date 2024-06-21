@@ -9,7 +9,7 @@
 import SwiftUI
 
 
-public enum ImageReference {
+public enum ImageReference { // TODO: SpeziViews candidate!
     case system(String)
     case asset(String, bundle: Bundle? = nil)
 }

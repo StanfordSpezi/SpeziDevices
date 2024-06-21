@@ -55,15 +55,15 @@ public struct OmronManufacturerData {
         }
     }
 
-    let timeSet: Bool
-    let pairingMode: PairingMode
-    let streamingMode: StreamingMode
-    let mode: Mode
+    public let timeSet: Bool
+    public let pairingMode: PairingMode
+    public let streamingMode: StreamingMode
+    public let mode: Mode
 
-    let users: [UserSlot] // max 4 slots
+    public let users: [UserSlot] // max 4 slots
 
 
-    init( // swiftlint:disable:this function_default_parameter_at_end
+    public init( // swiftlint:disable:this function_default_parameter_at_end
         timeSet: Bool = true,
         pairingMode: PairingMode,
         streamingMode: StreamingMode = .dataCommunication,

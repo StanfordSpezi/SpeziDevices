@@ -10,7 +10,7 @@ import SpeziBluetooth
 import SpeziDevices
 
 
-public protocol OmronHealthDevice: PairableDevice {}
+public protocol OmronHealthDevice: HealthDevice, PairableDevice {}
 
 
 extension OmronHealthDevice {

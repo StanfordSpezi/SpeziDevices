@@ -37,7 +37,7 @@ struct SheetPreview<Content: View>: View {
 #endif
 
 
-struct PaneContent<Content: View, Action: View>: View {
+struct PaneContent<Content: View, Action: View>: View { // TODO: SpeziViews candidate?
     private let title: Text
     private let subtitle: Text
     private let content: Content
