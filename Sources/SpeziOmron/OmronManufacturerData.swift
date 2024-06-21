@@ -11,24 +11,24 @@ import NIOCore
 import SpeziBluetooth
 
 
-struct OmronManufacturerData {
-    enum PairingMode {
+public struct OmronManufacturerData {
+    public enum PairingMode {
         case transferMode
         case pairingMode
     }
 
-    enum StreamingMode {
+    public enum StreamingMode {
         case dataCommunication
         case streaming
     }
 
-    struct UserSlot {
+    public struct UserSlot {
         let id: UInt8
         let sequenceNumber: UInt16
         let recordsNumber: UInt8
     }
 
-    enum Mode {
+    public enum Mode {
         case bluetoothStandard
         case omronExtension
     }
@@ -82,21 +82,21 @@ struct OmronManufacturerData {
 
 
 extension OmronManufacturerData.Flags: ByteCodable {
-    init?(from byteBuffer: inout ByteBuffer) {
+    public init?(from byteBuffer: inout ByteBuffer) {
         guard let rawValue = UInt8(from: &byteBuffer) else {
             return nil
         }
         self.init(rawValue: rawValue)
     }
 
-    func encode(to byteBuffer: inout ByteBuffer) {
+    public func encode(to byteBuffer: inout ByteBuffer) {
         rawValue.encode(to: &byteBuffer)
     }
 }
 
 
 extension OmronManufacturerData: ByteCodable {
-    init?(from byteBuffer: inout ByteBuffer) {
+    public init?(from byteBuffer: inout ByteBuffer) {
         guard let companyIdentifier = ManufacturerIdentifier(from: &byteBuffer) else {
             return nil
         }
@@ -132,7 +132,7 @@ extension OmronManufacturerData: ByteCodable {
         self.users = userSlots
     }
 
-    func encode(to byteBuffer: inout ByteBuffer) {
+    public func encode(to byteBuffer: inout ByteBuffer) {
         ManufacturerIdentifier.omronHealthcareCoLtd.encode(to: &byteBuffer)
         UInt8(0x01).encode(to: &byteBuffer)
 

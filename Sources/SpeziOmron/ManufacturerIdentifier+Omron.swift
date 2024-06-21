@@ -11,7 +11,7 @@ import SpeziBluetooth
 
 extension ManufacturerIdentifier {
     /// Bluetooth manufacturer code for "Omron Healthcare Co., Ltd.".
-    static var omronHealthcareCoLtd: ManufacturerIdentifier {
+    public static var omronHealthcareCoLtd: ManufacturerIdentifier {
         ManufacturerIdentifier(rawValue: 0x020E)
     }
 }

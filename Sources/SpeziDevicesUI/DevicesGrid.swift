@@ -14,7 +14,7 @@ import SwiftUI
 import TipKit
 
 
-struct DevicesGrid: View {
+public struct DevicesGrid: View {
     @Binding private var devices: [PairedDeviceInfo]
     @Binding private var navigationPath: NavigationPath
     @Binding private var presentingDevicePairing: Bool
@@ -26,7 +26,7 @@ struct DevicesGrid: View {
     ]
 
 
-    var body: some View {
+    public var body: some View {
         Group {
             if devices.isEmpty {
                 ZStack {
@@ -73,7 +73,7 @@ struct DevicesGrid: View {
     }
 
 
-    init(devices: Binding<[PairedDeviceInfo]>, navigation: Binding<NavigationPath>, presentingDevicePairing: Binding<Bool>) {
+    public init(devices: Binding<[PairedDeviceInfo]>, navigation: Binding<NavigationPath>, presentingDevicePairing: Binding<Bool>) {
         self._devices = devices
         self._navigationPath = navigation
         self._presentingDevicePairing = presentingDevicePairing

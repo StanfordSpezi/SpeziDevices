@@ -10,15 +10,15 @@ import SpeziBluetooth
 import SpeziDevices
 
 
-protocol OmronHealthDevice: PairableDevice {}
+public protocol OmronHealthDevice: PairableDevice {}
 
 
 extension OmronHealthDevice {
-    var model: OmronModel {
+    public var model: OmronModel {
         OmronModel(deviceInformation.modelNumber ?? "Generic Health Device")
     }
 
-    var manufacturerData: OmronManufacturerData? {
+    public var manufacturerData: OmronManufacturerData? {
         guard let manufacturerData = advertisementData.manufacturerData else {
             return nil
         }
@@ -28,7 +28,7 @@ extension OmronHealthDevice {
 
 
 extension OmronHealthDevice {
-    var isInPairingMode: Bool {
+    public var isInPairingMode: Bool {
         if case .pairingMode = manufacturerData?.pairingMode {
             return true
         }

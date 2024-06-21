@@ -11,7 +11,7 @@ import SpeziViews
 import SwiftUI
 
 
-struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
+public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
     private let devices: Collection
 
     @Environment(DeviceManager.self) private var deviceManager
@@ -19,7 +19,7 @@ struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Colle
 
     @State private var pairingState: PairingState = .discovery
 
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             VStack {
                 // TODO: make ONE PaneContent? => animation of image transfer?
@@ -45,7 +45,7 @@ struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Colle
         .interactiveDismissDisabled()
     }
 
-    init(_ devices: Collection) {
+    public init(_ devices: Collection) {
         self.devices = devices
     }
 }

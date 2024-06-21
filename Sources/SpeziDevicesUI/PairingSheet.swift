@@ -11,13 +11,13 @@ import SpeziDevices
 import SwiftUI
 
 
-struct PairingSheet: View {
+public struct PairingSheet: View {
     @Environment(Bluetooth.self) private var bluetooth
     @Environment(DeviceManager.self) private var deviceManager
 
     @State private var path = NavigationPath()
 
-    var body: some View {
+    public var body: some View {
         @Bindable var deviceManager = deviceManager
 
         NavigationStack(path: $path) {
@@ -36,6 +36,8 @@ struct PairingSheet: View {
                 }
         }
     }
+
+    public init() {}
 }
 
 

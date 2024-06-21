@@ -34,6 +34,8 @@ final class MockDevice: PairableDevice, Identifiable {
     @Service
     var deviceInformation = DeviceInformationService()
 
+    // TODO: swiftlint thingy!
+    // swiftlint:disable:next identifier_name
     @MainActor var _pairingContinuation: CheckedContinuation<Void, Error>?
 
     var isInPairingMode = false // TODO: control

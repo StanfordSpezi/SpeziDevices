@@ -11,7 +11,7 @@ import SpeziViews
 import SwiftUI
 
 
-struct DeviceDetailsView: View {
+public struct DeviceDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(DeviceManager.self) private var deviceManager
 
@@ -26,7 +26,7 @@ struct DeviceDetailsView: View {
         Calendar.current.isDateInToday(deviceInfo.lastSeen)
     }
 
-    var body: some View {
+    public var body: some View {
         List {
             Section {
                 imageHeader
@@ -106,7 +106,7 @@ struct DeviceDetailsView: View {
     }
 
 
-    init(_ deviceInfo: Binding<PairedDeviceInfo>) {
+    public init(_ deviceInfo: Binding<PairedDeviceInfo>) {
         self._deviceInfo = deviceInfo
     }
 }

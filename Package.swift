@@ -41,6 +41,7 @@ let package = Package(
         .target(
             name: "SpeziDevices",
             dependencies: [
+                .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "BluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "BluetoothViews", package: "SpeziBluetooth") // TODO: just because of the One protocol???
