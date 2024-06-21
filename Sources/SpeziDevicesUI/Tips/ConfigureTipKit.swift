@@ -24,7 +24,7 @@ class ConfigureTipKit: Module, DefaultInitializable { // TODO: move to SpeziView
         do {
             try Tips.configure()
         } catch {
-            Self.logger.error("Failed to configure TipKit: \(error)")
+            logger.error("Failed to configure TipKit: \(error)")
         }
     }
 }

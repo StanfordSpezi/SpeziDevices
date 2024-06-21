@@ -46,7 +46,7 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
     }
 
     @Application(\.logger) @ObservationIgnored private var logger
-    @Dependency @ObservationIgnored private var tipKit: ConfigureTipKit
+    
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
 
     required public init() {} // TODO: configure automatic search without devices paired!
