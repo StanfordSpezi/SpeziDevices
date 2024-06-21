@@ -13,7 +13,8 @@ import SpeziDevices
 import SwiftUI
 
 
-struct DeviceTile: View {
+/// A tile showing a paired device.
+public struct DeviceTile: View {
     private let deviceInfo: PairedDeviceInfo
 
     @Environment(DeviceManager.self) private var deviceManager
@@ -63,7 +64,9 @@ struct DeviceTile: View {
             .accessibilityElement(children: .combine) // TODO: review accessibility!
     }
 
-    init(_ deviceInfo: PairedDeviceInfo) {
+    /// Create a new device tile view.
+    /// - Parameter deviceInfo: The paired device information.
+    public init(_ deviceInfo: PairedDeviceInfo) {
         self.deviceInfo = deviceInfo
     }
 }

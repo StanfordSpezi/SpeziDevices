@@ -20,7 +20,7 @@ import SwiftUI
 // TODO: move deviceManager to SpeziBluetooth (and measurement manager?)
 
 @Observable
-public class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable {
+public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var presentingDevicePairing = false // TODO: "should" naming
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
@@ -48,7 +48,7 @@ public class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable 
     @Application(\.logger) @ObservationIgnored private var logger
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
 
-    required public init() {}
+    required public init() {} // TODO: configure automatic search without devices paired!
 
     public func configure() {
         guard let bluetooth else {
@@ -169,6 +169,8 @@ public class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable 
 
         assert(peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
         peripherals[device.id] = device
+
+        self.logger.debug("Device \(device.label) with id \(device.id) is now paired!")
     }
 
     @MainActor

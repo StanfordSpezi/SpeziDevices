@@ -8,8 +8,8 @@
 
 import SwiftUI
 
-// TODO: Docs! (bundle)
 
+/// Battery Icon with optional label.
 public struct BatteryIcon: View {
     private let percentage: Int
     private let isCharging: Bool
@@ -57,11 +57,17 @@ public struct BatteryIcon: View {
     }
 
 
+    /// Create a new battery icon with charging indication.
+    /// - Parameters:
+    ///   - percentage: The current battery percentage.
+    ///   - isCharging: Indicate if the device is currently charging.
     public init(percentage: Int, isCharging: Bool) {
         self.percentage = percentage
         self.isCharging = isCharging
     }
 
+    /// Create a new battery icon.
+    /// - Parameter percentage: The current battery percentage.
     public init(percentage: Int) {
         // isCharging=false is the same behavior as having no charging information
         self.init(percentage: percentage, isCharging: false)

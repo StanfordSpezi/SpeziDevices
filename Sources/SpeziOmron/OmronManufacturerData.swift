@@ -11,33 +11,52 @@ import NIOCore
 import SpeziBluetooth
 
 
+/// Omron Manufacturer Data format.
 public struct OmronManufacturerData {
+    /// The device's pairing mode.
     public enum PairingMode {
+        /// The device is advertising to transfer data.
         case transferMode
+        /// The device is advertising to get paired.
         case pairingMode
     }
 
+    /// The streaming mode.
     public enum StreamingMode {
+        /// Data Communication.
         case dataCommunication
+        /// Streaming.
         case streaming
     }
 
+    /// The services mode.
+    public enum ServiceMode {
+        /// Uses Bluetooth standard services and characteristics.
+        case bluetoothStandard
+        /// Uses services and characteristics of the Omron Extension.
+        case omronExtension
+    }
+
+    /// Metadata of a user slot.
     public struct UserSlot {
+        /// The user slot number.
         public let id: UInt8
+        /// The current record sequence number.
         public let sequenceNumber: UInt16
+        /// The amount of records currently stored on the device.
         public let recordsNumber: UInt8
 
 
+        /// Create a new user slot.
+        /// - Parameters:
+        ///   - id: The user slot number.
+        ///   - sequenceNumber: The current record sequence number.
+        ///   - recordsNumber: The amount of records currently stored on the device.
         public init(id: UInt8, sequenceNumber: UInt16, recordsNumber: UInt8) {
             self.id = id
             self.sequenceNumber = sequenceNumber
             self.recordsNumber = recordsNumber
         }
-    }
-
-    public enum Mode {
-        case bluetoothStandard
-        case omronExtension
     }
 
     fileprivate struct Flags: OptionSet {
@@ -62,19 +81,33 @@ public struct OmronManufacturerData {
         }
     }
 
+    /// Indicate if the time was set on the device.
     public let timeSet: Bool
+    /// Determine the pairing mode the device is currently in.
     public let pairingMode: PairingMode
+    /// The type of data transmission mode.
     public let streamingMode: StreamingMode
-    public let mode: Mode
+    /// The type of services the peripheral is exposing.
+    public let servicesMode: ServiceMode
 
-    public let users: [UserSlot] // max 4 slots
+    /// The advertised user slots.
+    ///
+    /// - Important: Exposes at least one, and a maximum of four slots.
+    public let users: [UserSlot]
 
 
+    /// Create new Omron Manufacture Data
+    /// - Parameters:
+    ///   - timeSet: Indicate if the time was set.
+    ///   - pairingMode: The pairing mode.
+    ///   - streamingMode: The streaming mode.
+    ///   - servicesMode: The services mode.
+    ///   - users: The list of users. At least one, maximum four.
     public init( // swiftlint:disable:this function_default_parameter_at_end
         timeSet: Bool = true,
         pairingMode: PairingMode,
         streamingMode: StreamingMode = .dataCommunication,
-        mode: Mode = .bluetoothStandard,
+        servicesMode: Mode = .bluetoothStandard,
         users: [UserSlot]
     ) {
         // swiftlint:disable:next empty_count
@@ -82,7 +115,7 @@ public struct OmronManufacturerData {
         self.timeSet = timeSet
         self.pairingMode = pairingMode
         self.streamingMode = streamingMode
-        self.mode = mode
+        self.mode = servicesMode
         self.users = users
     }
 }
@@ -127,7 +160,7 @@ extension OmronManufacturerData: ByteCodable {
         self.timeSet = !flags.contains(.timeNotSet)
         self.pairingMode = flags.contains(.pairingMode) ? .pairingMode : .transferMode
         self.streamingMode = flags.contains(.streamingMode) ? .streaming : .dataCommunication
-        self.mode = flags.contains(.wlpStp) ? .bluetoothStandard : .omronExtension
+        self.servicesMode = flags.contains(.wlpStp) ? .bluetoothStandard : .omronExtension
 
         var userSlots: [UserSlot] = []
         for userNumber in 1...flags.numberOfUsers {
@@ -160,7 +193,7 @@ extension OmronManufacturerData: ByteCodable {
             flags.insert(.streamingMode)
         }
 
-        if case .bluetoothStandard = mode {
+        if case .bluetoothStandard = servicesMode {
             flags.insert(.wlpStp)
         }
 

@@ -10,12 +10,23 @@ import Foundation
 import SpeziFoundation
 
 
+/// A device pairing error.
 public enum DevicePairingError {
+    /// Device is currently in an invalid state.
+    ///
+    /// For example the device is not disconnected or the advertisement was already discarded.
     case invalidState
-    /// The device is busy (e.g., already pairing).
+    /// The device is busy.
+    ///
+    /// For example the device is already within a pairing session
     case busy
     /// The device is not in pairing mode.
+    ///
+    /// The ``PairableDevice/isInPairingMode`` reports that the device is not pairable.
     case notInPairingMode
+    /// The device disconnected while pairing.
+    ///
+    /// The device disconnecting indicated that the pairing failed.
     case deviceDisconnected
 }
 

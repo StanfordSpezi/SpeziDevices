@@ -9,46 +9,45 @@
 import Foundation
 
 
-public struct PairedDeviceInfo { // TODO: observable and editable?
+/// Persistent information stored of a paired device.
+public struct PairedDeviceInfo { // TODO: observablen => resolves UI update issue!
+    /// The CoreBluetooth device identifier.
     public let id: UUID
-    public let deviceType: String
+    /// The device type.
+    ///
+    /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
+    public let deviceType: String // TODO: verify link
+    /// Visual representation of the device.
     public let icon: ImageReference?
-    public let model: String?
+    /// A model string of the device.
+    public let model: String? // TODO: this one as well!
 
     // TODO: make some things have internal setters?
+    /// The user edit-able name of the device.
     public var name: String
-    public var lastSeen: Date
-    public var lastBatteryPercentage: UInt8?
+    /// The date the device was last seen.
+    public var lastSeen: Date // TODO: don't set within the device class itself
+    /// The last reported battery percentage of the device.
+    public var lastBatteryPercentage: UInt8? // TODO: update those values based on the Observation framework?
+
+
     public var lastSequenceNumber: UInt16?
     public var userDatabaseNumber: UInt32? // TODO: default value?
     // TODO: consent code?
     // TODO: last transfer time?
     // TODO: handle extensibility?
 
-    public init<Model: RawRepresentable>( // TODO: this is unecessary?
-        id: UUID,
-        deviceType: String,
-        name: String,
-        model: Model,
-        icon: ImageReference?,
-        lastSeen: Date = .now,
-        batteryPercentage: UInt8? = nil,
-        lastSequenceNumber: UInt16? = nil,
-        userDatabaseNumber: UInt32? = nil
-    ) where Model.RawValue == String {
-        self.init(
-            id: id,
-            deviceType: deviceType,
-            name: name,
-            model: model.rawValue,
-            icon: icon,
-            lastSeen: lastSeen,
-            batteryPercentage: batteryPercentage,
-            lastSequenceNumber: lastSequenceNumber,
-            userDatabaseNumber: userDatabaseNumber
-        )
-    }
-
+    /// Create new paired device information.
+    /// - Parameters:
+    ///   - id: The CoreBluetooth device identifier
+    ///   - deviceType: The device type.
+    ///   - name: The device name.
+    ///   - model: A model string.
+    ///   - icon: The device icon.
+    ///   - lastSeen: The date the device was last seen.
+    ///   - batteryPercentage: The last known battery percentage of the device.
+    ///   - lastSequenceNumber: // TODO: docs
+    ///   - userDatabaseNumber: // TODO: docs
     public init(
         id: UUID,
         deviceType: String,
@@ -77,7 +76,6 @@ extension PairedDeviceInfo: Identifiable, Codable {}
 
 
 extension PairedDeviceInfo: Hashable {
-    // TODO: EQ implementation?
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -109,8 +107,8 @@ extension PairedDeviceInfo {
     }
     */
 
-    @_spi(TestingSupport)
-    public static var mockHealthDevice1: PairedDeviceInfo {
+    /// Mock Health Device 1 Data.
+    @_spi(TestingSupport) public static var mockHealthDevice1: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice1",
@@ -120,8 +118,8 @@ extension PairedDeviceInfo {
         )
     }
 
-    @_spi(TestingSupport)
-    public static var mockHealthDevice2: PairedDeviceInfo {
+    /// Mock Health Device 2 Data.
+    @_spi(TestingSupport) public static var mockHealthDevice2: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice2",

@@ -18,8 +18,7 @@ public final class OmronOptionService: BluetoothService, @unchecked Sendable {
     public static let id = CBUUID(string: "5DF5E817-A945-4F81-89C0-3D4E9759C07C")
 
 
-    @Characteristic(id: "2A52", notify: true)
-    private var recordAccessControlPoint: RecordAccessControlPoint<OmronRecordAccessOperand>?
+    @Characteristic(id: "2A52", notify: true) private var recordAccessControlPoint: RecordAccessControlPoint<OmronRecordAccessOperand>?
 
     // TODO: OMRON Measurement (BLM): C195DA8A-0E23-4582-ACD8-D446C77C45DE
     //  - Getting extended blood pressure measurement index by OMRON.

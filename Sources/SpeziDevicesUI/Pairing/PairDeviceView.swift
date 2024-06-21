@@ -14,6 +14,7 @@ import SwiftUI
 
 struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
     private let devices: Collection
+    private let appName: String
     private let pairClosure: (any PairableDevice) async throws -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -37,7 +38,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 
     var body: some View {
         // TODO: replace application Name everywhere!
-        PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the ENGAGE app?") {
+        PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
             if devices.count > 1 {
                 ACarousel(devices, id: \.id, index: $selectedDeviceIndex, spacing: 0, headspace: 0) { device in
                     AccessoryImageView(device)
@@ -76,8 +77,9 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     }
 
 
-    init(devices: Collection, state: Binding<PairingState>, pair: @escaping (any PairableDevice) async throws -> Void) {
+    init(devices: Collection, appName: String, state: Binding<PairingState>, pair: @escaping (any PairableDevice) async throws -> Void) {
         self.devices = devices
+        self.appName = appName
         self._pairingState = state
         self.pairClosure = pair
     }
@@ -87,7 +89,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 #if DEBUG
 #Preview {
     SheetPreview {
-        PairDeviceView(devices: [MockDevice.createMockDevice()], state: .constant(.discovery)) { _ in
+        PairDeviceView(devices: [MockDevice.createMockDevice()], appName: "Example", state: .constant(.discovery)) { _ in
         }
     }
 }
@@ -98,7 +100,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
             MockDevice.createMockDevice(name: "Device 1"),
             MockDevice.createMockDevice(name: "Device 2")
         ]
-        PairDeviceView(devices: device, state: .constant(.discovery)) { _ in
+        PairDeviceView(devices: device, appName: "Example", state: .constant(.discovery)) { _ in
         }
     }
 }

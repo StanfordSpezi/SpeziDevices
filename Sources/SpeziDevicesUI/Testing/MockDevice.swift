@@ -13,31 +13,20 @@ import SpeziDevices
 
 
 #if DEBUG
-final class MockDevice: PairableDevice, Identifiable {
-    @DeviceState(\.id)
-    var id
-    @DeviceState(\.name)
-    var name
-    @DeviceState(\.state)
-    var state
-    @DeviceState(\.advertisementData)
-    var advertisementData
-    @DeviceState(\.discarded)
-    var discarded
+final class MockDevice: PairableDevice, Identifiable {    
+    @DeviceState(\.id) var id
+    @DeviceState(\.name) var name
+    @DeviceState(\.state) var state
+    @DeviceState(\.advertisementData) var advertisementData
+    @DeviceState(\.discarded) var discarded
 
-    @DeviceAction(\.connect)
-    var connect
-    @DeviceAction(\.disconnect)
-    var disconnect
+    @DeviceAction(\.connect) var connect
+    @DeviceAction(\.disconnect) var disconnect
 
 
-    @Service
-    var deviceInformation = DeviceInformationService()
+    @Service var deviceInformation = DeviceInformationService()
 
-    // TODO: swiftlint thingy!
-    // swiftlint:disable:next identifier_name
-    @MainActor var _pairingContinuation: CheckedContinuation<Void, Error>?
-
+    let pairing = PairingContinuation()
     var isInPairingMode = false // TODO: control
 
     // TODO: mandatory setup?

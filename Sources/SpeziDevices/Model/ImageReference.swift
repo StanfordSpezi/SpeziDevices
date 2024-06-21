@@ -9,13 +9,19 @@
 import SwiftUI
 
 
+/// Reference an Image Resource.
 public enum ImageReference { // TODO: SpeziViews candidate!
+    /// Provides the system name for an image.
     case system(String)
+    /// Reference an image from the asset catalog of a bundle.
     case asset(String, bundle: Bundle? = nil)
 }
 
 
 extension ImageReference {
+    /// Retrieve Image.
+    ///
+    /// Returns nil if the image resource could not be located.
     public var image: Image? {
         switch self {
         case let .system(name):

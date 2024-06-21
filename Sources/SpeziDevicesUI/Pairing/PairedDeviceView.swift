@@ -12,11 +12,12 @@ import SwiftUI
 
 struct PairedDeviceView: View {
     private let device: any PairableDevice
+    private let appName: String
 
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        PaneContent(title: "Accessory Paired", subtitle: "\"\(device.label)\" was successfully paired with the ENGAGE app.") {
+        PaneContent(title: "Accessory Paired", subtitle: "\"\(device.label)\" was successfully paired with the \(appName) app.") {
             AccessoryImageView(device)
         } action: {
             Button {
@@ -31,8 +32,9 @@ struct PairedDeviceView: View {
     }
 
 
-    init(_ device: any PairableDevice) {
+    init(_ device: any PairableDevice, appName: String) {
         self.device = device
+        self.appName = appName
     }
 }
 
@@ -40,7 +42,7 @@ struct PairedDeviceView: View {
 #if DEBUG
 #Preview {
     SheetPreview {
-        PairedDeviceView(MockDevice.createMockDevice())
+        PairedDeviceView(MockDevice.createMockDevice(), appName: "Example")
     }
 }
 #endif

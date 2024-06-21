@@ -14,6 +14,7 @@ import SwiftUI
 import TipKit
 
 
+/// Grid view of paired devices.
 public struct DevicesGrid: View {
     @Binding private var devices: [PairedDeviceInfo]
     @Binding private var navigationPath: NavigationPath
@@ -73,7 +74,13 @@ public struct DevicesGrid: View {
     }
 
 
+    /// Create a new devices grid.
+    /// - Parameters:
+    ///   - devices: The list of paired devices to display.
+    ///   - navigation: Binding for the navigation path.
+    ///   - presentingDevicePairing: Binding to indicate if the device discovery menu should be presented.
     public init(devices: Binding<[PairedDeviceInfo]>, navigation: Binding<NavigationPath>, presentingDevicePairing: Binding<Bool>) {
+        // TODO: This Interface is probably not great for public interface
         self._devices = devices
         self._navigationPath = navigation
         self._presentingDevicePairing = presentingDevicePairing

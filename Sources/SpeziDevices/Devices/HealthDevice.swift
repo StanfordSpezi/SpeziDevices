@@ -6,10 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import BluetoothServices
-import SpeziBluetooth
+import HealthKit
 
 
-public protocol BatteryPoweredDevice: BluetoothDevice {
-    var battery: BatteryService { get }
-}
+/// A generic Bluetooth Health device.
+public protocol HealthDevice: GenericDevice {}

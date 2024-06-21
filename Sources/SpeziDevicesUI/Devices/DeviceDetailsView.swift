@@ -11,6 +11,7 @@ import SpeziViews
 import SwiftUI
 
 
+/// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(DeviceManager.self) private var deviceManager
@@ -106,6 +107,8 @@ public struct DeviceDetailsView: View {
     }
 
 
+    /// Create a new device details view.
+    /// - Parameter deviceInfo: The device info of the paired device.
     public init(_ deviceInfo: Binding<PairedDeviceInfo>) {
         self._deviceInfo = deviceInfo
     }

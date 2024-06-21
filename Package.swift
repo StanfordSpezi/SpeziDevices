@@ -30,6 +30,7 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.4.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
@@ -41,6 +42,7 @@ let package = Package(
         .target(
             name: "SpeziDevices",
             dependencies: [
+                .product(name: "OrderedCollections", package: "swift-collections"),
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "BluetoothServices", package: "SpeziBluetooth"),
