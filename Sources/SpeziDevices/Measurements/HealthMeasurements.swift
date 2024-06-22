@@ -17,7 +17,7 @@ import SpeziBluetooth
 public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
-    public private(set) var newMeasurement: ProcessedHealthMeasurement? // TODO: support array of new measurements?
+    public var newMeasurement: ProcessedHealthMeasurement? // TODO: support array of new measurements? (item binding needs write access :/)
 
     @StandardActor @ObservationIgnored private var standard: any HealthMeasurementsConstraint
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
