@@ -20,7 +20,7 @@ public final class PairingContinuation {
     /// Create a new pairing continuation management object.
     public init() {}
 
-    func pairingSession<T>(_ action: () async throws -> T) async throws -> T {
+    func withPairingSession<T>(_ action: () async throws -> T) async throws -> T {
         try lock.withLock {
             guard !isInSession else {
                 throw DevicePairingError.busy
@@ -40,11 +40,12 @@ public final class PairingContinuation {
     }
 
     func assign(continuation: CheckedContinuation<Void, Error>) {
-        if lock.try() {
-            lock.unlock()
-            preconditionFailure("Tried to assign continuation outside of calling pairingSession(_:)")
+        lock.withLock {
+            guard isInSession else {
+                preconditionFailure("Tried to assign continuation outside of calling withPairingSession(_:)")
+            }
+            self.pairingContinuation = continuation
         }
-        self.pairingContinuation = continuation
     }
 
     private func resumePairingContinuation(with result: Result<Void, Error>) {

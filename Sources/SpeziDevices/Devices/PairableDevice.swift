@@ -97,7 +97,7 @@ extension PairableDevice {
         }
 
 
-        try await pairing.pairingSession {
+        try await pairing.withPairingSession {
             await connect()
 
             async let _ = withTimeout(of: .seconds(15)) {
