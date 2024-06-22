@@ -14,7 +14,7 @@ import SpeziDevices
 import SwiftUI
 
 
-struct MeasurementRecordedView: View { // TODO: Sheet!
+public struct MeasurementRecordedSheet: View {
     private let measurement: ProcessedHealthMeasurement
 
     @Environment(HealthMeasurements.self) private var measurements
@@ -38,7 +38,7 @@ struct MeasurementRecordedView: View { // TODO: Sheet!
     }
 
 
-    var body: some View {
+    public var body: some View {
         NavigationStack {
             VStack {
                 MeasurementLayer(measurement: measurement)
@@ -60,7 +60,7 @@ struct MeasurementRecordedView: View { // TODO: Sheet!
     }
 
 
-    init(measurement: ProcessedHealthMeasurement) {
+    public init(measurement: ProcessedHealthMeasurement) { // TODO: docs!
         self.measurement = measurement
     }
 }
@@ -70,7 +70,7 @@ struct MeasurementRecordedView: View { // TODO: Sheet!
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedView(measurement: .weight(.mockWeighSample))
+            MeasurementRecordedSheet(measurement: .weight(.mockWeighSample))
         }
         .previewWith(standard: TestMeasurementStandard()) {
             HealthMeasurements()
@@ -80,7 +80,7 @@ struct MeasurementRecordedView: View { // TODO: Sheet!
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedView(measurement: .bloodPressure(.mockBloodPressureSample, heartRate: .mockHeartRateSample))
+            MeasurementRecordedSheet(measurement: .bloodPressure(.mockBloodPressureSample, heartRate: .mockHeartRateSample))
         }
         .previewWith(standard: TestMeasurementStandard()) {
             HealthMeasurements()
