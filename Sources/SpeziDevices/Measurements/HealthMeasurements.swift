@@ -10,10 +10,6 @@ import Foundation
 import OSLog
 import Spezi
 import SpeziBluetooth
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
 
 
 /// Manage and process incoming health measurements.
@@ -21,7 +17,7 @@ import SpeziDevices
 public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
-    var newMeasurement: ProcessedHealthMeasurement?
+    public private(set) var newMeasurement: ProcessedHealthMeasurement? // TODO: support array of new measurements?
 
     @StandardActor @ObservationIgnored private var standard: any HealthMeasurementsConstraint
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
