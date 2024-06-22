@@ -12,15 +12,11 @@ import SpeziBluetooth
 import SpeziBluetoothServices
 import SwiftUI
 
-// TODO: Start SpeziDevices generalization
 // TODO: Finish SpeziBluetooth refactoring and cleanup "persistent devices"
 // TODO: dark mode device images
-// TODO: ask for more Omron infos? secret sauce?
-
-// TODO: move deviceManager to SpeziBluetooth (and measurement manager?)
 
 @Observable
-public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable {
+public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable { // TODO: "PairedDevices" rename?
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var presentingDevicePairing = false // TODO: "should" naming
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]

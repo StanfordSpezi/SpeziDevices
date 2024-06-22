@@ -7,6 +7,9 @@
 //
 
 import SpeziBluetooth
+#if DEBUG
+@_spi(TestingSupport)
+#endif
 import SpeziDevices
 import SpeziViews
 import SwiftUI

@@ -14,7 +14,7 @@ import SpeziBluetoothServices
 /// A generic Bluetooth device.
 ///
 /// A generic Bluetooth device that provides access to basic device information.
-public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral {
+public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable {
     /// The device identifier.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to

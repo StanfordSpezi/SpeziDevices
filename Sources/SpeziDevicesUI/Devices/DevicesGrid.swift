@@ -108,7 +108,7 @@ extension Binding: Hashable, Equatable where Value: Hashable {
     }
         .onAppear {
             Tips.showAllTipsForTesting()
-            try? Tips.configure()
+            try? Tips.configure() // TODO: use ConfigureTipKit Module
         }
         .previewWith {
             DeviceManager()
@@ -126,7 +126,7 @@ extension Binding: Hashable, Equatable where Value: Hashable {
     }
         .onAppear {
             Tips.showAllTipsForTesting()
-            try? Tips.configure()
+            try? Tips.configure() // TODO: use ConfigureTipKit Module
         }
         .previewWith {
             DeviceManager()

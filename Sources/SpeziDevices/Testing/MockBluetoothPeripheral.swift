@@ -7,18 +7,21 @@
 //
 
 import SpeziBluetooth
-import SpeziDevices
 
 
+#if DEBUG || TEST
 /// Mock peripheral used for internal previews.
-struct MockBluetoothPeripheral: GenericBluetoothPeripheral {
-    var label: String
-    var state: PeripheralState
-    var requiresUserAttention: Bool
+@_spi(TestingSupport)
+public struct MockBluetoothPeripheral: GenericBluetoothPeripheral {
+    public let label: String
+    public let state: PeripheralState
+    public let requiresUserAttention: Bool
 
-    init(label: String, state: PeripheralState, requiresUserAttention: Bool = false) {
+
+    public init(label: String, state: PeripheralState, requiresUserAttention: Bool = false) {
         self.label = label
         self.state = state
         self.requiresUserAttention = requiresUserAttention
     }
 }
+#endif

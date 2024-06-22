@@ -21,6 +21,19 @@
         }
       }
     },
+    "%lld BPM" : {
+
+    },
+    "%lld/%lld mmHg" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld mmHg"
+          }
+        }
+      }
+    },
     "Accessory Paired" : {
       "localizations" : {
         "en" : {
@@ -131,6 +144,9 @@
         }
       }
     },
+    "Close" : {
+      "comment" : "For closing sheets."
+    },
     "Connected" : {
       "localizations" : {
         "en" : {
@@ -170,6 +186,9 @@
           }
         }
       }
+    },
+    "Discard" : {
+
     },
     "Disconnecting" : {
       "localizations" : {
@@ -291,6 +310,9 @@
         }
       }
     },
+    "Invalid Sample" : {
+
+    },
     "Make sure to to remove the device from the Bluetooth settings to fully unpair the device." : {
       "localizations" : {
         "en" : {
@@ -300,6 +322,9 @@
           }
         }
       }
+    },
+    "Measurement Recorded" : {
+
     },
     "Model" : {
       "localizations" : {
@@ -430,6 +455,9 @@
           }
         }
       }
+    },
+    "Save" : {
+
     },
     "Synchronizing ..." : {
       "localizations" : {
