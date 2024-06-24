@@ -16,22 +16,25 @@ public struct DevicesTab: View {
     private let appName: String
 
     @Environment(Bluetooth.self) private var bluetooth
-    @Environment(DeviceManager.self) private var deviceManager
+    @Environment(PairedDevices.self) private var pairedDevices
 
     @State private var path = NavigationPath() // TODO: can we remove that? if so, might want to remove the NavigationStack from view!
 
     public var body: some View {
-        @Bindable var deviceManager = deviceManager
+        @Bindable var pairedDevices = pairedDevices
 
         NavigationStack(path: $path) { // TODO: not really reusable because of the navigation stack!!!
-            DevicesGrid(devices: $deviceManager.pairedDevices, navigation: $path, presentingDevicePairing: $deviceManager.presentingDevicePairing)
-                .scanNearbyDevices(enabled: deviceManager.scanningNearbyDevices, with: bluetooth) // automatically search if no devices are paired
-                .sheet(isPresented: $deviceManager.presentingDevicePairing) {
-                    AccessorySetupSheet(deviceManager.discoveredDevices.values, appName: appName)
+            DevicesGrid(devices: $pairedDevices.pairedDevices, navigation: $path, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
+                // TODO: advertisementStaleInterval: 15
+                // automatically search if no devices are paired
+                .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
+                // TODO: automatic pop-up is a bit unexpected!
+                .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
+                    AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName)
                 }
                 .toolbar {
                     // indicate that we are scanning in the background
-                    if deviceManager.scanningNearbyDevices && !deviceManager.presentingDevicePairing {
+                    if pairedDevices.isScanningForNearbyDevices && !pairedDevices.shouldPresentDevicePairing {
                         ToolbarItem(placement: .cancellationAction) { // TODO: shall we do primary action (what about order then?)
                             ProgressView()
                         }
@@ -53,7 +56,7 @@ public struct DevicesTab: View {
     DevicesTab(appName: "Example")
         .previewWith {
             Bluetooth {}
-            DeviceManager()
+            PairedDevices()
         }
 }
 #endif

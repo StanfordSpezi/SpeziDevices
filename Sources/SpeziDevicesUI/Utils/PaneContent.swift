@@ -69,8 +69,8 @@ struct PaneContent<Title: View, Subtitle: View, Content: View, Action: View>: Vi
             action
         }
             .task {
-                try? await Task.sleep(for: .milliseconds(500))
-                isHeaderFocused = true // TODO: doesn't work too great?
+                try? await Task.sleep(for: .milliseconds(300))
+                isHeaderFocused = true
             }
     }
 

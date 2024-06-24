@@ -14,14 +14,15 @@ import SwiftUI
 
 
 @Observable
-public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitializable { // TODO: "PairedDevices" rename?
+public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitializable {
     /// Determines if the device discovery sheet should be presented.
-    @MainActor public var presentingDevicePairing = false // TODO: "should" naming
+    @MainActor public var shouldPresentDevicePairing = false
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
-    @MainActor @ObservationIgnored private var _pairedDevices: [PairedDeviceInfo] = [] // TODO: @AppStorage("pairedDevices")
 
     @MainActor private(set) var peripherals: [UUID: any PairableDevice] = [:]
 
+    // TODO: @AppStorage("pairedDevices") => we are missing the RawRepresentable extension from the TemplateApp!
+    @MainActor @ObservationIgnored private var _pairedDevices: [PairedDeviceInfo] = []
     @MainActor public var pairedDevices: [PairedDeviceInfo] {
         get {
             access(keyPath: \.pairedDevices)
@@ -35,8 +36,8 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
     }
 
 
-    @MainActor public var scanningNearbyDevices: Bool { // TODO: isScanningForNearby!
-        pairedDevices.isEmpty || presentingDevicePairing
+    @MainActor public var isScanningForNearbyDevices: Bool {
+        pairedDevices.isEmpty || shouldPresentDevicePairing
     }
 
     @Application(\.logger) @ObservationIgnored private var logger
@@ -54,34 +55,55 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
     public required init() {} // TODO: configure automatic search without devices paired!
 
     public func configure() {
-        guard let bluetooth else {
-            self.logger.warning("DeviceManager initialized without Bluetooth dependency!")
+        guard bluetooth != nil else {
+            self.logger.warning("PairedDevices Module initialized without Bluetooth dependency!")
             return // useful for e.g. previews
         }
 
-        // TODO: bit weird API wise!
-            // We need to detach to not copy task local values
+        // We need to detach to not copy task local values
         Task.detached { @MainActor in
-            // TODO: cancel all that if the last device is forgotten?
-            self.stateSubscriptionTask = Task.detached { [weak self] in
-                for await nextState in await bluetooth.stateSubscription {
-                    print("Bluetooth Module state is now \(nextState)")
-                    // TODO: asdasd, do something with that!
-                    // TODO: actually do something with that!
-                }
-            }
-
             guard !self.pairedDevices.isEmpty else {
                 return // no devices paired, no need to power up central
             }
-            // TODO: we need to redo this once bluetooth powers on?
-            // TODO: stateSubcription + powerOn() call!
 
-            await bluetooth.powerOn() // TODO: should we do that on first connected device?
-            if case .poweredOn = bluetooth.state {
-                await self.handleCentralPoweredOn()
+            await self.setupBluetoothStateSubscription()
+        }
+    }
+
+    // TODO: move to subscription handling extensions
+    @MainActor
+    private func setupBluetoothStateSubscription() async {
+        assert(!pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+
+        guard let bluetooth else {
+            return
+        }
+
+        // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
+        // such that we are notified about the bluetooth state changing.
+        await bluetooth.powerOn()
+
+        self.stateSubscriptionTask = Task.detached { [weak self] in
+            for await nextState in await bluetooth.stateSubscription {
+                guard let self else {
+                    return
+                }
+                await self.handleBluetoothStateChanged(nextState)
             }
         }
+
+        if case .poweredOn = bluetooth.state {
+            await self.handleCentralPoweredOn()
+        }
+    }
+
+    @MainActor
+    private func cancelSubscription() async {
+        assert(pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
+        assert(peripherals.isEmpty, "Peripherals were unexpectedly not empty.")
+
+        stateSubscriptionTask = nil
+        await bluetooth?.powerOff()
     }
 
     @MainActor
@@ -92,6 +114,33 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
     @MainActor
     public func isPaired<Device: PairableDevice>(_ device: Device) -> Bool {
         pairedDevices.contains { $0.id == device.id } // TODO: more efficient lookup!
+    }
+
+    /// Configure a device to be managed by this PairedDevices instance.
+    public func configure<Device: PairableDevice>( // TODO: docs code example, docs parameters
+        device: Device,
+        accessing state: DeviceStateAccessor<PeripheralState>,
+        _ advertisements: DeviceStateAccessor<AdvertisementData>,
+        _ nearby: DeviceStateAccessor<Bool>
+    ) {
+        state.onChange { [weak self, weak device] state in
+            if let device {
+                await self?.handleDeviceStateUpdated(device, state)
+            }
+        }
+        advertisements.onChange(initial: true) { [weak self, weak device] _ in
+            guard let device else {
+                return
+            }
+            if device.isInPairingMode {
+                await self?.nearbyPairableDevice(device)
+            }
+        }
+        nearby.onChange { [weak self, weak device] nearby in
+            if let device, !nearby {
+                await self?.handleDiscardedDevice(device)
+            }
+        }
     }
 
     @MainActor
@@ -108,7 +157,6 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
         pairedDevices[deviceInfoIndex].lastSeen = .now
 
         Task {
-            // TODO: log?
             await device.connect() // TODO: handle something about that?, reuse with configure method?
         }
     }
@@ -127,12 +175,12 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
         // TODO: previously we logged the manufacturer data!
 
         discoveredDevices[device.id] = device
-        presentingDevicePairing = true
+        shouldPresentDevicePairing = true
     }
 
 
     @MainActor
-    public func registerPairedDevice<Device: PairableDevice>(_ device: Device) async {
+    public func registerPairedDevice<Device: PairableDevice>(_ device: Device) async { // TODO: registerPaired(device:)?
         var batteryLevel: UInt8?
         if let batteryDevice = device as? any BatteryPoweredDevice {
             batteryLevel = batteryDevice.battery.batteryLevel
@@ -166,6 +214,10 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
         peripherals[device.id] = device
 
         self.logger.debug("Device \(device.label) with id \(device.id) is now paired!")
+
+        if stateSubscriptionTask == nil {
+            await setupBluetoothStateSubscription()
+        }
     }
 
     @MainActor
@@ -187,19 +239,34 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
                 await device.disconnect()
             }
         }
+
+        if pairedDevices.isEmpty {
+            Task {
+                await cancelSubscription()
+            }
+        }
         // TODO: make sure to remove them from discoveredDevices? => should happen automatically?
     }
 
     @MainActor
     public func updateBattery<Device: PairableDevice>(for device: Device, percentage: UInt8) {
+        // TODO: with new model we can register our own onChange listeners!
         guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
             return
         }
         pairedDevices[index].lastBatteryPercentage = percentage
     }
 
-    private func handleBluetoothStateChanged(_ state: BluetoothState) {
+    @MainActor
+    private func handleBluetoothStateChanged(_ state: BluetoothState) async {
+        logger.debug("Bluetooth Module state is now \(state)")
 
+        switch state {
+        case .poweredOn:
+            await handleCentralPoweredOn()
+        default:
+            peripherals.removeAll() // TODO: is that correct?
+        }
     }
 
     @MainActor
@@ -208,7 +275,9 @@ public final class DeviceManager: Module, EnvironmentAccessible, DefaultInitiali
             return
         }
 
-        // TODO: check powered on?
+        guard case .poweredOn = bluetooth.state else {
+            return
+        }
 
         // we just reuse the configured Bluetooth devices
         let configuredDevices = bluetooth.configuredPairableDevices

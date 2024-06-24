@@ -14,7 +14,7 @@ import SwiftUI
 public struct DeviceTile: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(DeviceManager.self) private var deviceManager
+    @Environment(PairedDevices.self) private var pairedDevices
 
     private var image: Image {
         deviceInfo.icon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image
@@ -32,7 +32,7 @@ public struct DeviceTile: View {
                     .frame(minWidth: 0, maxWidth: 100, minHeight: 0, maxHeight: 120, alignment: .topLeading)
                 Spacer()
 
-                if deviceManager.isConnected(device: deviceInfo.id) {
+                if pairedDevices.isConnected(device: deviceInfo.id) {
                     ProgressView()
                 }
             }
@@ -59,6 +59,7 @@ public struct DeviceTile: View {
             }
             .aspectRatio(1.0, contentMode: .fit) // explicit aspect ratio to ensure tile is always square
             .accessibilityElement(children: .combine)
+            .accessibilityRemoveTraits(.isImage) // otherwise Voice Over will try to read text recognized in the image
     }
 
     /// Create a new device tile view.
@@ -93,7 +94,7 @@ public struct DeviceTile: View {
         .frame(maxHeight: .infinity)
         .background(Color(uiColor: .systemGroupedBackground))
         .previewWith {
-            DeviceManager()
+            PairedDevices()
         }
 }
 #endif

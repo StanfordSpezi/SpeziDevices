@@ -14,7 +14,7 @@ import SwiftUI
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(DeviceManager.self) private var deviceManager
+    @Environment(PairedDevices.self) private var pairedDevices
 
     @Binding private var deviceInfo: PairedDeviceInfo
     @State private var presentForgetConfirmation = false
@@ -51,7 +51,7 @@ public struct DeviceDetailsView: View {
                     presentForgetConfirmation = true
                 }
             } footer: {
-                if deviceManager.isConnected(device: deviceInfo.id) {
+                if pairedDevices.isConnected(device: deviceInfo.id) {
                     Text("Synchronizing ...")
                 } else if lastSeenToday {
                     Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))")
@@ -66,13 +66,13 @@ public struct DeviceDetailsView: View {
                 Button("Forget Device", role: .destructive) {
                     // TODO: message to check for ConfigureTipKit dependency!
                     ForgetDeviceTip.hasRemovedPairedDevice = true
-                    deviceManager.forgetDevice(id: deviceInfo.id)
+                    pairedDevices.forgetDevice(id: deviceInfo.id)
                     dismiss()
                 }
                 Button("Cancel", role: .cancel) {}
             }
             .toolbar {
-                if deviceManager.isConnected(device: deviceInfo.id) {
+                if pairedDevices.isConnected(device: deviceInfo.id) {
                     ToolbarItem(placement: .primaryAction) {
                         ProgressView()
                     }
@@ -131,7 +131,7 @@ public struct DeviceDetailsView: View {
         ))
     }
         .previewWith {
-            DeviceManager()
+            PairedDevices()
         }
 }
 
@@ -150,7 +150,7 @@ public struct DeviceDetailsView: View {
         ))
     }
         .previewWith {
-            DeviceManager()
+            PairedDevices()
         }
 }
 #endif

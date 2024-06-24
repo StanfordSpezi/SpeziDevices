@@ -28,7 +28,7 @@ SPDX-License-Identifier: MIT
 
 ### Device Pairing
 
-- ``DeviceManager``
+- ``PairableDevices``
 - ``PairedDeviceInfo``
 - ``DevicePairingError``
 - ``PairingContinuation``

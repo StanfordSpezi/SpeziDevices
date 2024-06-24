@@ -18,7 +18,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
     private let appName: String
 
     @Environment(Bluetooth.self) private var bluetooth
-    @Environment(DeviceManager.self) private var deviceManager
+    @Environment(PairedDevices.self) private var pairedDevices
     @Environment(\.dismiss) private var dismiss
 
     @State private var pairingState: PairingViewState = .discovery
@@ -34,7 +34,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                 } else if !devices.isEmpty {
                     PairDeviceView(devices: devices, appName: appName, state: $pairingState) { device in
                         try await device.pair()
-                        await deviceManager.registerPairedDevice(device)
+                        await pairedDevices.registerPairedDevice(device)
                     }
                 } else {
                     DiscoveryView()
@@ -44,7 +44,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                     DismissButton()
                 }
         }
-            .scanNearbyDevices(with: bluetooth)
+            .scanNearbyDevices(with: bluetooth) // TODO: advertisementStaleInterval: 15
             .presentationDetents([.medium])
             .presentationCornerRadius(25)
             .interactiveDismissDisabled()
@@ -69,7 +69,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
         }
         .previewWith {
             Bluetooth {}
-            DeviceManager()
+            PairedDevices()
         }
 }
 
@@ -85,7 +85,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
         }
         .previewWith {
             Bluetooth {}
-            DeviceManager()
+            PairedDevices()
         }
 }
 
@@ -96,7 +96,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
         }
         .previewWith {
             Bluetooth {}
-            DeviceManager()
+            PairedDevices()
         }
 }
 #endif

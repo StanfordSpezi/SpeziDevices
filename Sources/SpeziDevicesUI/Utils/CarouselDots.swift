@@ -86,7 +86,7 @@ struct CarouselDots: View {
         let relativePosition = location.x
 
         let index = max(0, min(count - 1, Int(relativePosition / pointWidths)))
-        selectedIndex = index // TODO: this should not animate?
+        selectedIndex = index
     }
 }
 

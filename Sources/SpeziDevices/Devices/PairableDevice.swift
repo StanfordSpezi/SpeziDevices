@@ -62,7 +62,7 @@ public protocol PairableDevice: GenericDevice {
     ///     Particularly, you must call the ``PairingContinuation/signalPaired()`` and ``PairingContinuation/signalDisconnect()``
     ///     methods when appropriate.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
-    func pair() async throws
+    func pair() async throws // TODO: make a pair(with:) (passing the DevicePairings?) so the PairedDevicesx module manages the continuations?
 }
 
 
@@ -83,7 +83,7 @@ extension PairableDevice {
     /// It automatically connects to the device to start pairing. Pairing has a 15 second timeout by default. Pairing is considered successful once
     /// ``PairingContinuation/signalPaired()`` gets called. It is considered unsuccessful once ``PairingContinuation/signalDisconnect`` is called.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
-    public func pair() async throws {
+    public func pair() async throws { // TODO: just move the whole method to the PairedDevices thing!
         guard isInPairingMode else {
             throw DevicePairingError.notInPairingMode
         }
