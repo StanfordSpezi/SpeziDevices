@@ -6,8 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-
-
 import HealthKit
 import SpeziBluetoothServices
 

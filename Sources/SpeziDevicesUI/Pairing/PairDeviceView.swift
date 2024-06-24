@@ -7,10 +7,7 @@
 //
 
 import ACarousel
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SpeziViews
 import SwiftUI
 

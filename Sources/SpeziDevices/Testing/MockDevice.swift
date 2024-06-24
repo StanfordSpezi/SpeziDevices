@@ -19,7 +19,7 @@ public final class MockDevice: PairableDevice, HealthDevice {
     @DeviceState(\.name) public var name
     @DeviceState(\.state) public var state
     @DeviceState(\.advertisementData) public var advertisementData
-    @DeviceState(\.discarded) public var discarded
+    @DeviceState(\.nearby) public var nearby
 
     @DeviceAction(\.connect) public var connect
     @DeviceAction(\.disconnect) public var disconnect
@@ -40,6 +40,16 @@ public final class MockDevice: PairableDevice, HealthDevice {
 
 
 extension MockDevice {
+    /// Create a new Mock Device instance.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the device.
+    ///   - state: The initial peripheral state.
+    ///   - bloodPressureMeasurement:  The blood pressure measurement loaded into the device.
+    ///   - weightMeasurement: The weight measurement loaded into the device.
+    ///   - weightResolution: The weight resolution to use.
+    ///   - heightResolution: The height resolution to use.
+    /// - Returns: Returns the initialoued Mock Device.
     @_spi(TestingSupport)
     public static func createMockDevice(
         name: String = "Mock Device",
@@ -94,6 +104,17 @@ extension MockDevice {
 
 
 extension BloodPressureMeasurement {
+    /// Create a mock blood pressure measurement.
+    /// - Parameters:
+    ///   - systolic: The systolic value.
+    ///   - diastolic: The diastolic value.
+    ///   - meanArterialPressure: The mean arterial perssure.
+    ///   - unit: The unit.
+    ///   - timeStamp: The timestamp.
+    ///   - pulseRate: The pulse rate.
+    ///   - userId: The associated user id.
+    ///   - status: The measurement status.
+    /// - Returns:
     @_spi(TestingSupport)
     public static func mock(
         systolic: MedFloat16 = 103,
@@ -120,6 +141,14 @@ extension BloodPressureMeasurement {
 
 
 extension WeightMeasurement {
+    /// Create a mock weight measurement.
+    /// - Parameters:
+    ///   - weight: The weight value.
+    ///   - unit: The unit.
+    ///   - timeStamp: The timestamp.
+    ///   - userId: The associated user id.
+    ///   - additionalInfo: Additional measurement information like BMI and height.
+    /// - Returns:
     @_spi(TestingSupport)
     public static func mock(
         weight: UInt16 = 8400,

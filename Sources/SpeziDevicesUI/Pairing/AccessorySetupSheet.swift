@@ -7,10 +7,7 @@
 //
 
 import SpeziBluetooth
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -43,7 +40,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                     DiscoveryView()
                 }
             }
-                .toolbar { // TODO: where to put that?
+                .toolbar {
                     DismissButton()
                 }
         }
@@ -71,6 +68,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
             AccessorySetupSheet([MockDevice.createMockDevice()], appName: "Example")
         }
         .previewWith {
+            Bluetooth {}
             DeviceManager()
         }
 }
@@ -86,6 +84,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
             AccessorySetupSheet(devices, appName: "Example")
         }
         .previewWith {
+            Bluetooth {}
             DeviceManager()
         }
 }

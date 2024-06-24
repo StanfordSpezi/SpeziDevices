@@ -10,7 +10,8 @@ import SpeziBluetooth
 import SwiftUI
 
 
-public struct BluetoothUnavailableView: View { // TODO: missing docs on views!
+/// Informational view displaying the reason why Bluetooth is currently not available.
+public struct BluetoothUnavailableView: View {
     private let state: BluetoothState
 
     private var titleMessage: LocalizedStringResource? {
@@ -63,7 +64,7 @@ public struct BluetoothUnavailableView: View { // TODO: missing docs on views!
                 case .poweredOff, .unauthorized:
                     #if os(iOS) || os(visionOS) || os(tvOS)
                     Button(action: {
-                        if let url = URL(string: UIApplication.openSettingsURLString) { // TODO: this is wrong?
+                        if let url = URL(string: "App-Prefs:root=General") {
                             UIApplication.shared.open(url)
                         }
                     }) {
@@ -84,6 +85,8 @@ public struct BluetoothUnavailableView: View { // TODO: missing docs on views!
     }
 
 
+    /// Display Bluetooth Unavailable View based on the current Bluetooth State.
+    /// - Parameter state: The current Bluetooth state.
     public init(_ state: BluetoothState) {
         self.state = state
     }

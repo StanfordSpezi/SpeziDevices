@@ -7,38 +7,35 @@
 //
 
 import HealthKit
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SwiftUI
 
 
 struct MeasurementLayer: View {
-    private let measurement: ProcessedHealthMeasurement
+    private let measurement: HealthKitMeasurement
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(spacing: 15) {
             switch measurement {
-            case let .weight(sample):
-                WeightMeasurementLabel(sample)
+            case let .weight(sample, bmiSample, heightSample):
+                WeightMeasurementLabel(sample, bmi: bmiSample, height: heightSample)
             case let .bloodPressure(bloodPressure, heartRate):
                 BloodPressureMeasurementLabel(bloodPressure, heartRate: heartRate)
             }
-            
+            /*
             if dynamicTypeSize < .accessibility4 {
                 Text("Measurement Recorded")
                     .font(.title3)
                     .foregroundStyle(.secondary)
-            }
+            }*/
         }
             .multilineTextAlignment(.center)
     }
 
 
-    init(measurement: ProcessedHealthMeasurement) {
+    init(measurement: HealthKitMeasurement) {
         self.measurement = measurement
     }
 }
@@ -47,6 +44,10 @@ struct MeasurementLayer: View {
 #if DEBUG
 #Preview {
     MeasurementLayer(measurement: .weight(.mockWeighSample))
+}
+
+#Preview {
+    MeasurementLayer(measurement: .weight(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample))
 }
 
 #Preview {

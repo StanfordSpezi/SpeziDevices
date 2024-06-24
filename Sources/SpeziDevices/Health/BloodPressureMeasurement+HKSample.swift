@@ -12,6 +12,12 @@ import SpeziBluetoothServices
 
 
 extension BloodPressureMeasurement {
+    /// Convert the blood pressure measurement to the HealthKit representation.
+    ///
+    /// Converts the content of the blood pressure measurement to a `HKCorrelation`.
+    /// - Parameter device: The device information to reference with the `HKCorrelation`.
+    ///     You may use ``HealthDevice/hkDevice`` to retrieve the device information from a ``HealthDevice``.
+    /// - Returns: Returns the `HKCorrelation` with two samples for systolic and diastolic values. Returns `nil` if either of the blood pressure samples is non-finite.
     public func bloodPressureSample(source device: HKDevice?) -> HKCorrelation? {
         guard systolicValue.isFinite, diastolicValue.isFinite else {
             return nil
@@ -46,6 +52,12 @@ extension BloodPressureMeasurement {
 
 
 extension BloodPressureMeasurement {
+    /// Convert the heart rate measurement to the HealthKit representation.
+    ///
+    /// Converts the hear rate measurement of the blood pressure measurement to a `HKQuantitySample`.
+    /// - Parameter device: The device information to reference with the `HKQuantitySample`.
+    ///     You may use ``HealthDevice/hkDevice`` to retrieve the device information from a ``HealthDevice``.
+    /// - Returns: Returns the `HKQuantitySample` with the heart rate value. Returns `nil` if no pulse rate is present or contains a non-finite value.
     public func heartRateSample(source device: HKDevice?) -> HKQuantitySample? {
         guard let pulseRate, pulseRate.isFinite else {
             return nil
@@ -70,10 +82,9 @@ extension BloodPressureMeasurement {
 }
 
 
-#if DEBUG || TEST
 extension HKCorrelation {
-    @_spi(TestingSupport)
-    public static var mockBloodPressureSample: HKCorrelation {
+    /// Retrieve a mock blood pressure sample.
+    @_spi(TestingSupport) public static var mockBloodPressureSample: HKCorrelation {
         let measurement = BloodPressureMeasurement(systolic: 117, diastolic: 76, meanArterialPressure: 67, unit: .mmHg, pulseRate: 68)
         guard let sample = measurement.bloodPressureSample(source: nil) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")
@@ -83,8 +94,8 @@ extension HKCorrelation {
 }
 
 extension HKQuantitySample {
-    @_spi(TestingSupport)
-    public static var mockHeartRateSample: HKQuantitySample {
+    /// Retrieve a mock heart rate sample.
+    @_spi(TestingSupport) public static var mockHeartRateSample: HKQuantitySample {
         let measurement = BloodPressureMeasurement(systolic: 117, diastolic: 76, meanArterialPressure: 67, unit: .mmHg, pulseRate: 68)
         guard let sample = measurement.heartRateSample(source: nil) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")
@@ -92,4 +103,3 @@ extension HKQuantitySample {
         return sample
     }
 }
-#endif

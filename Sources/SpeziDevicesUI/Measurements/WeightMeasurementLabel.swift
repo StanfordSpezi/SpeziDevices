@@ -7,26 +7,53 @@
 //
 
 import HealthKit
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SwiftUI
 
 
 struct WeightMeasurementLabel: View {
     private let sample: HKQuantitySample
+    private let bmiSample: HKQuantitySample?
+    private let heightSample: HKQuantitySample?
 
     @ScaledMetric private var measurementTextSize: CGFloat = 60
 
+    private var additionalMeasurements: String? {
+        var string: String?
+        if let heightSample {
+            string = "\(Int(heightSample.quantity.doubleValue(for: .meterUnit(with: .centi)))) cm"
+        }
+
+        if let bmiSample {
+            string = (string.map { $0 + ",  " } ?? "")
+                + "\(Int(bmiSample.quantity.doubleValue(for: .count()))) BMI"
+        }
+
+        return string
+    }
+
     var body: some View {
-        Text(sample.quantity.description)
-            .font(.system(size: measurementTextSize, weight: .bold, design: .rounded))
+        VStack(spacing: 5) {
+            Text(sample.quantity.description)
+                .font(.system(size: measurementTextSize, weight: .bold, design: .rounded))
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let additionalMeasurements {
+                Text(additionalMeasurements)
+                    .accessibilityElement(children: .combine)
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 
 
-    init(_ sample: HKQuantitySample) {
+    init(_ sample: HKQuantitySample, bmi bmiSample: HKQuantitySample? = nil, height heightSample: HKQuantitySample? = nil) {
         self.sample = sample
+        self.bmiSample = bmiSample
+        self.heightSample = heightSample
     }
 }
 
@@ -34,5 +61,17 @@ struct WeightMeasurementLabel: View {
 #if DEBUG
 #Preview {
     WeightMeasurementLabel(.mockWeighSample)
+}
+
+#Preview {
+    WeightMeasurementLabel(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample)
+}
+
+#Preview {
+    WeightMeasurementLabel(.mockWeighSample, bmi: .mockBmiSample)
+}
+
+#Preview {
+    WeightMeasurementLabel(.mockWeighSample, height: .mockHeightSample)
 }
 #endif

@@ -6,61 +6,71 @@
 // SPDX-License-Identifier: MIT
 //
 
+@_spi(TestingSupport) import SpeziDevices
 import SpeziViews
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
 import SwiftUI
 
 
+/// A sheet view displaying a newly recorded measurement.
+///
+/// Make sure to pass the ``ProcessedHealthMeasurement`` from the ``HealthMeasurements/newMeasurement``.
 public struct MeasurementRecordedSheet: View {
-    private let measurement: ProcessedHealthMeasurement
+    private let measurement: HealthKitMeasurement
 
     @Environment(HealthMeasurements.self) private var measurements
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var viewState = ViewState.idle
 
+    @State private var dynamicDetent: PresentationDetent = .medium
 
-    private var dynamicDetents: PresentationDetent {
-        switch dynamicTypeSize {
-        case .xSmall, .small:
-            return .fraction(0.35)
-        case .medium, .large:
-            return .fraction(0.45)
-        case .xLarge, .xxLarge, .xxxLarge:
-            return .fraction(0.65)
-        case .accessibility1, .accessibility2, .accessibility3, .accessibility4, .accessibility5:
-            return .large
-        default:
-            return .fraction(0.45)
+    private var supportedTypeSize: ClosedRange<DynamicTypeSize> {
+        switch measurement {
+        case .weight:
+            DynamicTypeSize.xSmall...DynamicTypeSize.accessibility4
+        case .bloodPressure:
+            DynamicTypeSize.xSmall...DynamicTypeSize.accessibility3
         }
     }
 
-
     public var body: some View {
         NavigationStack {
-            VStack {
+            PaneContent {
+                Text("Measurement Recorded")
+                    .font(.title)
+                    .fixedSize(horizontal: false, vertical: true)
+            } content: {
                 MeasurementLayer(measurement: measurement)
-                Spacer()
+            } action: {
                 ConfirmMeasurementButton(viewState: $viewState) {
                     try await measurements.saveMeasurement()
                 }
             }
+                .background {
+                    GeometryReader { proxy in
+                        Color.clear
+                            .task {
+                                dynamicDetent = .height(proxy.size.height)
+                            }
+                    }
+                }
                 .viewStateAlert(state: $viewState)
                 .interactiveDismissDisabled(viewState != .idle)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        CloseButtonLayer(viewState: $viewState)
-                            .disabled(viewState != .idle)
-                    }
+                    DismissButton()
+                    /*ToolbarItem(placement: .cancellationAction) {
+                     CloseButtonLayer(viewState: $viewState)
+                     .disabled(viewState != .idle)
+                     }*/
                 }
+                .dynamicTypeSize(supportedTypeSize)
         }
-            .presentationDetents([dynamicDetents])
+        .presentationDetents([dynamicDetent])
     }
 
 
-    public init(measurement: ProcessedHealthMeasurement) { // TODO: docs!
+    /// Create a new measurement sheet.
+    /// - Parameter measurement: The processed measurement to display.
+    public init(measurement: HealthKitMeasurement) {
         self.measurement = measurement
     }
 }
@@ -71,6 +81,16 @@ public struct MeasurementRecordedSheet: View {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
             MeasurementRecordedSheet(measurement: .weight(.mockWeighSample))
+        }
+        .previewWith(standard: TestMeasurementStandard()) {
+            HealthMeasurements()
+        }
+}
+
+#Preview {
+    Text(verbatim: "")
+        .sheet(isPresented: .constant(true)) {
+            MeasurementRecordedSheet(measurement: .weight(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample))
         }
         .previewWith(standard: TestMeasurementStandard()) {
             HealthMeasurements()

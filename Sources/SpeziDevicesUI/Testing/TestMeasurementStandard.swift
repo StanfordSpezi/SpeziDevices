@@ -13,8 +13,8 @@ import SpeziDevices
 
 #if DEBUG || TEST
 actor TestMeasurementStandard: Standard, HealthMeasurementsConstraint {
-    func addMeasurement(sample: HKSample) async throws {
-        print("Adding sample \(sample)")
+    func addMeasurement(samples: [HKSample]) async throws {
+        print("Adding sample \(samples)")
     }
 }
 #endif

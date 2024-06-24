@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SwiftUI
 
 
@@ -61,7 +58,7 @@ public struct DeviceTile: View {
                     .foregroundStyle(Color(uiColor: .secondarySystemGroupedBackground))
             }
             .aspectRatio(1.0, contentMode: .fit) // explicit aspect ratio to ensure tile is always square
-            .accessibilityElement(children: .combine) // TODO: review accessibility!
+            .accessibilityElement(children: .combine)
     }
 
     /// Create a new device tile view.

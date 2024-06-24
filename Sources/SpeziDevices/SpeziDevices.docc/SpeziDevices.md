@@ -31,4 +31,13 @@ SPDX-License-Identifier: MIT
 - ``DeviceManager``
 - ``PairedDeviceInfo``
 - ``DevicePairingError``
+- ``PairingContinuation``
 - ``ImageReference``
+
+### Processing Measurements
+
+- ``HealthMeasurements``
+- ``HealthMeasurementsConstraint``
+- ``HealthMeasurement``
+- ``ProcessedHealthMeasurement``
+- <doc:HealthKit>

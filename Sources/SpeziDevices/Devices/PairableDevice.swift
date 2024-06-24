@@ -17,14 +17,14 @@ public protocol PairableDevice: GenericDevice {
     /// This is used to associate pairing information with the implementing device. By default, the type name is used.
     static var deviceTypeIdentifier: String { get }
 
-    /// Indicate that the device was discarded.
+    /// Indicate that the device is nearby.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to
     /// declare this property.
     /// ```swift
-    /// @DeviceState(\.discarded) var discarded
+    /// @DeviceState(\.nearby) var nearby
     /// ```
-    var discarded: Bool { get }
+    var nearby: Bool { get }
 
     /// Storage for pairing continuation.
     var pairing: PairingContinuation { get }
@@ -59,7 +59,7 @@ public protocol PairableDevice: GenericDevice {
     ///
     /// This method is implemented by default.
     /// - Important: In order to support the default implementation, you **must** interact with the ``PairingContinuation`` accordingly.
-    ///     Particularly, you must call the ``PairingContinuation/signalPaired()`` and ``PairingContinuation/signalDisconnect``
+    ///     Particularly, you must call the ``PairingContinuation/signalPaired()`` and ``PairingContinuation/signalDisconnect()``
     ///     methods when appropriate.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
     func pair() async throws
@@ -79,7 +79,7 @@ extension PairableDevice {
 extension PairableDevice {
     /// Default pairing implementation.
     ///
-    /// The default implementation verifies that the device ``isInPairingMode``, is currently disconnected and not ``discarded``.
+    /// The default implementation verifies that the device ``isInPairingMode``, is currently disconnected and ``nearby``.
     /// It automatically connects to the device to start pairing. Pairing has a 15 second timeout by default. Pairing is considered successful once
     /// ``PairingContinuation/signalPaired()`` gets called. It is considered unsuccessful once ``PairingContinuation/signalDisconnect`` is called.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
@@ -92,7 +92,7 @@ extension PairableDevice {
             throw DevicePairingError.invalidState
         }
 
-        guard !discarded else {
+        guard nearby else {
             throw DevicePairingError.invalidState
         }
 

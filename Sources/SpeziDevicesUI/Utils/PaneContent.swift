@@ -37,9 +37,9 @@ struct SheetPreview<Content: View>: View {
 #endif
 
 
-struct PaneContent<Content: View, Action: View>: View {
-    private let title: Text
-    private let subtitle: Text
+struct PaneContent<Title: View, Subtitle: View, Content: View, Action: View>: View {
+    private let title: Title
+    private let subtitle: Subtitle?
     private let content: Content
     private let action: Action
 
@@ -53,9 +53,11 @@ struct PaneContent<Content: View, Action: View>: View {
                     .font(.largeTitle)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($isHeaderFocused)
-                subtitle
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                if let subtitle {
+                    subtitle
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
                 .padding([.leading, .trailing], 20)
                 .multilineTextAlignment(.center)
@@ -72,7 +74,20 @@ struct PaneContent<Content: View, Action: View>: View {
             }
     }
 
-    init(title: Text, subtitle: Text, @ViewBuilder content: () -> Content, @ViewBuilder action: () -> Action = { EmptyView() }) {
+    init(
+        @ViewBuilder title: () -> Title,
+        @ViewBuilder subtitle: () -> Subtitle = { EmptyView() },
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder action: () -> Action = { EmptyView() }
+    ) {
+        self.title = title()
+        self.subtitle = subtitle()
+        self.content = content()
+        self.action = action()
+    }
+
+    init(title: Text, subtitle: Text? = nil, @ViewBuilder content: () -> Content, @ViewBuilder action: () -> Action = { EmptyView() })
+        where Title == Text, Subtitle == Text {
         self.title = title
         self.subtitle = subtitle
         self.content = content()
@@ -81,11 +96,11 @@ struct PaneContent<Content: View, Action: View>: View {
 
     init(
         title: LocalizedStringResource,
-        subtitle: LocalizedStringResource,
+        subtitle: LocalizedStringResource? = nil,
         @ViewBuilder content: () -> Content,
         @ViewBuilder action: () -> Action = { EmptyView() }
-    ) {
-        self.init(title: Text(title), subtitle: Text(subtitle), content: content, action: action)
+    ) where Title == Text, Subtitle == Text {
+        self.init(title: Text(title), subtitle: subtitle.map { Text($0) }, content: content, action: action)
     }
 }
 

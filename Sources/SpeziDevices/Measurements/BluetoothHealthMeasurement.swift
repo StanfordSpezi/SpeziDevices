@@ -9,7 +9,12 @@
 import SpeziBluetoothServices
 
 
-public enum HealthMeasurement {
+/// A measurement retrieved from a Bluetooth device.
+///
+/// Bluetooth Measurements are represented using standardized measurement characteristics.
+public enum BluetoothHealthMeasurement {
+    /// A weight measurement and its context.
     case weight(WeightMeasurement, WeightScaleFeature)
+    /// A blood pressure measurement and its context.
     case bloodPressure(BloodPressureMeasurement, BloodPressureFeature)
 }

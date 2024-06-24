@@ -14,7 +14,7 @@ import SpeziFoundation
 public enum DevicePairingError {
     /// Device is currently in an invalid state.
     ///
-    /// For example the device is not disconnected or the advertisement was already discarded.
+    /// For example the device is not disconnected or the advertisement was not nearby.
     case invalidState
     /// The device is busy.
     ///

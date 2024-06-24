@@ -7,10 +7,7 @@
 //
 
 import HealthKit
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SwiftUI
 
 
@@ -43,6 +40,7 @@ struct BloodPressureMeasurementLabel: View {
             VStack(spacing: 5) {
                 Text("\(Int(systolic.quantity.doubleValue(for: .millimeterOfMercury())))/\(Int(diastolic.quantity.doubleValue(for: .millimeterOfMercury()))) mmHg")
                     .font(.system(size: measurementTextSize, weight: .bold, design: .rounded))
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let heartRateSample {
                     Text("\(Int(heartRateSample.quantity.doubleValue(for: .count().unitDivided(by: .minute())))) BPM")

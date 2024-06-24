@@ -6,10 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if DEBUG
-@_spi(TestingSupport)
-#endif
-import SpeziDevices
+@_spi(TestingSupport) import SpeziDevices
 import SpeziValidation
 import SwiftUI
 

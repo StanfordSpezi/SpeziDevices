@@ -14,10 +14,13 @@ import SpeziBluetooth
 
 /// Manage and process incoming health measurements.
 @Observable
-public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {
+public class HealthMeasurements { // TODO: code example?
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
-    public var newMeasurement: ProcessedHealthMeasurement? // TODO: support array of new measurements? (item binding needs write access :/)
+    // TODO: measurement is just discarded if the sheet closes?
+    // TODO: support array of new measurements? (item binding needs write access :/) => carousel?
+    // TODO: support long term storage
+    public var newMeasurement: HealthKitMeasurement?
 
     @StandardActor @ObservationIgnored private var standard: any HealthMeasurementsConstraint
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
@@ -25,15 +28,17 @@ public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializ
     required public init() {}
 
     // TODO: rename!
-    public func handleNewMeasurement<Device: HealthDevice>(_ measurement: HealthMeasurement, from device: Device) {
+    public func handleNewMeasurement<Device: HealthDevice>(_ measurement: BluetoothHealthMeasurement, from device: Device) {
         let hkDevice = device.hkDevice
 
         switch measurement {
         case let .weight(measurement, feature):
-            let sample = measurement.quantitySample(source: hkDevice, resolution: feature.weightResolution)
-            logger.debug("Measurement loaded: \(measurement.weight)")
+            let sample = measurement.weightSample(source: hkDevice, resolution: feature.weightResolution)
+            let bmiSample = measurement.bmiSample(source: hkDevice)
+            let heightSample = measurement.heightSample(source: hkDevice, resolution: feature.heightResolution)
+            logger.debug("Measurement loaded: \(String(describing: measurement))")
 
-            newMeasurement = .weight(sample)
+            newMeasurement = .weight(sample, bmi: bmiSample, height: heightSample)
         case let .bloodPressure(measurement, _):
             let bloodPressureSample = measurement.bloodPressureSample(source: hkDevice)
             let heartRateSample = measurement.heartRateSample(source: hkDevice)
@@ -49,8 +54,7 @@ public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializ
         }
     }
 
-    // TODO: docs everywhere!
-
+    // TODO: make it closure based???? way better!
     public func saveMeasurement() async throws { // TODO: rename?
         if ProcessInfo.processInfo.isPreviewSimulator {
             try await Task.sleep(for: .seconds(5))
@@ -63,16 +67,9 @@ public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializ
         }
 
         logger.info("Saving the following measurement: \(String(describing: measurement))")
+
         do {
-            switch measurement {
-            case let .weight(sample):
-                try await standard.addMeasurement(sample: sample)
-            case let .bloodPressure(bloodPressureSample, heartRateSample):
-                try await standard.addMeasurement(sample: bloodPressureSample)
-                if let heartRateSample {
-                    try await standard.addMeasurement(sample: heartRateSample)
-                }
-            }
+            try await standard.addMeasurement(samples: measurement.samples)
         } catch {
             logger.error("Failed to save measurement samples: \(error)")
             throw error
@@ -82,6 +79,9 @@ public class HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializ
         newMeasurement = nil
     }
 }
+
+
+extension HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {}
 
 
 #if DEBUG || TEST

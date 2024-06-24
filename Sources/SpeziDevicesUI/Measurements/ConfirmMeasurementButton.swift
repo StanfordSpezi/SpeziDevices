@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-import SpeziViews
 import SpeziDevices
+import SpeziViews
 import SwiftUI
 
 
@@ -38,12 +38,13 @@ struct ConfirmMeasurementButton: View {
         VStack {
             AsyncButton(state: $viewState, action: confirm) {
                 Text("Save")
-                    .frame(maxWidth: .infinity, maxHeight: buttonHeight)
+                    .frame(maxWidth: .infinity, maxHeight: 35)
                     .font(.title2)
                     .bold()
             }
                .buttonStyle(.borderedProminent)
-            
+               .padding([.leading, .trailing], 36)
+
             DiscardButton(viewState: $viewState)
                 .padding(.top, 10)
         }

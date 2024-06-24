@@ -24,6 +24,9 @@
     "%lld BPM" : {
 
     },
+    "%lld cm" : {
+
+    },
     "%lld/%lld mmHg" : {
       "localizations" : {
         "en" : {
