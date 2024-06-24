@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import OSLog
 import SpeziBluetooth
 @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
@@ -14,6 +15,10 @@ import SwiftUI
 
 /// Accessory Setup view displayed in a sheet.
 public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
+    private static var logger: Logger {
+        Logger(subsystem: "edu.stanford.sepzi.SpeziDevices", category: "AccessorySetupSheet")
+    }
+
     private let devices: Collection
     private let appName: String
 
@@ -33,7 +38,12 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                     PairedDeviceView(device, appName: appName)
                 } else if !devices.isEmpty {
                     PairDeviceView(devices: devices, appName: appName, state: $pairingState) { device in
-                        try await device.pair()
+                        do {
+                            try await device.pair()
+                        } catch {
+                            Self.logger.error("Failed to pair device \(device.id), \(device.name ?? "unnamed"): \(error)")
+                            throw error
+                        }
                         await pairedDevices.registerPairedDevice(device)
                     }
                 } else {
@@ -44,7 +54,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                     DismissButton()
                 }
         }
-            .scanNearbyDevices(with: bluetooth) // TODO: advertisementStaleInterval: 15
+            .scanNearbyDevices(with: bluetooth, advertisementStaleInterval: 15) // TODO: advertisementStaleInterval: 15
             .presentationDetents([.medium])
             .presentationCornerRadius(25)
             .interactiveDismissDisabled()

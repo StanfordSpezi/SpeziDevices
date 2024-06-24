@@ -12,7 +12,6 @@ import PackageDescription
 
 // TODO: DOI in citation.cff
 
-let swiftLintPlugin: Target.PluginUsage = .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")
 
 let package = Package(
     name: "SpeziDevices",
@@ -32,7 +31,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.4.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", branch: "feature/configure-tipkit-module"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
         .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0")),
@@ -47,7 +46,7 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
-            plugins: [swiftLintPlugin]
+            plugins: [.swiftLintPlugin]
         ),
         .target(
             name: "SpeziDevicesUI",
@@ -61,7 +60,7 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            plugins: [swiftLintPlugin]
+            plugins: [.swiftLintPlugin]
         ),
         .target(
             name: "SpeziOmron",
@@ -70,7 +69,7 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
-            plugins: [swiftLintPlugin]
+            plugins: [.swiftLintPlugin]
         ),
         .testTarget(
             name: "SpeziOmronTests",
@@ -79,7 +78,14 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "XCTByteCoding", package: "SpeziNetworking")
             ],
-            plugins: [swiftLintPlugin]
+            plugins: [.swiftLintPlugin]
         )
     ]
 )
+
+
+extension Target.PluginUsage {
+    static var swiftLintPlugin: Target.PluginUsage {
+        .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")
+    }
+}

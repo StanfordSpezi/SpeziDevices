@@ -10,7 +10,7 @@ import SwiftUI
 import TipKit
 
 
-struct ForgetDeviceTip: Tip { // TODO: document that the user needs to set up tip kit? We could just create a Module for that?
+struct ForgetDeviceTip: Tip {
     static let instance = ForgetDeviceTip()
 
     @Parameter static var hasRemovedPairedDevice: Bool = false

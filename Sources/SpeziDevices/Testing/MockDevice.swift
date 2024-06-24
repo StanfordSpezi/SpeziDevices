@@ -32,9 +32,8 @@ public final class MockDevice: PairableDevice, HealthDevice {
     @Service public var weightScale = WeightScaleService()
 
     public let pairing = PairingContinuation()
-    public var isInPairingMode = false // TODO: control
+    public var isInPairingMode = false
 
-    // TODO: mandatory setup?
     public init() {}
 }
 
@@ -49,7 +48,7 @@ extension MockDevice {
     ///   - weightMeasurement: The weight measurement loaded into the device.
     ///   - weightResolution: The weight resolution to use.
     ///   - heightResolution: The height resolution to use.
-    /// - Returns: Returns the initialoued Mock Device.
+    /// - Returns: Returns the initialized Mock Device.
     @_spi(TestingSupport)
     public static func createMockDevice(
         name: String = "Mock Device",
@@ -85,17 +84,14 @@ extension MockDevice {
 
         device.$connect.inject { @MainActor [weak device] in
             device?.$state.inject(.connecting)
-            // TODO: await device?.handleStateChange(.connecting)
 
             try? await Task.sleep(for: .seconds(1))
 
             device?.$state.inject(.connected)
-            // TODO: await device?.handleStateChange(.connected)
         }
 
         device.$disconnect.inject { @MainActor [weak device] in
             device?.$state.inject(.disconnected)
-            // TODO: await device?.handleStateChange(.disconnected)
         }
 
         return device

@@ -13,9 +13,10 @@ import TipKit
 
 /// Grid view of paired devices.
 public struct DevicesGrid: View {
-    @Binding private var devices: [PairedDeviceInfo]
-    @Binding private var navigationPath: NavigationPath
+    private let devices: [PairedDeviceInfo]
     @Binding private var presentingDevicePairing: Bool
+
+    @State private var detailedDeviceInfo: PairedDeviceInfo?
 
 
     private var gridItems = [
@@ -29,7 +30,6 @@ public struct DevicesGrid: View {
             if devices.isEmpty {
                 ZStack {
                     VStack {
-                        // TODO: message to check for ConfigureTipKit dependency!
                         TipView(ForgetDeviceTip.instance)
                             .padding([.leading, .trailing], 20)
                         Spacer()
@@ -43,11 +43,11 @@ public struct DevicesGrid: View {
                             .tipBackground(Color(uiColor: .secondarySystemGroupedBackground))
 
                         LazyVGrid(columns: gridItems) {
-                            ForEach($devices) { device in
+                            ForEach(devices) { device in
                                 Button {
-                                    navigationPath.append(device)
+                                    detailedDeviceInfo = device
                                 } label: {
-                                    DeviceTile(device.wrappedValue)
+                                    DeviceTile(device)
                                 }
                                     .foregroundStyle(.primary)
                             }
@@ -59,8 +59,8 @@ public struct DevicesGrid: View {
             }
         }
             .navigationTitle("Devices")
-            .navigationDestination(for: Binding<PairedDeviceInfo>.self) { deviceInfo in
-                DeviceDetailsView(deviceInfo) // TODO: prevents updates :(
+            .navigationDestination(item: $detailedDeviceInfo) { deviceInfo in
+                DeviceDetailsView(deviceInfo)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -75,25 +75,10 @@ public struct DevicesGrid: View {
     /// Create a new devices grid.
     /// - Parameters:
     ///   - devices: The list of paired devices to display.
-    ///   - navigation: Binding for the navigation path.
     ///   - presentingDevicePairing: Binding to indicate if the device discovery menu should be presented.
-    public init(devices: Binding<[PairedDeviceInfo]>, navigation: Binding<NavigationPath>, presentingDevicePairing: Binding<Bool>) {
-        // TODO: This Interface is probably not great for public interface
-        self._devices = devices
-        self._navigationPath = navigation
+    public init(devices: [PairedDeviceInfo], presentingDevicePairing: Binding<Bool>) {
+        self.devices = devices
         self._presentingDevicePairing = presentingDevicePairing
-    }
-}
-
-
-// TODO: does that hurt? probably!!! we need to remove it anyways (for update issues)
-extension Binding: Hashable, Equatable where Value: Hashable {
-    public static func == (lhs: Binding<Value>, rhs: Binding<Value>) -> Bool {
-        lhs.wrappedValue == rhs.wrappedValue
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(wrappedValue)
     }
 }
 
@@ -101,12 +86,8 @@ extension Binding: Hashable, Equatable where Value: Hashable {
 #if DEBUG
 #Preview {
     NavigationStack {
-        DevicesGrid(devices: .constant([]), navigation: .constant(NavigationPath()), presentingDevicePairing: .constant(false))
+        DevicesGrid(devices: [], presentingDevicePairing: .constant(false))
     }
-        .onAppear {
-            Tips.showAllTipsForTesting()
-            try? Tips.configure() // TODO: use ConfigureTipKit Module
-        }
         .previewWith {
             PairedDevices()
         }
@@ -119,12 +100,8 @@ extension Binding: Hashable, Equatable where Value: Hashable {
     ]
 
     return NavigationStack {
-        DevicesGrid(devices: .constant(devices), navigation: .constant(NavigationPath()), presentingDevicePairing: .constant(false))
+        DevicesGrid(devices: devices, presentingDevicePairing: .constant(false))
     }
-        .onAppear {
-            Tips.showAllTipsForTesting()
-            try? Tips.configure() // TODO: use ConfigureTipKit Module
-        }
         .previewWith {
             PairedDevices()
         }

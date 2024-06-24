@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import HealthKit
 import OSLog
 import Spezi
 import SpeziBluetooth
@@ -14,6 +15,12 @@ import SpeziBluetoothServices
 
 
 /// Manage and process incoming health measurements.
+///
+/// ## Topics
+///
+/// ### Register Devices
+/// - ``configureReceivingMeasurements(for:on:)-8cbd0``
+/// - ``configureReceivingMeasurements(for:on:)-87sgc``
 @Observable
 public class HealthMeasurements { // TODO: code example?
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
@@ -26,41 +33,61 @@ public class HealthMeasurements { // TODO: code example?
     @StandardActor @ObservationIgnored private var standard: any HealthMeasurementsConstraint
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
 
-    required public init() {}
+    /// Initialize the Health Measurements Module.
+    public required init() {}
 
+    /// Configure receiving and processing weight measurements from the provided service.
+    ///
+    /// Configures the device's weight measurements to be processed by the Health Measurements module.
+    ///
+    /// - Parameters:
+    ///   - device: The device on which the service is present.
+    ///   - service: The Weight Scale service to register.
     public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: WeightScaleService) {
-        service.$weightMeasurement.onChange { [weak self, weak device, weak service] measurement in
-            guard let device, let service else {
-                return
-            }
-            self?.handleNewMeasurement(.weight(measurement, service.features ?? []), from: device)
-        }
-    }
-
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: BloodPressureService) {
-        service.$bloodPressureMeasurement.onChange { [weak self, weak device, weak service] measurement in
-            guard let device, let service else {
-                return
-            }
-            self?.handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: device)
-        }
-    }
-
-    // TODO: rename! make private?
-    public func handleNewMeasurement<Device: HealthDevice>(_ measurement: BluetoothHealthMeasurement, from device: Device) {
         let hkDevice = device.hkDevice
 
+        // make sure to not capture the device
+        service.$weightMeasurement.onChange { [weak self, weak service] measurement in
+            guard let self, let service else {
+                return
+            }
+            logger.debug("Received new weight measurement: \(String(describing: measurement))")
+            handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
+        }
+    }
+
+    /// Configure receiving and processing blood pressure measurements form the provided service.
+    ///
+    /// Configures the device's blood pressure measurements to be processed by the Health Measurements module.
+    ///
+    /// - Parameters:
+    ///   - device: The device on which the service is present.
+    ///   - service: The Blood Pressure service to register.
+    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: BloodPressureService) {
+        let hkDevice = device.hkDevice
+
+        // make sure to not capture the device
+        service.$bloodPressureMeasurement.onChange { [weak self, weak service] measurement in
+            guard let self, let service else {
+                return
+            }
+            logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
+            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
+        }
+    }
+
+    private func handleNewMeasurement(_ measurement: BluetoothHealthMeasurement, from source: HKDevice) {
         switch measurement {
         case let .weight(measurement, feature):
-            let sample = measurement.weightSample(source: hkDevice, resolution: feature.weightResolution)
-            let bmiSample = measurement.bmiSample(source: hkDevice)
-            let heightSample = measurement.heightSample(source: hkDevice, resolution: feature.heightResolution)
+            let sample = measurement.weightSample(source: source, resolution: feature.weightResolution)
+            let bmiSample = measurement.bmiSample(source: source)
+            let heightSample = measurement.heightSample(source: source, resolution: feature.heightResolution)
             logger.debug("Measurement loaded: \(String(describing: measurement))")
 
             newMeasurement = .weight(sample, bmi: bmiSample, height: heightSample)
         case let .bloodPressure(measurement, _):
-            let bloodPressureSample = measurement.bloodPressureSample(source: hkDevice)
-            let heartRateSample = measurement.heartRateSample(source: hkDevice)
+            let bloodPressureSample = measurement.bloodPressureSample(source: source)
+            let heartRateSample = measurement.heartRateSample(source: source)
 
             guard let bloodPressureSample else {
                 logger.debug("Discarding invalid blood pressure measurement ...")
@@ -116,7 +143,7 @@ extension HealthMeasurements {
             preconditionFailure("Mock Weight Measurement was never injected!")
         }
 
-        handleNewMeasurement(.weight(measurement, device.weightScale.features ?? []), from: device)
+        handleNewMeasurement(.weight(measurement, device.weightScale.features ?? []), from: device.hkDevice)
     }
 
     /// Call in preview simulator wrappers.
@@ -130,7 +157,7 @@ extension HealthMeasurements {
             preconditionFailure("Mock Blood Pressure Measurement was never injected!")
         }
 
-        handleNewMeasurement(.bloodPressure(measurement, device.bloodPressure.features ?? []), from: device)
+        handleNewMeasurement(.bloodPressure(measurement, device.bloodPressure.features ?? []), from: device.hkDevice)
     }
 }
 #endif

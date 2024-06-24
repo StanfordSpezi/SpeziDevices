@@ -12,9 +12,11 @@ import SwiftUI
 
 
 struct NameEditView: View {
+    private let deviceInfo: PairedDeviceInfo
+    private let save: (String) -> Void
+
     @Environment(\.dismiss) private var dismiss
 
-    @Binding private var deviceInfo: PairedDeviceInfo
     @State private var name: String
 
     @ValidationState private var validation
@@ -30,7 +32,7 @@ struct NameEditView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button("Done") {
-                    deviceInfo.name = name
+                    save(name)
                     dismiss()
                 }
                     .disabled(deviceInfo.name == name || !validation.allInputValid)
@@ -38,9 +40,10 @@ struct NameEditView: View {
     }
 
 
-    init(_ deviceInfo: Binding<PairedDeviceInfo>) {
-        self._deviceInfo = deviceInfo
-        self._name = State(wrappedValue: deviceInfo.wrappedValue.name)
+    init(_ deviceInfo: PairedDeviceInfo, save: @escaping (String) -> Void) {
+        self.deviceInfo = deviceInfo
+        self.save = save
+        self._name = State(wrappedValue: deviceInfo.name)
     }
 }
 
@@ -57,16 +60,16 @@ extension ValidationRule {
 #if DEBUG
 #Preview {
     NavigationStack {
-        NameEditView(.constant(
-            PairedDeviceInfo(
-                id: UUID(),
-                deviceType: MockDevice.deviceTypeIdentifier,
-                name: "Blood Pressure Monitor",
-                model: "BP5250",
-                icon: .asset("Omron-BP5250"),
-                batteryPercentage: 100
-            )
-        ))
+        NameEditView(PairedDeviceInfo(
+            id: UUID(),
+            deviceType: MockDevice.deviceTypeIdentifier,
+            name: "Blood Pressure Monitor",
+            model: "BP5250",
+            icon: .asset("Omron-BP5250"),
+            batteryPercentage: 100
+        )) { name in
+            print("New Name is \(name)")
+        }
     }
 }
 #endif

@@ -10,12 +10,8 @@ import Foundation
 
 
 /// Persistent information stored of a paired device.
-public struct PairedDeviceInfo {
-    // TODO: observablen => resolves UI update issue!
-    // TODO: update properties (model, lastSeen, battery) with Observation framework and not via explicit calls in the device class
-    //  => make some things have internal setters(?)
-    // TODO: additionalData: lastSequenceNumber: UInt16?, userDatabaseNumber: UInt32?, consentCode: UIntX
-
+@Observable
+public class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
     public let id: UUID
     /// The device type.
@@ -28,13 +24,14 @@ public struct PairedDeviceInfo {
     public let model: String?
 
     /// The user edit-able name of the device.
-    public var name: String
+    public internal(set) var name: String
     /// The date the device was last seen.
-    public var lastSeen: Date
+    public internal(set) var lastSeen: Date
     /// The last reported battery percentage of the device.
-    public var lastBatteryPercentage: UInt8?
+    public internal(set) var lastBatteryPercentage: UInt8?
 
     // TODO: how with codability? public var additionalData: [String: Any]
+    // TODO: additionalData: lastSequenceNumber: UInt16?, userDatabaseNumber: UInt32?, consentCode: UIntX
 
     /// Create new paired device information.
     /// - Parameters:
@@ -62,13 +59,59 @@ public struct PairedDeviceInfo {
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
     }
+
+    public required convenience init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        try self.init(
+            id: container.decode(UUID.self, forKey: .id),
+            deviceType: container.decode(String.self, forKey: .deviceType),
+            name: container.decode(String.self, forKey: .name),
+            model: container.decodeIfPresent(String.self, forKey: .name),
+            icon: container.decodeIfPresent(ImageReference.self, forKey: .icon),
+            lastSeen: container.decode(Date.self, forKey: .lastSeen),
+            batteryPercentage: container.decodeIfPresent(UInt8.self, forKey: .batteryPercentage)
+        )
+    }
 }
 
 
-extension PairedDeviceInfo: Identifiable, Codable {}
+extension PairedDeviceInfo: Identifiable, Codable {
+    fileprivate enum CodingKeys: String, CodingKey {
+        case id
+        case deviceType
+        case name
+        case model
+        case icon
+        case lastSeen
+        case batteryPercentage
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(id, forKey: .id)
+        try container.encode(deviceType, forKey: .deviceType)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(model, forKey: .model)
+        try container.encodeIfPresent(icon, forKey: .icon)
+        try container.encode(lastSeen, forKey: .lastSeen)
+        try container.encodeIfPresent(lastBatteryPercentage, forKey: .batteryPercentage)
+    }
+}
 
 
 extension PairedDeviceInfo: Hashable {
+    public static func == (lhs: PairedDeviceInfo, rhs: PairedDeviceInfo) -> Bool {
+        lhs.id == rhs.id
+            && lhs.deviceType == rhs.deviceType
+            && lhs.name == rhs.name
+            && lhs.model == rhs.model
+            && lhs.icon == rhs.icon
+            && lhs.lastSeen == rhs.lastSeen
+            && lhs.lastBatteryPercentage == rhs.lastBatteryPercentage
+    }
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }

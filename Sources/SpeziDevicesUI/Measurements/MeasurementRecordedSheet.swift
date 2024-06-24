@@ -38,7 +38,9 @@ public struct MeasurementRecordedSheet: View {
                 Text("Measurement Recorded")
                     .font(.title)
                     .fixedSize(horizontal: false, vertical: true)
+                // TODO: subtitle with the date of the measurement?
             } content: {
+                // TODO: caoursel!
                 MeasurementLayer(measurement: measurement)
             } action: {
                 ConfirmMeasurementButton(viewState: $viewState) {

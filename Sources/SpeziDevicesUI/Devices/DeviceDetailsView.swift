@@ -13,10 +13,11 @@ import SwiftUI
 
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
+    private let deviceInfo: PairedDeviceInfo
+
     @Environment(\.dismiss) private var dismiss
     @Environment(PairedDevices.self) private var pairedDevices
 
-    @Binding private var deviceInfo: PairedDeviceInfo
     @State private var presentForgetConfirmation = false
 
     private var image: Image {
@@ -64,7 +65,6 @@ public struct DeviceDetailsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
                 Button("Forget Device", role: .destructive) {
-                    // TODO: message to check for ConfigureTipKit dependency!
                     ForgetDeviceTip.hasRemovedPairedDevice = true
                     pairedDevices.forgetDevice(id: deviceInfo.id)
                     dismiss()
@@ -91,9 +91,11 @@ public struct DeviceDetailsView: View {
             .frame(maxWidth: .infinity)
     }
 
-    @ViewBuilder private var infoSection: some View {
+    @ViewBuilder @MainActor private var infoSection: some View {
         NavigationLink {
-            NameEditView($deviceInfo)
+            NameEditView(deviceInfo) { name in
+                pairedDevices.updateName(for: deviceInfo, name: name)
+            }
         } label: {
             ListRow("Name") {
                 Text(deviceInfo.name)
@@ -110,8 +112,8 @@ public struct DeviceDetailsView: View {
 
     /// Create a new device details view.
     /// - Parameter deviceInfo: The device info of the paired device.
-    public init(_ deviceInfo: Binding<PairedDeviceInfo>) {
-        self._deviceInfo = deviceInfo
+    public init(_ deviceInfo: PairedDeviceInfo) {
+        self.deviceInfo = deviceInfo
     }
 }
 
@@ -119,15 +121,13 @@ public struct DeviceDetailsView: View {
 #if DEBUG
 #Preview {
     NavigationStack {
-        DeviceDetailsView(.constant(
-            PairedDeviceInfo(
-                id: UUID(),
-                deviceType: MockDevice.deviceTypeIdentifier,
-                name: "Blood Pressure Monitor",
-                model: "BP5250",
-                icon: .asset("Omron-BP5250"),
-                batteryPercentage: 100
-            )
+        DeviceDetailsView(PairedDeviceInfo(
+            id: UUID(),
+            deviceType: MockDevice.deviceTypeIdentifier,
+            name: "Blood Pressure Monitor",
+            model: "BP5250",
+            icon: .asset("Omron-BP5250"),
+            batteryPercentage: 100
         ))
     }
         .previewWith {
@@ -137,16 +137,14 @@ public struct DeviceDetailsView: View {
 
 #Preview {
     NavigationStack {
-        DeviceDetailsView(.constant(
-            PairedDeviceInfo(
-                id: UUID(),
-                deviceType: MockDevice.deviceTypeIdentifier,
-                name: "Weight Scale",
-                model: "SC-150",
-                icon: .asset("Omron-SC-150"),
-                lastSeen: .now.addingTimeInterval(-60 * 60 * 24),
-                batteryPercentage: 85
-            )
+        DeviceDetailsView(PairedDeviceInfo(
+            id: UUID(),
+            deviceType: MockDevice.deviceTypeIdentifier,
+            name: "Weight Scale",
+            model: "SC-150",
+            icon: .asset("Omron-SC-150"),
+            lastSeen: .now.addingTimeInterval(-60 * 60 * 24),
+            batteryPercentage: 85
         ))
     }
         .previewWith {

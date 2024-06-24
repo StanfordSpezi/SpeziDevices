@@ -28,7 +28,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
         guard selectedDeviceIndex < devices.count else {
             return nil
         }
-        let index = devices.index(devices.startIndex, offsetBy: selectedDeviceIndex) // TODO: compare that against end index?
+        let index = devices.index(devices.startIndex, offsetBy: selectedDeviceIndex)
         return devices[index]
     }
 
@@ -63,7 +63,6 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                     try await pairClosure(selectedDevice)
                     pairingState = .paired(selectedDevice)
                 } catch {
-                    print(error) // TODO: logger?
                     pairingState = .error(AnyLocalizedError(error: error))
                 }
             } label: {
