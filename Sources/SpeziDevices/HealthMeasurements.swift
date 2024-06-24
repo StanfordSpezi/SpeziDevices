@@ -10,6 +10,7 @@ import Foundation
 import OSLog
 import Spezi
 import SpeziBluetooth
+import SpeziBluetoothServices
 
 
 /// Manage and process incoming health measurements.
@@ -27,7 +28,25 @@ public class HealthMeasurements { // TODO: code example?
 
     required public init() {}
 
-    // TODO: rename!
+    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: WeightScaleService) {
+        service.$weightMeasurement.onChange { [weak self, weak device, weak service] measurement in
+            guard let device, let service else {
+                return
+            }
+            self?.handleNewMeasurement(.weight(measurement, service.features ?? []), from: device)
+        }
+    }
+
+    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: BloodPressureService) {
+        service.$bloodPressureMeasurement.onChange { [weak self, weak device, weak service] measurement in
+            guard let device, let service else {
+                return
+            }
+            self?.handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: device)
+        }
+    }
+
+    // TODO: rename! make private?
     public func handleNewMeasurement<Device: HealthDevice>(_ measurement: BluetoothHealthMeasurement, from device: Device) {
         let hkDevice = device.hkDevice
 
