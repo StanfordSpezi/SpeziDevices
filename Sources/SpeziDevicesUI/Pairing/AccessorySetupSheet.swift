@@ -31,7 +31,6 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
     public var body: some View {
         NavigationStack {
             VStack {
-                // TODO: make ONE PaneContent? => animation of image transfer?
                 if case let .error(error) = pairingState {
                     PairingFailureView(error)
                 } else if case let .paired(device) = pairingState {

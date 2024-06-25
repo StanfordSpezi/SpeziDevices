@@ -52,6 +52,10 @@ import SwiftUI
 ///     func configure() {
 ///         pairedDevices?.configure(device: self, accessing: $state, $advertisementData, $nearby)
 ///     }
+///
+///     func handleSuccessfulPairing() { // called on events where a device can be considered paired (e.g., incoming notifications)
+///         pairedDevices?.signalDevicePaired(self)
+///     }
 /// }
 /// ```
 ///
@@ -335,26 +339,22 @@ extension PairedDevices: Module, EnvironmentAccessible, DefaultInitializable {}
 // MARK: - Device Pairing
 
 extension PairedDevices {
-    /// Start pairing procedure with the device.
+    /// Pair with a recently discovered device.
     ///
     /// This method pairs with a currently advertising Bluetooth device.
-    /// - Note: The ``isInPairingMode`` property determines if the device is currently pairable.
+    /// - Note: The ``PairableDevice/isInPairingMode`` property determines if the device is currently pairable.
     ///
-    /// This method is implemented by default.
-    /// - Important: In order to support the default implementation, you **must** interact with the ``PairingContinuation`` accordingly.
-    ///     Particularly, you must call the ``PairingContinuation/signalPaired()`` and ``PairingContinuation/signalDisconnect()``
-    ///     methods when appropriate.
+    /// The implementation verifies that the device is ``PairableDevice/isInPairingMode``, is currently disconnected and ``PairableDevice/nearby``.
+    /// It automatically connects to the device to start pairing. Pairing has a 15 second timeout by default.
+    /// Pairing is considered successful once ``signalDevicePaired(_:)`` is called by the device. It is considered unsuccessful if the device
+    /// disconnects prior to this call.
+    /// - Important: A successful pairing cannot be determined automatically and is specific to a device. You must manually call
+    ///     ``signalDevicePaired(_:)`` to signal that a device is successfully paired (e.g., every time the device sends a notification for
+    ///     a given characteristic).
+    /// - Parameter device: The device to pair with this module.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
     @MainActor
     public func pair(with device: some PairableDevice) async throws {
-        // TODO: update docs
-
-        /// Default pairing implementation.
-        ///
-        /// The default implementation verifies that the device ``isInPairingMode``, is currently disconnected and ``nearby``.
-        /// It automatically connects to the device to start pairing. Pairing has a 15 second timeout by default. Pairing is considered successful once
-        /// ``PairingContinuation/signalPaired()`` gets called. It is considered unsuccessful once ``PairingContinuation/signalDisconnect`` is called.
-        /// - Throws: Throws a ``DevicePairingError`` if not successful.
         guard ongoingPairings[device.id] == nil else {
             throw DevicePairingError.busy
         }
@@ -393,6 +393,11 @@ extension PairedDevices {
         await registerPairedDevice(device)
     }
 
+    /// Signal that a device is considered paired.
+    ///
+    /// You call this method from your device implementation on events that indicate that the device was successfully paired.
+    /// - Note: This method does nothing if there is currently no ongoing pairing session for a device.
+    /// - Parameter device: The device that can be considered paired and might have an ongoing pairing session.
     @MainActor
     public func signalDevicePaired(_ device: some PairableDevice) {
         guard let continuation = ongoingPairings.removeValue(forKey: device.id) else {
@@ -563,9 +568,6 @@ extension PairedDevices {
         guard let device else {
             self.logger.warning("Device \(deviceInfo.id) \(deviceInfo.name) could not be retrieved!")
             deviceInfo.notLocatable = true
-            // TODO: no need to flush, no need to store? flush()
-            // TODO: once spezi bluetooth works (waiting for connected), this is an indication that the device was unpaired???? => we know it is powered on!
-            //  => automatically remove that pairing?
             return
         }
 

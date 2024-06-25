@@ -15,7 +15,7 @@ struct NameEditView: View {
     private let deviceInfo: PairedDeviceInfo
     private let save: (String) -> Void
 
-    // TODO: @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) private var dismiss
 
     @State private var name: String
 
@@ -33,7 +33,7 @@ struct NameEditView: View {
             .toolbar {
                 Button("Done") {
                     save(name)
-                    // TODO: dismiss()
+                    dismiss()
                 }
                     .disabled(deviceInfo.name == name || !validation.allInputValid)
             }
@@ -41,10 +41,9 @@ struct NameEditView: View {
 
 
     init(_ deviceInfo: PairedDeviceInfo, save: @escaping (String) -> Void) {
-        let name = deviceInfo.name
         self.deviceInfo = deviceInfo
         self.save = save
-        self._name = State(wrappedValue: name)
+        self._name = State(wrappedValue: deviceInfo.name)
     }
 }
 

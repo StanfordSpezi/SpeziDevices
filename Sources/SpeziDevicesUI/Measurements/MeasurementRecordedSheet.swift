@@ -64,7 +64,7 @@ public struct MeasurementRecordedSheet: View {
                             .font(.title)
                             .fixedSize(horizontal: false, vertical: true)
                     } subtitle: {
-                        EmptyView() // TODO: do we have date information?
+                        EmptyView()
                     } content: {
                         content
                     } action: {

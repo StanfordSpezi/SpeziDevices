@@ -31,9 +31,21 @@ public final class MockDevice: PairableDevice, HealthDevice {
     @Service public var bloodPressure = BloodPressureService()
     @Service public var weightScale = WeightScaleService()
 
-    public var isInPairingMode = true
+    @Dependency private var pairedDevices: PairedDevices?
+
+    public var isInPairingMode: Bool = true
 
     public init() {}
+
+
+    fileprivate func handleStateChange(_ state: PeripheralState) {
+        if case .connected = state {
+            Task { @MainActor in
+                try await Task.sleep(for: .seconds(2))
+                pairedDevices?.signalDevicePaired(self)
+            }
+        }
+    }
 }
 
 
@@ -52,6 +64,7 @@ extension MockDevice {
     public static func createMockDevice(
         name: String = "Mock Device",
         state: PeripheralState = .disconnected,
+        nearby: Bool = true,
         bloodPressureMeasurement: BloodPressureMeasurement = .mock(),
         weightMeasurement: WeightMeasurement = .mock(),
         weightResolution: WeightScaleFeature.WeightResolution = .resolution5g,
@@ -67,6 +80,7 @@ extension MockDevice {
         device.$id.inject(UUID())
         device.$name.inject(name)
         device.$state.inject(state)
+        device.$nearby.inject(nearby)
 
         device.bloodPressure.$features.inject([
             .bodyMovementDetectionSupported,
@@ -82,15 +96,24 @@ extension MockDevice {
         device.weightScale.$weightMeasurement.inject(weightMeasurement)
 
         device.$connect.inject { @MainActor [weak device] in
-            device?.$state.inject(.connecting)
+            guard let device else {
+                return
+            }
+            device.$state.inject(.connecting)
+            device.handleStateChange(.connecting)
 
             try? await Task.sleep(for: .seconds(1))
 
-            device?.$state.inject(.connected)
+            device.$state.inject(.connected)
+            device.handleStateChange(.connected)
         }
 
         device.$disconnect.inject { @MainActor [weak device] in
-            device?.$state.inject(.disconnected)
+            guard let device else {
+                return
+            }
+            device.$state.inject(.disconnected)
+            device.handleStateChange(.connected)
         }
 
         return device
