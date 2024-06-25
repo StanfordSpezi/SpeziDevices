@@ -25,8 +25,7 @@ public struct DevicesTab: View {
 
         DevicesGrid(devices: pairedDevices.pairedDevices, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
             // automatically search if no devices are paired
-            .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth, advertisementStaleInterval: 15)
-            // TODO: advertisementStaleInterval: 15
+            .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
                 AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName)
             }

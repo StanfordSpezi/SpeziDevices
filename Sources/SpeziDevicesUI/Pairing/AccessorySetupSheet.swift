@@ -53,7 +53,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                     DismissButton()
                 }
         }
-            .scanNearbyDevices(with: bluetooth, advertisementStaleInterval: 15) // TODO: advertisementStaleInterval: 15
+            .scanNearbyDevices(with: bluetooth)
             .presentationDetents([.medium])
             .presentationCornerRadius(25)
             .interactiveDismissDisabled()

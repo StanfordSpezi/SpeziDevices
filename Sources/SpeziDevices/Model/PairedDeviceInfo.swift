@@ -29,6 +29,7 @@ public class PairedDeviceInfo {
     public internal(set) var lastSeen: Date
     /// The last reported battery percentage of the device.
     public internal(set) var lastBatteryPercentage: UInt8?
+    public internal(set) var notLocatable: Bool = false // TODO: update name // TODO: docs
 
     /// Create new paired device information.
     /// - Parameters:

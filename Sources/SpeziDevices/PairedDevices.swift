@@ -393,7 +393,8 @@ extension PairedDevices {
         await registerPairedDevice(device)
     }
 
-    @MainActor public func signalDevicePaired(_ device: some PairableDevice) {
+    @MainActor
+    public func signalDevicePaired(_ device: some PairableDevice) {
         guard let continuation = ongoingPairings.removeValue(forKey: device.id) else {
             return
         }
@@ -560,9 +561,11 @@ extension PairedDevices {
         let device = await deviceType.retrieveDevice(from: bluetooth, with: deviceInfo.id)
 
         guard let device else {
+            self.logger.warning("Device \(deviceInfo.id) \(deviceInfo.name) could not be retrieved!")
+            deviceInfo.notLocatable = true
+            // TODO: no need to flush, no need to store? flush()
             // TODO: once spezi bluetooth works (waiting for connected), this is an indication that the device was unpaired???? => we know it is powered on!
             //  => automatically remove that pairing?
-            self.logger.warning("Device \(deviceInfo.id) \(deviceInfo.name) could not be retrieved!")
             return
         }
 
