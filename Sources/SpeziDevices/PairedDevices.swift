@@ -390,6 +390,10 @@ extension PairedDevices {
         await registerPairedDevice(device)
     }
 
+    @MainActor public func signalDevicePaired(_ device: some PairableDevice) {
+        ongoingPairings.removeValue(forKey: device.id)?.signalPaired()
+    }
+
     @MainActor
     private func registerPairedDevice<Device: PairableDevice>(_ device: Device) async {
         everPairedDevice = true
