@@ -48,6 +48,6 @@ jobs:
     needs: [packageios, ios]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziDevices-iOS.xcresult SpeziDevices-visionOS.xcresult TestApp-iOS.xcresult TestApp-iPadOS.xcresult TestApp-visionOS.xcresult
+      coveragereports: SpeziDevices-iOS.xcresult TestApp-iOS.xcresult
     secrets:
       token: ${{ secrets.CODECOV_TOKEN }}
