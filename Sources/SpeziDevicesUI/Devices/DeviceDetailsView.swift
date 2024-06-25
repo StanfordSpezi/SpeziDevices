@@ -34,9 +34,7 @@ public struct DeviceDetailsView: View {
                 imageHeader
             }
 
-            Section {
-                infoSection
-            }
+            DeviceInfoSection(deviceInfo: deviceInfo)
 
             if let percentage = deviceInfo.lastBatteryPercentage {
                 Section {
@@ -89,24 +87,6 @@ public struct DeviceDetailsView: View {
                 .accessibilityHidden(true)
         }
             .frame(maxWidth: .infinity)
-    }
-
-    @ViewBuilder @MainActor private var infoSection: some View {
-        NavigationLink {
-            NameEditView(deviceInfo) { name in
-                pairedDevices.updateName(for: deviceInfo, name: name)
-            }
-        } label: {
-            ListRow("Name") {
-                Text(deviceInfo.name)
-            }
-        }
-
-        if let model = deviceInfo.model, model != deviceInfo.name {
-            ListRow("Model") {
-                Text(model)
-            }
-        }
     }
 
 
