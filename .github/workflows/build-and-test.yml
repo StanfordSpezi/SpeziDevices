@@ -30,7 +30,7 @@ jobs:
     with:
       runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziDevices-Package
-      destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
+      destination: 'platform=visionOS Simulator'
       resultBundle: SpeziDevices-visionOS.xcresult
       artifactname: SpeziDevices-visionOS.xcresult
   ios:
@@ -42,16 +42,6 @@ jobs:
       scheme: TestApp
       resultBundle: TestApp-iOS.xcresult
       artifactname: TestApp-iOS.xcresult
-  ipados:
-    name: Build and Test iPadOS
-    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestApp
-      destination: 'platform=iOS Simulator,name=iPad Air (5th generation)'
-      resultBundle: TestApp-iPadOS.xcresult
-      artifactname: TestApp-iPadOS.xcresult
   visionos:
     name: Build and Test visionOS
     uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -59,7 +49,7 @@ jobs:
       runsonlabels: '["macOS", "self-hosted"]'
       path: 'Tests/UITests'
       scheme: TestApp
-      destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
+      destination: 'platform=visionOS Simulator'
       resultBundle: TestApp-visionOS.xcresult
       artifactname: TestApp-visionOS.xcresult
   codeql:

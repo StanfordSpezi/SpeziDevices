@@ -10,8 +10,6 @@
 
 import PackageDescription
 
-// TODO: DOI in citation.cff
-
 
 let package = Package(
     name: "SpeziDevices",
