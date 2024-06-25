@@ -44,7 +44,8 @@ let package = Package(
                 .product(name: "OrderedCollections", package: "swift-collections"),
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
+                .product(name: "SpeziViews", package: "SpeziViews")
             ],
             plugins: [.swiftLintPlugin]
         ),
@@ -68,6 +69,13 @@ let package = Package(
                 .target(name: "SpeziDevices"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
+            ],
+            plugins: [.swiftLintPlugin]
+        ),
+        .testTarget(
+            name: "SpeziDevicesTests",
+            dependencies: [
+                .target(name: "SpeziDevices")
             ],
             plugins: [.swiftLintPlugin]
         ),

@@ -6,35 +6,123 @@
 // SPDX-License-Identifier: MIT
 //
 
-import Foundation
 import HealthKit
 import OSLog
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
+import SwiftUI
 
 
-/// Manage and process incoming health measurements.
+/// Manage and process health measurements from nearby Bluetooth Peripherals.
+///
+/// Use the `HealthMeasurements` module to collect health measurements from nearby Bluetooth Peripherals like connected weight scales or
+/// blood pressure cuffs.
+/// - Note: Implement your device as a [`BluetoothDevice`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetoothdevice)
+///     using [SpeziBluetooth](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth).
+///
+/// To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
+/// One your device is loaded, register its measurement service with the `HealthMeasurements` module
+/// by calling a suitable variant of `configureReceivingMeasurements(for:on:)`.
+///
+/// ```swift
+/// import SpeziDevices
+///
+/// class MyDevice: HealthDevice {
+///     @Service var deviceInformation = DeviceInformationService()
+///     @Service var weightScale = WeightScaleService()
+///
+///     @Dependency private var measurements: HealthMeasurements?
+///
+///     required init() {}
+///
+///     func configure() {
+///         measurements?.configureReceivingMeasurements(for: self, on: weightScale)
+///     }
+/// }
+/// ```
+///
+/// To display new measurements to the user and save them to your external data store, you can use ``MeasurementRecordedSheet``.
+/// Below is a short code example.
+///
+/// ```swift
+/// import SpeziDevices
+/// import SpeziDevicesUI
+///
+/// struct MyHomeView: View {
+///     @Environment(HealthMeasurements.self) private var measurements
+///
+///     var body: some View {
+///         ContentView()
+///             .sheet(isPresented: $measurements.shouldPresentMeasurements) {
+///                 MeasurementRecordedSheet { measurement in
+///                     // handle saving the measurement
+///                 }
+///             }
+///     }
+/// }
+/// ```
+///
+/// - Important: Don't forget to configure the `HealthMeasurements` module in
+///     your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate)
 ///
 /// ## Topics
+///
+/// ### Configuring Health Measurements
+/// - ``init()``
+/// - ``init(_:)``
 ///
 /// ### Register Devices
 /// - ``configureReceivingMeasurements(for:on:)-8cbd0``
 /// - ``configureReceivingMeasurements(for:on:)-87sgc``
+///
+/// ### Processing Measurements
+/// - ``shouldPresentMeasurements``
+/// - ``pendingMeasurements``
+/// - ``discardMeasurement(_:)``
 @Observable
-public class HealthMeasurements { // TODO: code example?
+public class HealthMeasurements {
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
-    // TODO: measurement is just discarded if the sheet closes?
-    // TODO: support array of new measurements? (item binding needs write access :/) => carousel?
-    // TODO: support long term storage
-    public var newMeasurement: HealthKitMeasurement?
+    /// Determine if UI components displaying pending measurements should be displayed.
+    @MainActor public var shouldPresentMeasurements = false
+    /// The current queue of pending measurements.
+    ///
+    /// To clear pending measurements call ``discardMeasurement(_:)``.
+    @MainActor public private(set) var pendingMeasurements: [HealthKitMeasurement] = []
+    @MainActor @AppStorage @ObservationIgnored private var storedMeasurements: SavableDictionary<UUID, StoredMeasurement>
 
-    @StandardActor @ObservationIgnored private var standard: any HealthMeasurementsConstraint
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
 
     /// Initialize the Health Measurements Module.
-    public required init() {}
+    public required convenience init() {
+        self.init("edu.stanford.spezi.SpeziDevices.HealthMeasurements.measurements-default")
+    }
+
+    /// Initialize the Health Measurements Module with custom storage key.
+    /// - Parameter storageKey: The storage key for pending measurements.
+    public init(_ storageKey: String) {
+        self._storedMeasurements = AppStorage(wrappedValue: [:], storageKey)
+    }
+
+    /// Initialize the Health Measurements Module with mock measurements.
+    /// - Parameter measurements: The list of measurements to inject.
+    @_spi(TestingSupport)
+    @MainActor
+    public convenience init(mock measurements: [HealthKitMeasurement]) {
+        self.init()
+        self.pendingMeasurements = measurements
+    }
+
+    /// Configure the Module.
+    @_documentation(visibility: internal)
+    public func configure() {
+        Task.detached { @MainActor in
+            for measurement in self.storedMeasurements.values {
+                self.loadMeasurement(measurement.measurement, form: measurement.device)
+            }
+        }
+    }
 
     /// Configure receiving and processing weight measurements from the provided service.
     ///
@@ -52,7 +140,7 @@ public class HealthMeasurements { // TODO: code example?
                 return
             }
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
+            await handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
         }
     }
 
@@ -72,11 +160,20 @@ public class HealthMeasurements { // TODO: code example?
                 return
             }
             logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
+            await handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
         }
     }
 
+    @MainActor
     private func handleNewMeasurement(_ measurement: BluetoothHealthMeasurement, from source: HKDevice) {
+        loadMeasurement(measurement, form: source)
+
+        shouldPresentMeasurements = true
+    }
+
+    @MainActor
+    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) {
+        let healthKitMeasurement: HealthKitMeasurement
         switch measurement {
         case let .weight(measurement, feature):
             let sample = measurement.weightSample(source: source, resolution: feature.weightResolution)
@@ -84,7 +181,7 @@ public class HealthMeasurements { // TODO: code example?
             let heightSample = measurement.heightSample(source: source, resolution: feature.heightResolution)
             logger.debug("Measurement loaded: \(String(describing: measurement))")
 
-            newMeasurement = .weight(sample, bmi: bmiSample, height: heightSample)
+            healthKitMeasurement = .weight(sample, bmi: bmiSample, height: heightSample)
         case let .bloodPressure(measurement, _):
             let bloodPressureSample = measurement.bloodPressureSample(source: source)
             let heartRateSample = measurement.heartRateSample(source: source)
@@ -96,33 +193,30 @@ public class HealthMeasurements { // TODO: code example?
 
             logger.debug("Measurement loaded: \(String(describing: measurement))")
 
-            newMeasurement = .bloodPressure(bloodPressureSample, heartRate: heartRateSample)
+            healthKitMeasurement = .bloodPressure(bloodPressureSample, heartRate: heartRateSample)
         }
+
+        // prepend to pending measurements
+        pendingMeasurements.insert(healthKitMeasurement, at: 0)
+        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
     }
 
-    // TODO: make it closure based???? way better!
-    public func saveMeasurement() async throws { // TODO: rename?
-        if ProcessInfo.processInfo.isPreviewSimulator {
-            try await Task.sleep(for: .seconds(5))
-            return
-        }
-        
-        guard let measurement = self.newMeasurement else {
-            logger.error("Attempting to save a nil measurement.")
-            return
-        }
+    /// Discard a pending measurement.
+    ///
+    /// Measurements are discarded if they are no longer of interest. Either because the users discarded the measurements contents or
+    /// if the measurement was processed otherwise (e.g., saved to an external data store).
 
-        logger.info("Saving the following measurement: \(String(describing: measurement))")
-
-        do {
-            try await standard.addMeasurement(samples: measurement.samples)
-        } catch {
-            logger.error("Failed to save measurement samples: \(error)")
-            throw error
+    /// - Parameter measurement: The pending measurement to discard.
+    /// - Returns: Returns `true` if the measurement was in the array of pending measurement, `false` if nothing was discarded.
+    @MainActor
+    @discardableResult
+    public func discardMeasurement(_ measurement: HealthKitMeasurement) -> Bool {
+        guard let index = self.pendingMeasurements.firstIndex(where: { $0.id == measurement.id }) else {
+            return false
         }
-
-        logger.info("Save successful!")
-        newMeasurement = nil
+        let element = self.pendingMeasurements.remove(at: index)
+        storedMeasurements[element.id] = nil
+        return true
     }
 }
 
@@ -136,6 +230,7 @@ extension HealthMeasurements {
     ///
     /// Loads a mock measurement to display in preview.
     @_spi(TestingSupport)
+    @MainActor
     public func loadMockWeightMeasurement() {
         let device = MockDevice.createMockDevice()
 
@@ -150,6 +245,7 @@ extension HealthMeasurements {
     ///
     /// Loads a mock measurement to display in preview.
     @_spi(TestingSupport)
+    @MainActor
     public func loadMockBloodPressureMeasurement() {
         let device = MockDevice.createMockDevice()
 

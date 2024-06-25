@@ -31,8 +31,7 @@ public final class MockDevice: PairableDevice, HealthDevice {
     @Service public var bloodPressure = BloodPressureService()
     @Service public var weightScale = WeightScaleService()
 
-    public let pairing = PairingContinuation()
-    public var isInPairingMode = false
+    public var isInPairingMode = true
 
     public init() {}
 }

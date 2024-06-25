@@ -18,26 +18,25 @@ SPDX-License-Identifier: MIT
 
 ## Topics
 
+### Device Pairing
+
+- ``PairedDevices``
+- ``PairedDeviceInfo``
+- ``DevicePairingError``
+- ``PairingContinuation``
+- ``ImageReference``
+
 ### Devices
 
 - ``GenericBluetoothPeripheral``
 - ``GenericDevice``
 - ``BatteryPoweredDevice``
 - ``PairableDevice``
-- ``HealthDevice``
-
-### Device Pairing
-
-- ``PairableDevices``
-- ``PairedDeviceInfo``
-- ``DevicePairingError``
-- ``PairingContinuation``
-- ``ImageReference``
 
 ### Processing Measurements
 
 - ``HealthMeasurements``
-- ``HealthMeasurementsConstraint``
-- ``HealthMeasurement``
-- ``ProcessedHealthMeasurement``
+- ``HealthDevice``
+- ``BluetoothHealthMeasurement``
 - <doc:HealthKit>
+- ``HealthKitMeasurement``

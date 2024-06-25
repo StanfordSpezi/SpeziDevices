@@ -18,6 +18,9 @@ public enum HealthKitMeasurement {
 }
 
 
+extension HealthKitMeasurement: Hashable {}
+
+
 extension HealthKitMeasurement {
     /// The collection of HealthKit samples contained in the measurement.
     public var samples: [HKSample] {

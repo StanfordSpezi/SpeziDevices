@@ -39,12 +39,11 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                 } else if !devices.isEmpty {
                     PairDeviceView(devices: devices, appName: appName, state: $pairingState) { device in
                         do {
-                            try await device.pair()
+                            try await pairedDevices.pair(with: device)
                         } catch {
                             Self.logger.error("Failed to pair device \(device.id), \(device.name ?? "unnamed"): \(error)")
                             throw error
                         }
-                        await pairedDevices.registerPairedDevice(device)
                     }
                 } else {
                     DiscoveryView()

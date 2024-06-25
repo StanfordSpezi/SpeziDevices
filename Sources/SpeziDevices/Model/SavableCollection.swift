@@ -10,7 +10,7 @@ import OSLog
 
 
 struct SavableCollection<Element: Codable> {
-    private let storage: [Element]
+    private var storage: [Element]
 
     var values: [Element] {
         storage
@@ -44,6 +44,21 @@ extension SavableCollection: RandomAccessCollection {
 extension SavableCollection: ExpressibleByArrayLiteral {
     init(arrayLiteral elements: Element...) {
         self.init(elements)
+    }
+}
+
+
+extension SavableCollection: RangeReplaceableCollection {
+    public init() {
+        self.init([])
+    }
+
+    public mutating func replaceSubrange<C: Collection<Element>>(_ subrange: Range<Int>, with newElements: C) {
+        storage.replaceSubrange(subrange, with: newElements)
+    }
+
+    public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
+        try storage.removeAll(where: shouldBeRemoved)
     }
 }
 

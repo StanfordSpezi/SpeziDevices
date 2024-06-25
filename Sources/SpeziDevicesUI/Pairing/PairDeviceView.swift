@@ -42,7 +42,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                 ACarousel(devices, id: \.id, index: $selectedDeviceIndex, spacing: 0, headspace: 0) { device in
                     AccessoryImageView(device)
                 }
-                .frame(maxHeight: 150)
+                    .frame(maxHeight: 150)
                 CarouselDots(count: devices.count, selectedIndex: $selectedDeviceIndex)
             } else if let device = devices.first {
                 AccessoryImageView(device)

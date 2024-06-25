@@ -359,6 +359,9 @@
         }
       }
     },
+    "No Pending Measurements" : {
+
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -481,6 +484,9 @@
           }
         }
       }
+    },
+    "There are currently no pending measurements. Conduct a measurement with a paired device while nearby." : {
+
     },
     "This device was last seen at %@" : {
       "localizations" : {

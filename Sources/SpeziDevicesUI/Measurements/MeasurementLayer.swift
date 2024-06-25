@@ -14,8 +14,6 @@ import SwiftUI
 struct MeasurementLayer: View {
     private let measurement: HealthKitMeasurement
 
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
     var body: some View {
         VStack(spacing: 15) {
             switch measurement {
@@ -24,13 +22,8 @@ struct MeasurementLayer: View {
             case let .bloodPressure(bloodPressure, heartRate):
                 BloodPressureMeasurementLabel(bloodPressure, heartRate: heartRate)
             }
-            /*
-            if dynamicTypeSize < .accessibility4 {
-                Text("Measurement Recorded")
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-            }*/
         }
+            .accessibilityElement(children: .combine)
             .multilineTextAlignment(.center)
     }
 

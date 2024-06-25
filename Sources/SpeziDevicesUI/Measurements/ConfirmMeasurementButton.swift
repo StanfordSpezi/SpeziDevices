@@ -12,24 +12,29 @@ import SwiftUI
 
 
 struct DiscardButton: View {
-    @Environment(\.dismiss) var dismiss
+    private let discard: () -> Void
+
     @Binding var viewState: ViewState
     
     
     var body: some View {
-        Button {
-            dismiss()
-        } label: {
+        Button(action: discard) {
             Text("Discard")
                 .foregroundStyle(viewState == .idle ? Color.red : Color.gray)
         }
             .disabled(viewState != .idle)
+    }
+
+    init(viewState: Binding<ViewState>, discard: @escaping () -> Void) {
+        self._viewState = viewState
+        self.discard = discard
     }
 }
 
 
 struct ConfirmMeasurementButton: View {
     private let confirm: () async throws -> Void
+    private let discard: () -> Void
 
     @ScaledMetric private var buttonHeight: CGFloat = 38
     @Binding var viewState: ViewState
@@ -45,15 +50,16 @@ struct ConfirmMeasurementButton: View {
                .buttonStyle(.borderedProminent)
                .padding([.leading, .trailing], 36)
 
-            DiscardButton(viewState: $viewState)
-                .padding(.top, 10)
+            DiscardButton(viewState: $viewState, discard: discard)
+                .padding(.top, 8)
         }
             .padding()
     }
 
-    init(viewState: Binding<ViewState>, confirm: @escaping () async throws -> Void) {
+    init(viewState: Binding<ViewState>, confirm: @escaping () async throws -> Void, discard: @escaping () -> Void) {
         self._viewState = viewState
         self.confirm = confirm
+        self.discard = discard
     }
 }
 
@@ -62,6 +68,8 @@ struct ConfirmMeasurementButton: View {
 #Preview {
     ConfirmMeasurementButton(viewState: .constant(.idle)) {
         print("Save")
+    } discard: {
+        print("Discarded")
     }
 }
 #endif

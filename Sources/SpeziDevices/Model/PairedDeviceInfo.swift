@@ -30,9 +30,6 @@ public class PairedDeviceInfo {
     /// The last reported battery percentage of the device.
     public internal(set) var lastBatteryPercentage: UInt8?
 
-    // TODO: how with codability? public var additionalData: [String: Any]
-    // TODO: additionalData: lastSequenceNumber: UInt16?, userDatabaseNumber: UInt32?, consentCode: UIntX
-
     /// Create new paired device information.
     /// - Parameters:
     ///   - id: The CoreBluetooth device identifier
@@ -60,6 +57,7 @@ public class PairedDeviceInfo {
         self.lastBatteryPercentage = batteryPercentage
     }
 
+    /// Initialize from decoder.
     public required convenience init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 

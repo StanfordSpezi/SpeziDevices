@@ -10,19 +10,88 @@ import OrderedCollections
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
+import SpeziFoundation
 import SpeziViews
 import SwiftUI
 
 
+/// Persistently pair with Bluetooth devices and automatically manage connections.
+///
+/// Use the `PairedDevices` module to discover and pair ``PairedDevices`` and automatically manage connection establishment
+/// of connected devices.
+/// - Note: Implement your device as a [`BluetoothDevice`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetoothdevice)
+///     using [SpeziBluetooth](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth).
+///
+/// To support `PairedDevices`, you need to adopt the ``PairedDevices`` protocol for your device.
+/// Optionally you can adopt ``BatteryPoweredDevice`` if your device supports the `BatteryService`.
+/// Once your device is loaded, register it with the `PairedDevices` module by calling the ``configure(device:accessing:_:_:)`` method.
+///
+/// ```swift
+/// import SpeziDevices
+///
+/// class MyDevice: PairableDevice {
+///     @DeviceState(\.id) var id
+///     @DeviceState(\.name) var name
+///     @DeviceState(\.state) var state
+///     @DeviceState(\.advertisementData) var advertisementData
+///     @DeviceState(\.nearby) var nearby
+///
+///     @Service var deviceInformation = DeviceInformationService()
+///
+///     @DeviceAction(\.connect) var connect
+///     @DeviceAction(\.disconnect) var disconnect
+///
+///     var isInPairingMode: Bool {
+///         // determine if a nearby device is in pairing mode
+///     }
+///
+///     @Dependency private var pairedDevices: PairedDevices?
+///
+///     required init() {}
+///
+///     func configure() {
+///         pairedDevices?.configure(device: self, accessing: $state, $advertisementData, $nearby)
+///     }
+/// }
+/// ```
+///
+/// To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesTab`` view.
+///
+/// ## Topics
+///
+/// ### Configuring Paired Devices
+/// - ``init()``
+/// - ``init(_:)``
+///
+/// ### Register Devices
+/// - ``configure(device:accessing:_:_:)``
+///
+/// ### Pairing Nearby Devices
+/// - ``shouldPresentDevicePairing``
+/// - ``discoveredDevices``
+/// - ``isScanningForNearbyDevices``
+/// - ``pairedDevices``
+///
+/// ### Add Paired Device
+/// - ``registerPairedDevice(_:)``
+///
+/// ### Forget Paired Device
+/// - ``forgetDevice(id:)``
+///
+/// ### Manage Paired Devices
+/// - ``isPaired(_:)``
+/// - ``isConnected(device:)``
+/// - ``updateName(for:name:)``
 @Observable
-public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitializable { // TODO: Docs all interfaces
+public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var shouldPresentDevicePairing = false
+    /// Collection of discovered devices indexed by their Bluetooth identifier.
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
 
     @MainActor private(set) var peripherals: [UUID: any PairableDevice] = [:]
 
-    @AppStorage @MainActor @ObservationIgnored private var _pairedDevices: SavableCollection<PairedDeviceInfo>
+    /// Device Information of paired devices.
     @MainActor public var pairedDevices: [PairedDeviceInfo] {
         get {
             access(keyPath: \.pairedDevices)
@@ -34,8 +103,10 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
             }
         }
     }
+    @AppStorage @MainActor @ObservationIgnored private var _pairedDevices: SavableCollection<PairedDeviceInfo>
 
     @MainActor @ObservationIgnored private var pendingConnectionAttempts: [UUID: Task<Void, Never>] = [:]
+    @MainActor @ObservationIgnored private var ongoingPairings: [UUID: PairingContinuation] = [:]
 
     @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once") @MainActor @ObservationIgnored private var everPairedDevice = false
 
@@ -45,6 +116,9 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
     @Dependency @ObservationIgnored private var tipKit: ConfigureTipKit
 
+    /// Determine if Bluetooth is scanning to discovery nearby devices.
+    ///
+    /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
         (pairedDevices.isEmpty && !everPairedDevice) || shouldPresentDevicePairing
     }
@@ -56,15 +130,20 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
     }
 
 
-    // TODO: configure automatic search without devices paired!
+    /// Initialize the Paired Devices Module.
     public required convenience init() {
         self.init("edu.stanford.spezi.SpeziDevices.PairedDevices.devices-default")
     }
 
+    /// Initialize the Paired Devices Module with custom storage key.
+    /// - Parameter storageKey: The storage key for storing paired device information.
     public init(_ storageKey: String) {
         self.__pairedDevices = AppStorage(wrappedValue: [], storageKey)
     }
 
+
+    /// Configures the Module.
+    @_documentation(visibility: internal)
     public func configure() {
         guard bluetooth != nil else {
             self.logger.warning("PairedDevices Module initialized without Bluetooth dependency!")
@@ -81,24 +160,39 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
         }
     }
 
+    /// Determine if a device is currently connected.
+    /// - Parameter device: The Bluetooth device identifier.
+    /// - Returns: Returns `true` if the device for the given identifier is currently connected.
     @MainActor
     public func isConnected(device: UUID) -> Bool {
         peripherals[device]?.state == .connected
     }
 
+    /// Determine if a device is paired.
+    /// - Parameter device: The device instance.
+    /// - Returns: Returns `true` if the given device is paired.
     @MainActor
     public func isPaired<Device: PairableDevice>(_ device: Device) -> Bool {
         pairedDevices.contains { $0.id == device.id }
     }
 
+    /// Update the user-chosen name of a paired device.
+    /// - Parameters:
+    ///   - deviceInfo: The paired device information for which to update the name.
+    ///   - name: The new name.
     @MainActor
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
         deviceInfo.name = name
-        _pairedDevices = _pairedDevices // update app storage
+        flush()
     }
 
     /// Configure a device to be managed by this PairedDevices instance.
-    public func configure<Device: PairableDevice>( // TODO: docs code example, docs parameters
+    /// - Parameters:
+    ///   - device: The device instance to configure.
+    ///   - state: The `@DeviceState` accessor for the `PeripheralState`.
+    ///   - advertisements: The `@DeviceState` accessor for the current `AdvertisementData`.
+    ///   - nearby: The `@DeviceState` accessor for the `nearby` flag.
+    public func configure<Device: PairableDevice>(
         device: Device,
         accessing state: DeviceStateAccessor<PeripheralState>,
         _ advertisements: DeviceStateAccessor<AdvertisementData>,
@@ -134,6 +228,27 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
     }
 
     @MainActor
+    private func handleDeviceStateUpdated<Device: PairableDevice>(_ device: Device, _ state: PeripheralState) {
+        switch state {
+        case .connected:
+            cancelConnectionAttempt(for: device) // just clear the entry
+            updateLastSeen(for: device)
+        case .disconnecting:
+            updateLastSeen(for: device)
+        case .disconnected:
+            ongoingPairings.removeValue(forKey: device.id)?.signalDisconnect()
+
+            // TODO: only update if previous state was connected (might have been just connecting!)
+            updateLastSeen(for: device)
+            if isPaired(device) {
+                connectionAttempt(for: device)
+            }
+        default:
+            break
+        }
+    }
+
+    @MainActor
     private func discoveredPairableDevice<Device: PairableDevice>(_ device: Device) {
         guard discoveredDevices[device.id] == nil else {
             return
@@ -151,9 +266,132 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
         shouldPresentDevicePairing = true
     }
 
+    @MainActor
+    private func updateBattery<Device: PairableDevice>(for device: Device, percentage: UInt8) {
+        guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
+            return
+        }
+        logger.debug("Updated battery level for \(device.label): \(percentage) %")
+        pairedDevices[index].lastBatteryPercentage = percentage
+        flush()
+    }
 
     @MainActor
-    public func registerPairedDevice<Device: PairableDevice>(_ device: Device) async {
+    private func updateLastSeen<Device: PairableDevice>(for device: Device, lastSeen: Date = .now) {
+        guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
+            return // not paired
+        }
+        logger.debug("Updated lastSeen for \(device.label): \(lastSeen) %")
+        pairedDevices[index].lastSeen = lastSeen
+        flush()
+    }
+
+    @MainActor
+    private func handleDiscardedDevice<Device: PairableDevice>(_ device: Device) {
+        // device discovery was cleared by SpeziBluetooth
+        self.logger.debug("\(Device.self) \(device.label) was discarded from discovered devices.")
+        discoveredDevices[device.id] = nil
+    }
+
+    @MainActor
+    private func connectionAttempt(for device: some PairableDevice) {
+        guard isPaired(device) else {
+            return
+        }
+        
+        let previousTask = cancelConnectionAttempt(for: device)
+
+        pendingConnectionAttempts[device.id] = Task {
+            await previousTask?.value // make sure its ordered
+            await device.connect()
+        }
+    }
+
+    @MainActor
+    @discardableResult
+    private func cancelConnectionAttempt(for device: some PairableDevice) -> Task<Void, Never>? {
+        let task = pendingConnectionAttempts.removeValue(forKey: device.id)
+        task?.cancel()
+        return task
+    }
+
+    @MainActor
+    private func flush() {
+        _pairedDevices = _pairedDevices // update app storage
+    }
+
+    deinit {
+        _peripherals.removeAll()
+        stateSubscriptionTask = nil
+    }
+}
+
+
+extension PairedDevices: Module, EnvironmentAccessible, DefaultInitializable {}
+
+// MARK: - Device Pairing
+
+extension PairedDevices {
+    /// Start pairing procedure with the device.
+    ///
+    /// This method pairs with a currently advertising Bluetooth device.
+    /// - Note: The ``isInPairingMode`` property determines if the device is currently pairable.
+    ///
+    /// This method is implemented by default.
+    /// - Important: In order to support the default implementation, you **must** interact with the ``PairingContinuation`` accordingly.
+    ///     Particularly, you must call the ``PairingContinuation/signalPaired()`` and ``PairingContinuation/signalDisconnect()``
+    ///     methods when appropriate.
+    /// - Throws: Throws a ``DevicePairingError`` if not successful.
+    @MainActor
+    public func pair(with device: some PairableDevice) async throws {
+        // TODO: update docs
+
+        /// Default pairing implementation.
+        ///
+        /// The default implementation verifies that the device ``isInPairingMode``, is currently disconnected and ``nearby``.
+        /// It automatically connects to the device to start pairing. Pairing has a 15 second timeout by default. Pairing is considered successful once
+        /// ``PairingContinuation/signalPaired()`` gets called. It is considered unsuccessful once ``PairingContinuation/signalDisconnect`` is called.
+        /// - Throws: Throws a ``DevicePairingError`` if not successful.
+        guard ongoingPairings[device.id] == nil else {
+            throw DevicePairingError.busy
+        }
+
+        guard device.isInPairingMode else {
+            throw DevicePairingError.notInPairingMode
+        }
+
+        guard case .disconnected = device.state else {
+            throw DevicePairingError.invalidState
+        }
+
+        guard device.nearby else {
+            throw DevicePairingError.invalidState
+        }
+
+        await device.connect()
+
+        let id = device.id
+        async let _ = withTimeout(of: .seconds(15)) { @MainActor in
+            ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+        }
+
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                ongoingPairings[id] = PairingContinuation(continuation)
+            }
+        } onCancel: {
+            Task { @MainActor [weak device] in
+                ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                await device?.disconnect()
+            }
+        }
+
+        // if cancelled the continuation throws an CancellationError
+        await registerPairedDevice(device)
+    }
+
+    @MainActor
+    private func registerPairedDevice<Device: PairableDevice>(_ device: Device) async {
         everPairedDevice = true
 
         var batteryLevel: UInt8?
@@ -194,12 +432,15 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
         }
     }
 
+    /// Forget a paired device.
+    /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) {
         pairedDevices.removeAll { info in
             info.id == id
         }
 
+        discoveredDevices.removeValue(forKey: id)
         let device = peripherals.removeValue(forKey: id)
         if let device {
             Task {
@@ -212,65 +453,6 @@ public final class PairedDevices: Module, EnvironmentAccessible, DefaultInitiali
                 await cancelSubscription()
             }
         }
-        // TODO: make sure to remove them from discoveredDevices? => should happen automatically?
-    }
-
-    @MainActor
-    private func handleDeviceStateUpdated<Device: PairableDevice>(_ device: Device, _ state: PeripheralState) {
-        switch state {
-        case .connected:
-            cancelConnectionAttempt(for: device) // just clear the entry
-        case .disconnected:
-            guard let deviceInfoIndex = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
-                return // not paired
-            }
-
-            // TODO: only update if previous state was connected (might have been just connecting!)
-            pairedDevices[deviceInfoIndex].lastSeen = .now
-
-            connectionAttempt(for: device)
-        default:
-            break
-        }
-    }
-
-    @MainActor
-    public func updateBattery<Device: PairableDevice>(for device: Device, percentage: UInt8) {
-        guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
-            return
-        }
-        logger.debug("Updated battery level for \(device.label): \(percentage) %")
-        pairedDevices[index].lastBatteryPercentage = percentage
-    }
-
-    @MainActor
-    private func handleDiscardedDevice<Device: PairableDevice>(_ device: Device) { // TODO: naming?
-        // device discovery was cleared by SpeziBluetooth
-        self.logger.debug("\(Device.self) \(device.label) was discarded from discovered devices.") // TODO: devices do not disappear currently???
-        discoveredDevices[device.id] = nil
-    }
-
-    @MainActor
-    private func connectionAttempt(for device: some PairableDevice) {
-        let previousTask = cancelConnectionAttempt(for: device)
-
-        pendingConnectionAttempts[device.id] = Task {
-            await previousTask?.value // make sure its ordered
-            await device.connect()
-        }
-    }
-
-    @MainActor
-    @discardableResult
-    private func cancelConnectionAttempt(for device: some PairableDevice) -> Task<Void, Never>? {
-        let task = pendingConnectionAttempts.removeValue(forKey: device.id)
-        task?.cancel()
-        return task
-    }
-
-    deinit {
-        _peripherals.removeAll()
-        stateSubscriptionTask = nil
     }
 }
 
@@ -398,3 +580,5 @@ extension PairableDevice {
         await bluetooth.retrieveDevice(for: id)
     }
 }
+
+// swiftlint:disable:this file_length

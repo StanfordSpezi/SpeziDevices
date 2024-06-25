@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import ACarousel
+import HealthKit
+import OSLog
 @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
 import SwiftUI
@@ -13,38 +16,63 @@ import SwiftUI
 
 /// A sheet view displaying a newly recorded measurement.
 ///
-/// Make sure to pass the ``ProcessedHealthMeasurement`` from the ``HealthMeasurements/newMeasurement``.
+/// This view retrieves the pending measurements from the ``HealthMeasurements`` Module that is present in the SwiftUI environment.
 public struct MeasurementRecordedSheet: View {
-    private let measurement: HealthKitMeasurement
+    private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementRecordedSheet")
+    private let saveSamples: ([HKSample]) async throws -> Void
 
     @Environment(HealthMeasurements.self) private var measurements
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var viewState = ViewState.idle
 
+    @State private var viewState = ViewState.idle
+    @State private var selectedMeasurementIndex: Int = 0
     @State private var dynamicDetent: PresentationDetent = .medium
 
-    private var supportedTypeSize: ClosedRange<DynamicTypeSize> {
-        switch measurement {
-        case .weight:
-            DynamicTypeSize.xSmall...DynamicTypeSize.accessibility4
-        case .bloodPressure:
-            DynamicTypeSize.xSmall...DynamicTypeSize.accessibility3
+    @MainActor private var selectedMeasurement: HealthKitMeasurement? {
+        guard selectedMeasurementIndex < measurements.pendingMeasurements.count else {
+            return nil
         }
+        return measurements.pendingMeasurements[selectedMeasurementIndex]
+    }
+
+    @MainActor private var supportedTypeSize: ClosedRange<DynamicTypeSize> {
+        let upperBound: DynamicTypeSize = switch selectedMeasurement {
+        case .weight:
+            .accessibility4
+        case .bloodPressure:
+            .accessibility3
+        case nil:
+            .accessibility5
+        }
+
+        return DynamicTypeSize.xSmall...upperBound
     }
 
     public var body: some View {
         NavigationStack {
-            PaneContent {
-                Text("Measurement Recorded")
-                    .font(.title)
-                    .fixedSize(horizontal: false, vertical: true)
-                // TODO: subtitle with the date of the measurement?
-            } content: {
-                // TODO: caoursel!
-                MeasurementLayer(measurement: measurement)
-            } action: {
-                ConfirmMeasurementButton(viewState: $viewState) {
-                    try await measurements.saveMeasurement()
+            Group {
+                if measurements.pendingMeasurements.isEmpty {
+                    ContentUnavailableView(
+                        "No Pending Measurements",
+                        systemImage: "heart.text.square",
+                        description: Text("There are currently no pending measurements. Conduct a measurement with a paired device while nearby.")
+                    )
+                } else {
+                    PaneContent {
+                        Text("Measurement Recorded")
+                            .font(.title)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } subtitle: {
+                        EmptyView() // TODO: do we have date information?
+                    } content: {
+                        content
+                    } action: {
+                        action
+                    }
+                        .viewStateAlert(state: $viewState)
+                        .interactiveDismissDisabled(viewState != .idle)
+                        .dynamicTypeSize(supportedTypeSize)
                 }
             }
                 .background {
@@ -55,25 +83,59 @@ public struct MeasurementRecordedSheet: View {
                             }
                     }
                 }
-                .viewStateAlert(state: $viewState)
-                .interactiveDismissDisabled(viewState != .idle)
                 .toolbar {
                     DismissButton()
-                    /*ToolbarItem(placement: .cancellationAction) {
-                     CloseButtonLayer(viewState: $viewState)
-                     .disabled(viewState != .idle)
-                     }*/
                 }
-                .dynamicTypeSize(supportedTypeSize)
         }
-        .presentationDetents([dynamicDetent])
+            .presentationDetents([dynamicDetent])
+    }
+
+
+    @ViewBuilder @MainActor private var content: some View {
+        if measurements.pendingMeasurements.count > 1 {
+            HStack {
+                ACarousel(measurements.pendingMeasurements, index: $selectedMeasurementIndex, spacing: 0, headspace: 0) { measurement in
+                    MeasurementLayer(measurement: measurement)
+                }
+            }
+            CarouselDots(count: measurements.pendingMeasurements.count, selectedIndex: $selectedMeasurementIndex)
+        } else if let measurement = measurements.pendingMeasurements.first {
+            MeasurementLayer(measurement: measurement)
+        }
+    }
+
+    @ViewBuilder @MainActor private var action: some View {
+        ConfirmMeasurementButton(viewState: $viewState) {
+            guard let selectedMeasurement else {
+                return
+            }
+
+            do {
+                try await saveSamples(selectedMeasurement.samples)
+            } catch {
+                logger.error("Failed to save measurement samples: \(error)")
+                throw error
+            }
+
+            measurements.discardMeasurement(selectedMeasurement)
+
+            logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
+            dismiss()
+        } discard: {
+            guard let selectedMeasurement else {
+                return
+            }
+            measurements.discardMeasurement(selectedMeasurement)
+            if measurements.pendingMeasurements.isEmpty {
+                dismiss()
+            }
+        }
     }
 
 
     /// Create a new measurement sheet.
-    /// - Parameter measurement: The processed measurement to display.
-    public init(measurement: HealthKitMeasurement) {
-        self.measurement = measurement
+    public init(save saveSamples: @escaping ([HKSample]) -> Void) {
+        self.saveSamples = saveSamples
     }
 }
 
@@ -82,29 +144,63 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet(measurement: .weight(.mockWeighSample))
+            MeasurementRecordedSheet { samples in
+                print("Saving samples \(samples)")
+            }
         }
-        .previewWith(standard: TestMeasurementStandard()) {
-            HealthMeasurements()
-        }
-}
-
-#Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet(measurement: .weight(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample))
-        }
-        .previewWith(standard: TestMeasurementStandard()) {
-            HealthMeasurements()
+        .previewWith {
+            HealthMeasurements(mock: [.weight(.mockWeighSample)])
         }
 }
 
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet(measurement: .bloodPressure(.mockBloodPressureSample, heartRate: .mockHeartRateSample))
+            MeasurementRecordedSheet { samples in
+                print("Saving samples \(samples)")
+            }
         }
-        .previewWith(standard: TestMeasurementStandard()) {
+        .previewWith {
+            HealthMeasurements(mock: [.weight(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample)])
+        }
+}
+
+#Preview {
+    Text(verbatim: "")
+        .sheet(isPresented: .constant(true)) {
+            MeasurementRecordedSheet { samples in
+                print("Saving samples \(samples)")
+            }
+        }
+        .previewWith {
+            HealthMeasurements(mock: [.bloodPressure(.mockBloodPressureSample, heartRate: .mockHeartRateSample)])
+        }
+}
+
+#Preview {
+    Text(verbatim: "")
+        .sheet(isPresented: .constant(true)) {
+            MeasurementRecordedSheet { samples in
+                print("Saving samples \(samples)")
+            }
+        }
+        .previewWith {
+            HealthMeasurements(mock: [
+                .weight(.mockWeighSample, bmi: .mockBmiSample, height: .mockHeightSample),
+                .bloodPressure(.mockBloodPressureSample, heartRate: .mockHeartRateSample),
+                .weight(.mockWeighSample)
+            ])
+        }
+}
+
+#Preview {
+    Text(verbatim: "")
+        .sheet(isPresented: .constant(true)) {
+            MeasurementRecordedSheet { samples in
+                print("Saving samples \(samples)")
+            }
+        }
+        .previewWith {
             HealthMeasurements()
         }
 }
