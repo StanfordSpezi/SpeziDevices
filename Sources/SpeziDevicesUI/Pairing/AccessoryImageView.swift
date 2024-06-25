@@ -24,8 +24,8 @@ struct AccessoryImageView: View {
                 .symbolRenderingMode(.hierarchical) // set symbol rendering mode if one uses sf symbols
                 .frame(maxWidth: 250, maxHeight: 120)
         }
-        .frame(maxWidth: .infinity, maxHeight: 150) // make drag-able area a bit larger
-        .background(Color(uiColor: .systemBackground)) // we need to set a non-clear color for it to be drag-able
+            .frame(maxWidth: .infinity, maxHeight: 150) // make drag-able area a bit larger
+            .background(Color(uiColor: .systemBackground)) // we need to set a non-clear color for it to be drag-able
     }
 
 

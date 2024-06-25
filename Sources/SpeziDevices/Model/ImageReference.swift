@@ -27,9 +27,15 @@ extension ImageReference {
         case let .system(name):
             return Image(systemName: name)
         case let .asset(name, bundle: bundle):
+            #if os(iOS) || os(visionOS) || os(tvOS)
             guard UIImage(named: name, in: bundle, with: nil) != nil else {
                 return nil
             }
+            #elseif os(macOS)
+            guard NSImage(named: name) != nil else {
+                return nil
+            }
+            #endif
             return Image(name, bundle: bundle)
         }
     }

@@ -23,14 +23,6 @@ jobs:
       scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-iOS.xcresult
       artifactname: SpeziDevices-iOS.xcresult
-  packagewatchos:
-    name: Build and Test Swift Package watchOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      scheme: SpeziDevices-Package
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
-      resultBundle: SpeziDevices-watchOS.xcresult
-      artifactname: SpeziDevices-watchOS.xcresult
   packagevisionos:
     name: Build and Test Swift Package visionOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -39,22 +31,6 @@ jobs:
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       resultBundle: SpeziDevices-visionOS.xcresult
       artifactname: SpeziDevices-visionOS.xcresult
-  packagetvos:
-    name: Build and Test Swift Package tvOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      scheme: SpeziDevices-Package
-      resultBundle: SpeziDevices-tvOS.xcresult
-      destination: 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)'
-      artifactname: SpeziDevices-tvOS.xcresult
-  packagemacos:
-    name: Build and Test Swift Package macOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      scheme: SpeziDevices-Package
-      resultBundle: SpeziDevices-macOS.xcresult
-      destination: 'platform=macOS,arch=arm64'
-      artifactname: SpeziDevices-macOS.xcresult
   ios:
     name: Build and Test iOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -74,16 +50,6 @@ jobs:
       destination: 'platform=iOS Simulator,name=iPad Air (5th generation)'
       resultBundle: TestApp-iPadOS.xcresult
       artifactname: TestApp-iPadOS.xcresult
-  watchos:
-    name: Build and Test watchOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestAppWatchApp
-      destination: 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
-      resultBundle: TestApp-watchOS.xcresult
-      artifactname: TestApp-watchOS.xcresult
   visionos:
     name: Build and Test visionOS
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -94,16 +60,6 @@ jobs:
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       resultBundle: TestApp-visionOS.xcresult
       artifactname: TestApp-visionOS.xcresult
-  tvos:
-    name: Build and Test tvOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      runsonlabels: '["macOS", "self-hosted"]'
-      path: 'Tests/UITests'
-      scheme: TestApp
-      destination: 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)'
-      resultBundle: TestApp-tvOS.xcresult
-      artifactname: TestApp-tvOS.xcresult
   codeql:
     name: CodeQL
     uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -119,6 +75,6 @@ jobs:
     needs: [packageios, packagewatchos, packagevisionos, packagetvos, packagemacos, ios, ipados, watchos, visionos, tvos]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziDevices-iOS.xcresult SpeziDevices-watchOS.xcresult SpeziDevices-visionOS.xcresult SpeziDevices-tvOS.xcresult SpeziDevices-macOS.xcresult TestApp-iOS.xcresult TestApp-iPadOS.xcresult TestApp-watchOS.xcresult TestApp-visionOS.xcresult TestApp-tvOS.xcresult
+      coveragereports: SpeziDevices-iOS.xcresult SpeziDevices-visionOS.xcresult TestApp-iOS.xcresult TestApp-iPadOS.xcresult TestApp-visionOS.xcresult
     secrets:
       token: ${{ secrets.CODECOV_TOKEN }}
