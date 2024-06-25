@@ -18,6 +18,20 @@
 
 ## Topics
 
-### <!--@START_MENU_TOKEN@-->Group<!--@END_MENU_TOKEN@-->
+### Omron Devices
 
-- <!--@START_MENU_TOKEN@-->``Symbol``<!--@END_MENU_TOKEN@-->
+- ``OmronHealthDevice``
+- ``OmronModel``
+- ``OmronManufacturerData``
+- ``SpeziBluetooth/ManufacturerIdentifier/omronHealthcareCoLtd``
+
+### Omron Services
+
+- ``OmronOptionService``
+
+### Omron Record Access
+
+- ``SpeziBluetooth/CharacteristicAccessor/reportStoredRecords(_:)``
+- ``SpeziBluetooth/CharacteristicAccessor/reportNumberOfStoredRecords(_:)``
+- ``SpeziBluetooth/CharacteristicAccessor/reportSequenceNumberOfLatestRecords()``
+- ``OmronRecordAccessOperand``

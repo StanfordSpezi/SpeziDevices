@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 ## Overview
 
-<!--@START_MENU_TOKEN@-->Text<!--@END_MENU_TOKEN@-->
+Below is a list of important symbols of SpeziDevices.
 
 ## Topics
 

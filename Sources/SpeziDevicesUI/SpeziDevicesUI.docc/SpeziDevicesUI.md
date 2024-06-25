@@ -25,3 +25,19 @@ Views that are helpful when building a nearby devices view.
 - ``BluetoothUnavailableView``
 - ``NearbyDeviceRow``
 - ``LoadingSectionHeader``
+
+### Pairing Devices
+
+- ``AccessorySetupSheet``
+
+### Paired Devices
+
+- ``DevicesTab``
+- ``DevicesGrid``
+- ``DeviceTile``
+- ``DeviceDetailsView``
+- ``BatteryIcon``
+
+### Measurements
+
+- ``MeasurementRecordedSheet``
