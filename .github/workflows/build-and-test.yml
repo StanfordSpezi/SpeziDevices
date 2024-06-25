@@ -18,22 +18,24 @@ on:
 jobs:
   packageios:
     name: Build and Test Swift Package iOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
+      runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-iOS.xcresult
       artifactname: SpeziDevices-iOS.xcresult
   packagevisionos:
     name: Build and Test Swift Package visionOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
+      runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziDevices-Package
       destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       resultBundle: SpeziDevices-visionOS.xcresult
       artifactname: SpeziDevices-visionOS.xcresult
   ios:
     name: Build and Test iOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
       runsonlabels: '["macOS", "self-hosted"]'
       path: 'Tests/UITests'
@@ -42,7 +44,7 @@ jobs:
       artifactname: TestApp-iOS.xcresult
   ipados:
     name: Build and Test iPadOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
       runsonlabels: '["macOS", "self-hosted"]'
       path: 'Tests/UITests'
@@ -52,7 +54,7 @@ jobs:
       artifactname: TestApp-iPadOS.xcresult
   visionos:
     name: Build and Test visionOS
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
       runsonlabels: '["macOS", "self-hosted"]'
       path: 'Tests/UITests'
@@ -62,7 +64,7 @@ jobs:
       artifactname: TestApp-visionOS.xcresult
   codeql:
     name: CodeQL
-    uses: StanfordBDHG/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
       codeql: true
       test: false
