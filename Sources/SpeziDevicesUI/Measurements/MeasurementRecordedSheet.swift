@@ -134,7 +134,7 @@ public struct MeasurementRecordedSheet: View {
 
 
     /// Create a new measurement sheet.
-    public init(save saveSamples: @escaping ([HKSample]) -> Void) {
+    public init(save saveSamples: @escaping ([HKSample]) async throws -> Void) {
         self.saveSamples = saveSamples
     }
 }
