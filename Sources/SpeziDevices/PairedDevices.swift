@@ -198,9 +198,9 @@ public final class PairedDevices {
         _ advertisements: DeviceStateAccessor<AdvertisementData>,
         _ nearby: DeviceStateAccessor<Bool>
     ) {
-        state.onChange { [weak self, weak device] state in
+        state.onChange { [weak self, weak device] oldValue, newValue in
             if let device {
-                await self?.handleDeviceStateUpdated(device, state)
+                await self?.handleDeviceStateUpdated(device, old: oldValue, new: newValue)
             }
         }
         advertisements.onChange(initial: true) { [weak self, weak device] _ in
@@ -228,21 +228,24 @@ public final class PairedDevices {
     }
 
     @MainActor
-    private func handleDeviceStateUpdated<Device: PairableDevice>(_ device: Device, _ state: PeripheralState) {
-        switch state {
+    private func handleDeviceStateUpdated<Device: PairableDevice>(_ device: Device, old oldState: PeripheralState, new newState: PeripheralState) {
+        switch newState {
         case .connected:
             cancelConnectionAttempt(for: device) // just clear the entry
             updateLastSeen(for: device)
         case .disconnecting:
-            updateLastSeen(for: device)
+            if case .connected = oldState {
+                updateLastSeen(for: device)
+            }
         case .disconnected:
             ongoingPairings.removeValue(forKey: device.id)?.signalDisconnect()
 
-            // TODO: only update if previous state was connected (might have been just connecting!)
-            updateLastSeen(for: device)
-            if isPaired(device) {
-                connectionAttempt(for: device)
+            if case .connected = oldState {
+                updateLastSeen(for: device)
             }
+
+            // long-running reconnect (if applicable)
+            connectionAttempt(for: device)
         default:
             break
         }
@@ -295,7 +298,7 @@ public final class PairedDevices {
 
     @MainActor
     private func connectionAttempt(for device: some PairableDevice) {
-        guard isPaired(device) else {
+        guard case .poweredOn = bluetooth?.state, isPaired(device) else {
             return
         }
         
@@ -391,7 +394,11 @@ extension PairedDevices {
     }
 
     @MainActor public func signalDevicePaired(_ device: some PairableDevice) {
-        ongoingPairings.removeValue(forKey: device.id)?.signalPaired()
+        guard let continuation = ongoingPairings.removeValue(forKey: device.id) else {
+            return
+        }
+        logger.debug("Device \(device.label), \(device.id) signaled it is fully paired.")
+        continuation.signalPaired()
     }
 
     @MainActor
