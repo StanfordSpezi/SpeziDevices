@@ -30,7 +30,7 @@ jobs:
     with:
       runsonlabels: '["macOS", "self-hosted"]'
       scheme: SpeziDevices-Package
-      destination: 'platform=visionOS Simulator'
+      destination: 'platform=visionOS Simulator,name=Any visionOS Simulator Device'
       resultBundle: SpeziDevices-visionOS.xcresult
       artifactname: SpeziDevices-visionOS.xcresult
   ios:
@@ -49,7 +49,7 @@ jobs:
       runsonlabels: '["macOS", "self-hosted"]'
       path: 'Tests/UITests'
       scheme: TestApp
-      destination: 'platform=visionOS Simulator'
+      destination: 'platform=visionOS Simulator,name=Any visionOS Simulator Device'
       resultBundle: TestApp-visionOS.xcresult
       artifactname: TestApp-visionOS.xcresult
   codeql:
