@@ -17,21 +17,16 @@ struct BloodPressureMeasurementLabel: View {
 
     @ScaledMetric private var measurementTextSize: CGFloat = 50
 
-    private var bloodPressureQuantitySamples: [HKQuantitySample] {
-        bloodPressureSample.objects
-            .compactMap { sample in
-                sample as? HKQuantitySample
-            }
-    }
-
     private var systolic: HKQuantitySample? {
-        bloodPressureQuantitySamples
-            .first(where: { $0.quantityType == HKQuantityType(.bloodPressureSystolic) })
+        bloodPressureSample
+            .objects(for: HKQuantityType(.bloodPressureSystolic))
+            .first as? HKQuantitySample
     }
 
     private var diastolic: HKQuantitySample? {
-        bloodPressureQuantitySamples
-            .first(where: { $0.quantityType == HKQuantityType(.bloodPressureDiastolic) })
+        bloodPressureSample
+            .objects(for: HKQuantityType(.bloodPressureDiastolic))
+            .first as? HKQuantitySample
     }
 
     var body: some View {

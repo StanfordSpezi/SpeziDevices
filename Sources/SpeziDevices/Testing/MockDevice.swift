@@ -38,6 +38,13 @@ public final class MockDevice: PairableDevice, HealthDevice {
     public init() {}
 
 
+    public func configure() {
+        $state.onChange { [weak self] state in
+            self?.handleStateChange(state)
+        }
+    }
+
+
     fileprivate func handleStateChange(_ state: PeripheralState) {
         if case .connected = state {
             Task { @MainActor in
@@ -100,12 +107,10 @@ extension MockDevice {
                 return
             }
             device.$state.inject(.connecting)
-            device.handleStateChange(.connecting)
 
             try? await Task.sleep(for: .seconds(1))
 
             device.$state.inject(.connected)
-            device.handleStateChange(.connected)
         }
 
         device.$disconnect.inject { @MainActor [weak device] in
@@ -113,8 +118,19 @@ extension MockDevice {
                 return
             }
             device.$state.inject(.disconnected)
-            device.handleStateChange(.connected)
         }
+
+        device.$state.enableSubscriptions()
+        device.$advertisementData.enableSubscriptions()
+        device.$nearby.enableSubscriptions()
+
+        device.bloodPressure.$bloodPressureMeasurement.enableSubscriptions()
+        device.bloodPressure.$bloodPressureMeasurement.enablePeripheralSimulation()
+
+        device.weightScale.$weightMeasurement.enableSubscriptions()
+        device.weightScale.$weightMeasurement.enablePeripheralSimulation()
+
+        device.configure()
 
         return device
     }

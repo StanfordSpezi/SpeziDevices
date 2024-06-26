@@ -88,6 +88,7 @@ public class HealthMeasurements {
     @MainActor public var shouldPresentMeasurements = false
     /// The current queue of pending measurements.
     ///
+    /// The newest measurement is always prepended.
     /// To clear pending measurements call ``discardMeasurement(_:)``.
     @MainActor public private(set) var pendingMeasurements: [HealthKitMeasurement] = []
     @MainActor @AppStorage @ObservationIgnored private var storedMeasurements: SavableDictionary<UUID, StoredMeasurement>
@@ -112,6 +113,13 @@ public class HealthMeasurements {
     public convenience init(mock measurements: [HealthKitMeasurement]) {
         self.init()
         self.pendingMeasurements = measurements
+    }
+
+    /// Clears all currently stored records on disk.
+    @_spi(TestingSupport)
+    @MainActor
+    public func clearStorage() {
+        storedMeasurements.removeAll()
     }
 
     /// Configure the Module.

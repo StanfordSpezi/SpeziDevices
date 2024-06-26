@@ -6,17 +6,18 @@
 // SPDX-License-Identifier: MIT
 //
 
+import OrderedCollections
 import OSLog
 
 
 struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
-    private var storage: [Key: Value]
+    private var storage: OrderedDictionary<Key, Value>
 
-    var keys: Dictionary<Key, Value>.Keys {
+    var keys: OrderedSet<Key> {
         storage.keys
     }
 
-    var values: Dictionary<Key, Value>.Values {
+    var values: OrderedDictionary<Key, Value>.Values {
         storage.values
     }
 
@@ -35,6 +36,10 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
             storage[key] = newValue
         }
     }
+
+    mutating func removeAll() {
+        storage.removeAll()
+    }
 }
 
 
@@ -48,22 +53,22 @@ extension SavableDictionary: ExpressibleByDictionaryLiteral {
 
 
 extension SavableDictionary: Collection {
-    public typealias Index = Dictionary<Key, Value>.Index
-    public typealias Element = Dictionary<Key, Value>.Iterator.Element
+    public typealias Index = OrderedDictionary<Key, Value>.Index
+    public typealias Element = OrderedDictionary<Key, Value>.Iterator.Element
 
     public var startIndex: Index {
-        storage.startIndex
+        storage.elements.startIndex
     }
     public var endIndex: Index {
-        storage.endIndex
+        storage.elements.endIndex
     }
 
     public func index(after index: Index) -> Index {
-        storage.index(after: index)
+        storage.elements.index(after: index)
     }
 
     public subscript(position: Index) -> Element {
-        storage[position]
+        storage.elements[position]
     }
 }
 
@@ -96,7 +101,8 @@ extension SavableDictionary: RawRepresentable {
         }
 
         do {
-            self.storage = try JSONDecoder().decode([Key: Value].self, from: data)
+            // TODO: is the order maintained?
+            self.storage = try JSONDecoder().decode(OrderedDictionary<Key, Value>.self, from: data)
         } catch {
             Self.logger.error("Failed to decode \(Self.self): \(error)")
             return nil

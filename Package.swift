@@ -8,7 +8,15 @@
 // SPDX-License-Identifier: MIT
 //
 
+import class Foundation.ProcessInfo
 import PackageDescription
+
+
+#if swift(<6)
+let swiftConcurrency: SwiftSetting = .enableExperimentalFeature("SwiftConcurrency")
+#else
+let swiftConcurrency: SwiftSetting = .enableUpcomingFeature("SwiftConcurrency")
+#endif
 
 
 let package = Package(
@@ -29,9 +37,8 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", branch: "feature/configure-tipkit-module"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
-        .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0")),
-        .package(url: "https://github.com/realm/SwiftLint.git", .upToNextMinor(from: "0.55.1"))
-    ],
+        .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0"))
+    ] + swiftLintPackage(),
     targets: [
         .target(
             name: "SpeziDevices",
@@ -42,7 +49,10 @@ let package = Package(
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "SpeziViews", package: "SpeziViews")
             ],
-            plugins: [.swiftLintPlugin]
+            swiftSettings: [
+                swiftConcurrency
+            ],
+            plugins: [] + swiftLintPlugin()
         ),
         .target(
             name: "SpeziDevicesUI",
@@ -56,7 +66,10 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            plugins: [.swiftLintPlugin]
+            swiftSettings: [
+                swiftConcurrency
+            ],
+            plugins: [] + swiftLintPlugin()
         ),
         .target(
             name: "SpeziOmron",
@@ -65,14 +78,20 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
-            plugins: [.swiftLintPlugin]
+            swiftSettings: [
+                swiftConcurrency
+            ],
+            plugins: [] + swiftLintPlugin()
         ),
         .testTarget(
             name: "SpeziDevicesTests",
             dependencies: [
                 .target(name: "SpeziDevices")
             ],
-            plugins: [.swiftLintPlugin]
+            swiftSettings: [
+                swiftConcurrency
+            ],
+            plugins: [] + swiftLintPlugin()
         ),
         .testTarget(
             name: "SpeziOmronTests",
@@ -81,14 +100,28 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "XCTByteCoding", package: "SpeziNetworking")
             ],
-            plugins: [.swiftLintPlugin]
+            swiftSettings: [
+                swiftConcurrency
+            ],
+            plugins: [] + swiftLintPlugin()
         )
     ]
 )
 
 
-extension Target.PluginUsage {
-    static var swiftLintPlugin: Target.PluginUsage {
-        .plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")
+func swiftLintPlugin() -> [Target.PluginUsage] {
+    // Fully quit Xcode and open again with `open --env SPEZI_DEVELOPMENT_SWIFTLINT /Applications/Xcode.app`
+    if ProcessInfo.processInfo.environment["SPEZI_DEVELOPMENT_SWIFTLINT"] != nil {
+        [.plugin(name: "SwiftLintBuildToolPlugin", package: "SwiftLint")]
+    } else {
+        []
+    }
+}
+
+func swiftLintPackage() -> [PackageDescription.Package.Dependency] {
+    if ProcessInfo.processInfo.environment["SPEZI_DEVELOPMENT_SWIFTLINT"] != nil {
+        [.package(url: "https://github.com/realm/SwiftLint.git", .upToNextMinor(from: "0.55.1"))]
+    } else {
+        []
     }
 }
