@@ -1,5 +1,5 @@
 //
-// This source file is part of the ENGAGE-HF project based on the Stanford Spezi Template Application project
+// This source file is part of the Stanford SpeziDevices open source project
 //
 // SPDX-FileCopyrightText: 2024 Stanford University
 //
@@ -41,8 +41,9 @@ final class HealthMeasurementsTests: XCTestCase {
 
         let bmi = try XCTUnwrap(bmi0)
         let height = try XCTUnwrap(height0)
-
         let expectedDate = try XCTUnwrap(device.weightScale.weightMeasurement?.timeStamp?.date)
+
+        XCTAssertEqual(weightMeasurement.samples, [sample, bmi, height])
 
         XCTAssertEqual(sample.quantityType, HKQuantityType(.bodyMass))
         XCTAssertEqual(sample.startDate, expectedDate)
@@ -89,8 +90,10 @@ final class HealthMeasurementsTests: XCTestCase {
             return
         }
 
-        let expectedDate = try XCTUnwrap(device.weightScale.weightMeasurement?.timeStamp?.date)
         let heartRate = try XCTUnwrap(heartRate0)
+        let expectedDate = try XCTUnwrap(device.weightScale.weightMeasurement?.timeStamp?.date)
+
+        XCTAssertEqual(bloodPressureMeasurement.samples, [sample, heartRate])
 
 
         XCTAssertEqual(heartRate.quantityType, HKQuantityType(.heartRate))

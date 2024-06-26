@@ -14,7 +14,7 @@ import SpeziNumerics
 
 #if DEBUG || TEST
 @_spi(TestingSupport)
-public final class MockDevice: PairableDevice, HealthDevice {
+public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice {
     @DeviceState(\.id) public var id
     @DeviceState(\.name) public var name
     @DeviceState(\.state) public var state
@@ -26,6 +26,7 @@ public final class MockDevice: PairableDevice, HealthDevice {
 
 
     @Service public var deviceInformation = DeviceInformationService()
+    @Service public var battery = BatteryService()
 
     // Some mock health measurement services
     @Service public var bloodPressure = BloodPressureService()
@@ -46,10 +47,16 @@ public final class MockDevice: PairableDevice, HealthDevice {
 
 
     fileprivate func handleStateChange(_ state: PeripheralState) {
-        if case .connected = state {
-            Task { @MainActor in
-                try await Task.sleep(for: .seconds(2))
-                pairedDevices?.signalDevicePaired(self)
+        if isInPairingMode { // automatically respond to pairing event
+            if case .connected = state {
+                Task { @MainActor in
+                    try await Task.sleep(for: .seconds(2))
+
+                    guard case .connected = self.state else {
+                        return
+                    }
+                    pairedDevices?.signalDevicePaired(self)
+                }
             }
         }
     }
@@ -84,6 +91,8 @@ extension MockDevice {
         device.deviceInformation.$hardwareRevision.inject("2")
         device.deviceInformation.$firmwareRevision.inject("1.0")
 
+        device.battery.$batteryLevel.inject(85)
+
         device.$id.inject(UUID())
         device.$name.inject(name)
         device.$state.inject(state)
@@ -110,7 +119,9 @@ extension MockDevice {
 
             try? await Task.sleep(for: .seconds(1))
 
-            device.$state.inject(.connected)
+            if case .connecting = device.state {
+                device.$state.inject(.connected)
+            }
         }
 
         device.$disconnect.inject { @MainActor [weak device] in
@@ -123,6 +134,9 @@ extension MockDevice {
         device.$state.enableSubscriptions()
         device.$advertisementData.enableSubscriptions()
         device.$nearby.enableSubscriptions()
+
+        device.battery.$batteryLevel.enableSubscriptions()
+        device.battery.$batteryLevel.enablePeripheralSimulation()
 
         device.bloodPressure.$bloodPressureMeasurement.enableSubscriptions()
         device.bloodPressure.$bloodPressureMeasurement.enablePeripheralSimulation()

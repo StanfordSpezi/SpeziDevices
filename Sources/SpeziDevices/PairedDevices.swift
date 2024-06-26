@@ -74,10 +74,8 @@ import SwiftUI
 /// - ``shouldPresentDevicePairing``
 /// - ``discoveredDevices``
 /// - ``isScanningForNearbyDevices``
+/// - ``pair(with:timeout:)``
 /// - ``pairedDevices``
-///
-/// ### Add Paired Device
-/// - ``registerPairedDevice(_:)``
 ///
 /// ### Forget Paired Device
 /// - ``forgetDevice(id:)``
@@ -162,6 +160,13 @@ public final class PairedDevices {
 
             await self.setupBluetoothStateSubscription()
         }
+    }
+
+    /// Clears all currently stored paired devices.
+    @_spi(TestingSupport)
+    @MainActor
+    public func clearStorage() {
+        pairedDevices.removeAll()
     }
 
     /// Determine if a device is currently connected.
@@ -351,10 +356,12 @@ extension PairedDevices {
     /// - Important: A successful pairing cannot be determined automatically and is specific to a device. You must manually call
     ///     ``signalDevicePaired(_:)`` to signal that a device is successfully paired (e.g., every time the device sends a notification for
     ///     a given characteristic).
-    /// - Parameter device: The device to pair with this module.
+    /// - Parameters:
+    ///   - device: The device to pair with this module.
+    ///   - timeout: The duration after which the pairing attempt times out.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
     @MainActor
-    public func pair(with device: some PairableDevice) async throws {
+    public func pair(with device: some PairableDevice, timeout: Duration = .seconds(15)) async throws {
         guard ongoingPairings[device.id] == nil else {
             throw DevicePairingError.busy
         }
@@ -374,7 +381,7 @@ extension PairedDevices {
         await device.connect()
 
         let id = device.id
-        async let _ = withTimeout(of: .seconds(15)) { @MainActor in
+        async let _ = withTimeout(of: timeout) { @MainActor in
             ongoingPairings.removeValue(forKey: id)?.signalTimeout()
         }
 

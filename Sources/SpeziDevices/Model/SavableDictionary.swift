@@ -25,6 +25,10 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         self.storage = [:]
     }
 
+    mutating func removeAll() {
+        storage.removeAll()
+    }
+
     subscript(key: Key) -> Value? {
         get {
             storage[key]
@@ -35,10 +39,6 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         set {
             storage[key] = newValue
         }
-    }
-
-    mutating func removeAll() {
-        storage.removeAll()
     }
 }
 
@@ -101,7 +101,6 @@ extension SavableDictionary: RawRepresentable {
         }
 
         do {
-            // TODO: is the order maintained?
             self.storage = try JSONDecoder().decode(OrderedDictionary<Key, Value>.self, from: data)
         } catch {
             Self.logger.error("Failed to decode \(Self.self): \(error)")

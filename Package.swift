@@ -34,6 +34,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
+        .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.4.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
@@ -47,7 +48,8 @@ let package = Package(
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
-                .product(name: "SpeziViews", package: "SpeziViews")
+                .product(name: "SpeziViews", package: "SpeziViews"),
+                .product(name: "Spezi", package: "Spezi")
             ],
             swiftSettings: [
                 swiftConcurrency
@@ -86,7 +88,11 @@ let package = Package(
         .testTarget(
             name: "SpeziDevicesTests",
             dependencies: [
-                .target(name: "SpeziDevices")
+                .target(name: "SpeziDevices"),
+                .product(name: "SpeziFoundation", package: "SpeziFoundation"),
+                .product(name: "XCTSpezi", package: "Spezi"),
+                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
             swiftSettings: [
                 swiftConcurrency
