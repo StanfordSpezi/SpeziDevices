@@ -6,14 +6,36 @@
 // SPDX-License-Identifier: MIT
 //
 
+import Spezi
+import SpeziBluetooth
+import SpeziBluetoothServices
+@_spi(TestingSupport) import SpeziDevices
+import SpeziDevicesUI
 import SwiftUI
 
 
+class TestAppDelegate: SpeziAppDelegate {
+    override var configuration: Configuration {
+        Configuration {
+            Bluetooth {
+                Discover(MockDevice.self, by: .accessory(manufacturer: .init(rawValue: 0x01), advertising: BloodPressureService.self))
+            }
+            PairedDevices()
+            HealthMeasurements()
+            MockDeviceLoading()
+        }
+    }
+}
+
+
 @main
-struct UITestsApp: App {
+struct TestApp: App {
+    @ApplicationDelegateAdaptor(TestAppDelegate.self) private var delegate
+
     var body: some Scene {
         WindowGroup {
-            Text("Hello World")
+            ContentView()
+                .spezi(delegate)
         }
     }
 }

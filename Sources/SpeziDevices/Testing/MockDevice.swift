@@ -34,7 +34,7 @@ public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevic
 
     @Dependency private var pairedDevices: PairedDevices?
 
-    public var isInPairingMode: Bool = true
+    public var isInPairingMode: Bool = false
 
     public init() {}
 
@@ -202,8 +202,8 @@ extension WeightMeasurement {
         weight: UInt16 = 8400,
         unit: WeightMeasurement.Unit = .si,
         timeStamp: DateTime? = DateTime(year: 2024, month: .june, day: 5, hours: 12, minutes: 33, seconds: 11),
-        userId: UInt8? = nil,
-        additionalInfo: AdditionalInfo? = nil
+        userId: UInt8? = 1,
+        additionalInfo: AdditionalInfo? = .init(bmi: 230, height: 1790)
     ) -> WeightMeasurement {
         WeightMeasurement(
             weight: weight,

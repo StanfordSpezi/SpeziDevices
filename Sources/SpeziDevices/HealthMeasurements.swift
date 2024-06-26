@@ -53,6 +53,7 @@ import SwiftUI
 ///     @Environment(HealthMeasurements.self) private var measurements
 ///
 ///     var body: some View {
+///         @Bindable var measurements = measurements
 ///         ContentView()
 ///             .sheet(isPresented: $measurements.shouldPresentMeasurements) {
 ///                 MeasurementRecordedSheet { measurement in
