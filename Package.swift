@@ -34,7 +34,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", branch: "feature/configure-tipkit-module"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
         .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0"))
