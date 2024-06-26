@@ -20,7 +20,7 @@ public protocol OmronHealthDevice: HealthDevice, PairableDevice {}
 extension OmronHealthDevice {
     /// The Omron model string.
     public var model: OmronModel {
-        OmronModel(deviceInformation.modelNumber ?? "Generic Health Device")
+        OmronModel(rawValue: deviceInformation.modelNumber ?? "Generic Health Device")
     }
 
     /// The Omron Manufacturer data observed in the Bluetooth advertisement.

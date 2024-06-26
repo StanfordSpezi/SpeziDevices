@@ -187,7 +187,7 @@ final class PairedDevicesTests: XCTestCase {
 }
 
 
-func XCTAssertThrowsErrorAsync<T>(
+func XCTAssertThrowsErrorAsync<T>( // TODO: use from XCTestExtensions (also in SpeziBluetooth)!
     _ expression: @autoclosure () async throws -> T,
     _ message: @autoclosure () -> String = "",
     file: StaticString = #filePath,

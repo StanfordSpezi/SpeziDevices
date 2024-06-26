@@ -15,13 +15,7 @@ public enum OmronRecordAccessOperand {
     // REQUEST
 
     /// Specify filter criteria for supported requests.
-    ///
-    /// For more information refer to ``RecordAccessGenericOperand``.
-    case filterCriteria(RecordAccessFilterCriteria)
-    /// Specify range-based filter criteria for supported requests.
-    ///
-    /// For more information refer to ``RecordAccessGenericOperand``.
-    case rangeFilterCriteria(RecordAccessRangeFilterCriteria)
+    case sequenceNumberFilter(UInt16)
 
     // RESPONSE
 
@@ -31,6 +25,14 @@ public enum OmronRecordAccessOperand {
     case numberOfRecords(UInt16)
     /// Reports the sequence number of the latest records in the ``BluetoothServices/RecordAccessOpCode/omronSequenceNumberOfLatestRecordsResponse`` operation.
     case sequenceNumber(UInt16)
+}
+
+
+extension OmronRecordAccessOperand: Hashable, Sendable {}
+
+
+extension RecordAccessFilterType {
+    static let omronSequenceNumber = RecordAccessFilterType(rawValue: 0x04)
 }
 
 
@@ -56,15 +58,12 @@ extension OmronRecordAccessOperand: RecordAccessOperand {
         case .reportStoredRecords, .deleteStoredRecords, .reportNumberOfStoredRecords:
             switch `operator` {
             case .lessThanOrEqualTo, .greaterThanOrEqual:
-                guard let filterCriteria = RecordAccessFilterCriteria(from: &byteBuffer) else {
+                guard let filterType = RecordAccessFilterType(from: &byteBuffer),
+                      case .omronSequenceNumber = filterType,
+                      let sequenceNumber = UInt16(from: &byteBuffer) else {
                     return nil
                 }
-                self = .filterCriteria(filterCriteria)
-            case .withinInclusiveRangeOf:
-                guard let filterCriteria = RecordAccessRangeFilterCriteria(from: &byteBuffer) else {
-                    return nil
-                }
-                self = .rangeFilterCriteria(filterCriteria)
+                self = .sequenceNumberFilter(sequenceNumber)
             default:
                 return nil
             }
@@ -87,12 +86,22 @@ extension OmronRecordAccessOperand: RecordAccessOperand {
         switch self {
         case let .generalResponse(response):
             response.encode(to: &byteBuffer)
-        case let .filterCriteria(criteria):
-            criteria.encode(to: &byteBuffer)
-        case let .rangeFilterCriteria(criteria):
-            criteria.encode(to: &byteBuffer)
+        case let .sequenceNumberFilter(value):
+            RecordAccessFilterType.omronSequenceNumber.encode(to: &byteBuffer)
+            value.encode(to: &byteBuffer)
         case let .numberOfRecords(value), let .sequenceNumber(value):
             value.encode(to: &byteBuffer)
         }
+    }
+}
+
+
+extension RecordAccessOperationContent where Operand == OmronRecordAccessOperand {
+    /// Records that are greater than or equal to the specified sequence number.
+    ///
+    /// - Parameter sequenceNumber: The sequence number to use as a filter criteria.
+    /// - Returns: The operation content.
+    public static func greaterThanOrEqualTo(sequenceNumber: UInt16) -> RecordAccessOperationContent {
+        RecordAccessOperationContent(operator: .greaterThanOrEqual, operand: .sequenceNumberFilter(sequenceNumber))
     }
 }

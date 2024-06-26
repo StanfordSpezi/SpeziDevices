@@ -124,6 +124,21 @@ public struct OmronManufacturerData {
 extension OmronManufacturerData.UserSlot: Identifiable {}
 
 
+extension OmronManufacturerData.UserSlot: Hashable, Sendable {}
+
+
+extension OmronManufacturerData: Hashable, Sendable {}
+
+
+extension OmronManufacturerData.PairingMode: Hashable, Sendable {}
+
+
+extension OmronManufacturerData.StreamingMode: Hashable, Sendable {}
+
+
+extension OmronManufacturerData.ServicesMode: Hashable, Sendable {}
+
+
 extension OmronManufacturerData.Flags: ByteCodable {
     public init?(from byteBuffer: inout ByteBuffer) {
         guard let rawValue = UInt8(from: &byteBuffer) else {

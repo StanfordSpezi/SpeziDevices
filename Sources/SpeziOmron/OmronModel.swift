@@ -7,13 +7,13 @@
 //
 
 
-public struct OmronModel: RawRepresentable {
+/// Omron Model.
+public struct OmronModel {
+    /// The raw model number.
     public let rawValue: String
 
-    public init(_ model: String) {
-        self.init(rawValue: model)
-    }
-
+    /// Initialize from raw value.
+    /// - Parameter rawValue: The raw model number string.
     public init(rawValue: String) {
         self.rawValue = rawValue
     }
@@ -22,20 +22,16 @@ public struct OmronModel: RawRepresentable {
 
 extension OmronModel {
     /// The Omron SC150 weight scale.
-    public static let sc150 = OmronModel("SC-150")
+    public static let sc150 = OmronModel(rawValue: "SC-150")
     /// The Omron BP5250 blood pressure monitor.
-    public static let bp5250 = OmronModel("BP5250")
+    public static let bp5250 = OmronModel(rawValue: "BP5250")
 }
 
 
-extension OmronModel: Codable {
-    public init(from decoder: any Decoder) throws {
-        let decoder = try decoder.singleValueContainer()
-        self.rawValue = try decoder.decode(String.self)
-    }
+extension OmronModel: RawRepresentable {}
 
-    public func encode(to encoder: any Encoder) throws {
-        var encoder = encoder.singleValueContainer()
-        try encoder.encode(rawValue)
-    }
-}
+
+extension OmronModel: Hashable, Sendable {}
+
+
+extension OmronModel: Codable {}
