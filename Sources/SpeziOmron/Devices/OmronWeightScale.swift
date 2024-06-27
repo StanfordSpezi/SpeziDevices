@@ -18,6 +18,10 @@ import SpeziDevices
 public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice {
     private static let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
 
+    public var icon: ImageReference? {
+        .asset("Omron-SC-150", bundle: .module)
+    }
+
     @DeviceState(\.id) public var id: UUID
     @DeviceState(\.name) public var name: String?
     @DeviceState(\.state) public var state: PeripheralState
@@ -36,10 +40,6 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
     @Dependency private var pairedDevices: PairedDevices?
 
     private var dateOfConnection: Date?
-
-    public var icon: ImageReference? {
-        .asset("Omron-SC-150", bundle: .module)
-    }
 
     /// Initialize the device.
     public required init() {}

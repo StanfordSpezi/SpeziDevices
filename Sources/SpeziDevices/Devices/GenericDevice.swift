@@ -15,6 +15,9 @@ import SpeziBluetoothServices
 ///
 /// A generic Bluetooth device that provides access to basic device information.
 public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable {
+    /// An icon that is used to visually present the device to the user.
+    static var icon: ImageReference? { get }
+
     /// The device identifier.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to
@@ -48,24 +51,21 @@ public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Iden
     /// @Service var deviceInformation = DeviceInformationService()
     /// ```
     var deviceInformation: DeviceInformationService { get }
-
-    /// An icon that is used to visually present the device to the user.
-    var icon: ImageReference? { get }
 }
 
 
 extension GenericDevice {
+    /// Default icon implementation.
+    ///
+    /// Returns `nil` by default. Results in a generic icon to be presented.
+    public static var icon: ImageReference? {
+        nil
+    }
+
     /// Default label implementation.
     ///
     /// Returns `"Generic Device"` if the peripheral doesn't expose a ``name``.
     public var label: String {
         name ?? "Generic Device"
-    }
-
-    /// Default icon implementation.
-    ///
-    /// Returns `nil` by default. Results in a generic icon to be presented.
-    public var icon: ImageReference? {
-        nil
     }
 }

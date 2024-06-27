@@ -158,6 +158,8 @@ public final class PairedDevices {
                 return // no devices paired, no need to power up central
             }
 
+            self.syncDeviceIcons() // make sure assets are up to date
+
             await self.setupBluetoothStateSubscription()
         }
     }
@@ -441,7 +443,7 @@ extension PairedDevices {
             deviceType: Device.deviceTypeIdentifier,
             name: device.label,
             model: device.deviceInformation.modelNumber,
-            icon: device.icon,
+            icon: Device.icon,
             batteryPercentage: batteryLevel
         )
 
@@ -487,6 +489,31 @@ extension PairedDevices {
 // MARK: - Paired Peripheral Management
 
 extension PairedDevices {
+    @MainActor
+    private func syncDeviceIcons() {
+        guard let bluetooth else {
+            return
+        }
+
+        let configuredDevices = bluetooth.configuredPairableDevices
+
+        var didUpdate = false
+        for deviceInfo in pairedDevices {
+            guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
+                continue
+            }
+
+            if deviceInfo.icon != deviceType.icon {
+                deviceInfo.icon = deviceType.icon
+                didUpdate = true
+            }
+        }
+
+        if didUpdate {
+            flush()
+        }
+    }
+
     @MainActor
     private func setupBluetoothStateSubscription() async {
         assert(!pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")

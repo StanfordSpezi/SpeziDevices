@@ -18,6 +18,10 @@ import SpeziNumerics
 /// Implementation of Omron BP5250 Blood Pressure Cuff.
 public class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice {
     private static let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
+    
+    public static var icon: ImageReference? {
+        .asset("Omron-BP5250", bundle: .module)
+    }
 
     @DeviceState(\.id) public var id: UUID
     @DeviceState(\.name) public var name: String?
@@ -36,10 +40,6 @@ public class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthD
 
     @Dependency private var measurements: HealthMeasurements?
     @Dependency private var pairedDevices: PairedDevices?
-
-    public var icon: ImageReference? {
-        .asset("Omron-BP5250", bundle: .module)
-    }
 
     /// Initialize the device.
     public required init() {}

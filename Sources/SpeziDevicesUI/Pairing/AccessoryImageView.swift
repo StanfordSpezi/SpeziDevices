@@ -14,7 +14,7 @@ struct AccessoryImageView: View {
     private let device: any GenericDevice
 
     var body: some View {
-        let image = device.icon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image
+        let image = device.anyIcon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image
         HStack {
             image
                 .resizable()
@@ -31,6 +31,13 @@ struct AccessoryImageView: View {
 
     init(_ device: any GenericDevice) {
         self.device = device
+    }
+}
+
+
+extension GenericDevice {
+    fileprivate var anyIcon: ImageReference? {
+        Self.icon
     }
 }
 

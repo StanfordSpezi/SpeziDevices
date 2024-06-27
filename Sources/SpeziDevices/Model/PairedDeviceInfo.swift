@@ -19,7 +19,7 @@ public class PairedDeviceInfo {
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
     public let deviceType: String
     /// Visual representation of the device.
-    public let icon: ImageReference?
+    public var icon: ImageReference?
     /// A model string of the device.
     public let model: String?
 
