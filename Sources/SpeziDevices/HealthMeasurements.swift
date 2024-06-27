@@ -178,13 +178,17 @@ public class HealthMeasurements {
 
     @MainActor
     private func handleNewMeasurement(_ measurement: BluetoothHealthMeasurement, from source: HKDevice) {
-        loadMeasurement(measurement, form: source)
+        guard let healthKitMeasurement = loadMeasurement(measurement, form: source) else {
+            return
+        }
+
+        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
 
         shouldPresentMeasurements = true
     }
 
     @MainActor
-    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) {
+    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) -> HealthKitMeasurement? {
         let healthKitMeasurement: HealthKitMeasurement
         switch measurement {
         case let .weight(measurement, feature):
@@ -200,7 +204,7 @@ public class HealthMeasurements {
 
             guard let bloodPressureSample else {
                 logger.debug("Discarding invalid blood pressure measurement ...")
-                return
+                return nil
             }
 
             logger.debug("Measurement loaded: \(String(describing: measurement))")
@@ -210,7 +214,7 @@ public class HealthMeasurements {
 
         // prepend to pending measurements
         pendingMeasurements.insert(healthKitMeasurement, at: 0)
-        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
+        return healthKitMeasurement
     }
 
     /// Discard a pending measurement.

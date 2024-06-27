@@ -95,6 +95,7 @@ public struct MeasurementRecordedSheet: View {
     @ViewBuilder @MainActor private var content: some View {
         if measurements.pendingMeasurements.count > 1 {
             HStack {
+                // TODO: carousel might crash if the index is not right after deleting! (change the test to test this?)
                 ACarousel(measurements.pendingMeasurements, index: $selectedMeasurementIndex, spacing: 0, headspace: 0) { measurement in
                     MeasurementLayer(measurement: measurement)
                 }
@@ -121,14 +122,14 @@ public struct MeasurementRecordedSheet: View {
             measurements.discardMeasurement(selectedMeasurement)
 
             logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
-            dismiss()
+            dismiss() // TODO: maintain to show last measurement when dismissing!
         } discard: {
             guard let selectedMeasurement else {
                 return
             }
             measurements.discardMeasurement(selectedMeasurement)
             if measurements.pendingMeasurements.isEmpty {
-                dismiss()
+                dismiss() // TODO: maintain to show last measurement when dismissing!
             }
         }
     }
