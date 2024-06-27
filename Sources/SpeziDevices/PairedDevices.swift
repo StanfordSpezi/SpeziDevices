@@ -505,13 +505,12 @@ extension PairedDevices {
                 continue
             }
 
-            // TODO: just never store it and always update if we can't keep the promise?
-            // TODO: deviceInfo.icon = deviceType.icon
+            deviceInfo.icon = deviceType.icon
             didUpdate = true
         }
 
         if didUpdate {
-            // TODO: flush()
+            flush()
         }
     }
 
