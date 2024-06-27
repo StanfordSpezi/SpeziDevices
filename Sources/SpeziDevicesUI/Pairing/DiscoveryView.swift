@@ -9,16 +9,33 @@
 import SwiftUI
 
 
-struct DiscoveryView: View {
+struct DiscoveryView<Hint: View>: View {
+    private let pairingHint: Hint
+
     var body: some View {
-        PaneContent(
-            title: "Discovering",
-            subtitle: "Hold down the Bluetooth button for 3 seconds to put the device into pairing mode."
-        ) {
+        PaneContent {
+            Text("Discovering")
+        } subtitle: {
+            pairingHint
+        } content: {
             ProgressView()
                 .controlSize(.large)
                 .accessibilityHidden(true)
         }
+    }
+
+    init(@ViewBuilder pairingHint: () -> Hint = { EmptyView() }) {
+        self.pairingHint = pairingHint()
+    }
+
+    init(pairingHint: Text) where Hint == Text {
+        self.init {
+            pairingHint
+        }
+    }
+
+    init(pairingHint: LocalizedStringResource) where Hint == Text {
+        self.init(pairingHint: Text(pairingHint))
     }
 }
 

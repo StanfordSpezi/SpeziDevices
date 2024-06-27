@@ -38,6 +38,7 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/accessory-discovery"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", branch: "feature/xctassert-throws-async"),
         .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0"))
     ] + swiftLintPackage(),
     targets: [
@@ -92,7 +93,8 @@ let package = Package(
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "XCTSpezi", package: "Spezi"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
+                .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
                 swiftConcurrency
@@ -104,7 +106,8 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziOmron"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "XCTByteCoding", package: "SpeziNetworking")
+                .product(name: "XCTByteCoding", package: "SpeziNetworking"),
+                .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
                 swiftConcurrency

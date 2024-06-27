@@ -11,6 +11,7 @@ import SpeziBluetoothServices
 @_spi(TestingSupport) import SpeziDevices
 import SpeziFoundation
 import XCTest
+import XCTestExtensions
 import XCTSpezi
 
 
@@ -191,21 +192,5 @@ final class PairedDevicesTests: XCTestCase {
         }
 
         XCTAssertEqual(device.state, .disconnected)
-    }
-}
-
-
-func XCTAssertThrowsErrorAsync<T>( // TODO: use from XCTestExtensions (also in SpeziBluetooth)!
-    _ expression: @autoclosure () async throws -> T,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #filePath,
-    line: UInt = #line,
-    _ errorHandler: (Error) throws -> Void = { _ in }
-) async rethrows {
-    do {
-        _ = try await expression()
-        XCTFail(message(), file: file, line: line)
-    } catch {
-        try errorHandler(error)
     }
 }

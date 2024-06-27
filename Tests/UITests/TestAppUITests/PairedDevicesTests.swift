@@ -54,7 +54,6 @@ class PairedDevicesTests: XCTestCase {
         app.navigationBars.buttons["Dismiss"].tap()
 
         XCTAssert(app.staticTexts["No Devices"].waitForExistence(timeout: 0.5))
-        // TODO: customize the pairing hint!
     }
 
     @MainActor

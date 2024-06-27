@@ -719,8 +719,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/StanfordBDHG/XCTestExtensions.git";
 			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.4.10;
+				branch = "feature/xctassert-throws-async";
+				kind = branch;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

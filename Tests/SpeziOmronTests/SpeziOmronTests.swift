@@ -14,6 +14,7 @@ import SpeziBluetoothServices
 @testable import SpeziOmron
 import XCTByteCoding
 import XCTest
+import XCTestExtensions
 
 
 typealias RACP = RecordAccessControlPoint<OmronRecordAccessOperand>
@@ -132,7 +133,12 @@ final class SpeziOmronTests: XCTestCase {
         }
         try await service.reportStoredRecords(.allRecords)
 
-        // TODO: async throws throwing (no records found!)
+        service.$recordAccessControlPoint.onRequest { _ in
+            RACP(opCode: .responseCode, operator: .null, operand: .generalResponse(.init(requestOpCode: .reportStoredRecords, response: .noRecordsFound)))
+        }
+        try await XCTAssertThrowsErrorAsync(await service.reportStoredRecords(.allRecords)) { error in
+            try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseCode), .noRecordsFound)
+        }
     }
 
     func testRACPReportNumberOfStoredRecordsRequest() async throws {
@@ -145,7 +151,12 @@ final class SpeziOmronTests: XCTestCase {
         let count = try await service.reportNumberOfStoredRecords(.allRecords)
         XCTAssertEqual(count, 1234)
 
-        // TODO: test error unexpected operand!
+        service.$recordAccessControlPoint.onRequest { _ in
+            RACP(opCode: .numberOfStoredRecordsResponse, operator: .null, operand: .sequenceNumber(1234))
+        }
+        try await XCTAssertThrowsErrorAsync(await service.reportNumberOfStoredRecords(.allRecords)) { error in
+            try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseFormatError).reason, .unexpectedOperand)
+        }
     }
 
     func testRACPReportSequenceNumberOfLatestRecords() async throws {
@@ -158,7 +169,12 @@ final class SpeziOmronTests: XCTestCase {
         let count = try await service.reportSequenceNumberOfLatestRecords()
         XCTAssertEqual(count, 1234)
 
-        // TODO: test error unexpected operand!
+        service.$recordAccessControlPoint.onRequest { _ in
+            RACP(opCode: .omronSequenceNumberOfLatestRecordsResponse, operator: .null, operand: .numberOfRecords(1234))
+        }
+        try await XCTAssertThrowsErrorAsync(await service.reportSequenceNumberOfLatestRecords()) { error in
+            try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseFormatError).reason, .unexpectedOperand)
+        }
     }
 }
 

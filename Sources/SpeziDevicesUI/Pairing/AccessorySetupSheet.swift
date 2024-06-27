@@ -14,13 +14,14 @@ import SwiftUI
 
 
 /// Accessory Setup view displayed in a sheet.
-public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
+public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHint: View>: View where Collection.Element == any PairableDevice {
     private static var logger: Logger {
         Logger(subsystem: "edu.stanford.sepzi.SpeziDevices", category: "AccessorySetupSheet")
     }
 
     private let devices: Collection
     private let appName: String
+    private let pairingHint: PairingHint
 
     @Environment(Bluetooth.self) private var bluetooth
     @Environment(PairedDevices.self) private var pairedDevices
@@ -45,7 +46,9 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                         }
                     }
                 } else {
-                    DiscoveryView()
+                    DiscoveryView {
+                        pairingHint
+                    }
                 }
             }
                 .toolbar {
@@ -62,9 +65,31 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
     /// - Parameters:
     ///   - devices: The collection of nearby devices which are available for pairing.
     ///   - appName: The name of the application to show in the pairing UI.
-    public init(_ devices: Collection, appName: String) {
+    ///   - pairingHint: The pairing hint to display in the Discovery view.
+    public init(_ devices: Collection, appName: String, @ViewBuilder pairingHint: () -> PairingHint = { EmptyView() }) {
         self.devices = devices
         self.appName = appName
+        self.pairingHint = pairingHint()
+    }
+
+    /// Create a new Accessory Setup sheet.
+    /// - Parameters:
+    ///   - devices: The collection of nearby devices which are available for pairing.
+    ///   - appName: The name of the application to show in the pairing UI.
+    ///   - pairingHint: The pairing hint to display in the Discovery view.
+    public init(_ devices: Collection, appName: String, pairingHint: Text) where PairingHint == Text {
+        self.init(devices, appName: appName) {
+            pairingHint
+        }
+    }
+
+    /// Create a new Accessory Setup sheet.
+    /// - Parameters:
+    ///   - devices: The collection of nearby devices which are available for pairing.
+    ///   - appName: The name of the application to show in the pairing UI.
+    ///   - pairingHint: The pairing hint to display in the Discovery view.
+    public init(_ devices: Collection, appName: String, pairingHint: LocalizedStringResource) where PairingHint == Text {
+        self.init(devices, appName: appName, pairingHint: Text(pairingHint))
     }
 }
 
@@ -73,7 +98,9 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            AccessorySetupSheet([MockDevice.createMockDevice()], appName: "Example")
+            AccessorySetupSheet([MockDevice.createMockDevice()], appName: "Example") {
+                Text(verbatim: "Make sure to enable pairing mode on the device.")
+            }
         }
         .previewWith {
             Bluetooth {}
@@ -89,7 +116,9 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
                 MockDevice.createMockDevice(name: "Device 1"),
                 MockDevice.createMockDevice(name: "Device 2")
             ]
-            AccessorySetupSheet(devices, appName: "Example")
+            AccessorySetupSheet(devices, appName: "Example") {
+                Text(verbatim: "Make sure to enable pairing mode on the device.")
+            }
         }
         .previewWith {
             Bluetooth {}
@@ -100,7 +129,9 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection>: View wher
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            AccessorySetupSheet([], appName: "Example")
+            AccessorySetupSheet([], appName: "Example") {
+                Text(verbatim: "Make sure to enable pairing mode on the device.")
+            }
         }
         .previewWith {
             Bluetooth {}
