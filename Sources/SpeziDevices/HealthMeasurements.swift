@@ -128,9 +128,25 @@ public class HealthMeasurements {
     @_documentation(visibility: internal)
     public func configure() {
         Task.detached { @MainActor in
-            for measurement in self.storedMeasurements.values {
+            // Note, we index `storedMeasurements` by the HealthKit sample UUID.
+            // However, when we redo the conversion, the identifier changes. Therefore,
+            // we store the current container in local scope, clear everything and completely rebuild the dictionary.
+            let storedMeasurements = self.storedMeasurements
+            self.storedMeasurements.removeAll()
+
+            for measurement in storedMeasurements.values {
                 self.loadMeasurement(measurement.measurement, form: measurement.device)
             }
+
+            // assert check that they have the same count.
+            assert(self.storedMeasurements.count == self.pendingMeasurements.count, "Non-matching count after initialization. Storage out of sync.")
+            // assert that both key sets are equal.
+            assert(
+                Set(self.storedMeasurements.keys)
+                    .union(self.pendingMeasurements.reduce(into: Set(), { $0.insert($1.id) }))
+                    .count == self.storedMeasurements.count,
+                "Inconsistent key storage in health store. Storage out of sync."
+            )
         }
     }
 
@@ -178,18 +194,12 @@ public class HealthMeasurements {
 
     @MainActor
     private func handleNewMeasurement(_ measurement: BluetoothHealthMeasurement, from source: HKDevice) {
-        guard let healthKitMeasurement = loadMeasurement(measurement, form: source) else {
-            return
-        }
-
-        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
-
+        loadMeasurement(measurement, form: source)
         shouldPresentMeasurements = true
     }
 
     @MainActor
-    @discardableResult
-    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) -> HealthKitMeasurement? {
+    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) {
         let healthKitMeasurement: HealthKitMeasurement
         switch measurement {
         case let .weight(measurement, feature):
@@ -205,7 +215,7 @@ public class HealthMeasurements {
 
             guard let bloodPressureSample else {
                 logger.debug("Discarding invalid blood pressure measurement ...")
-                return nil
+                return
             }
 
             logger.debug("Measurement loaded: \(String(describing: measurement))")
@@ -215,7 +225,7 @@ public class HealthMeasurements {
 
         // prepend to pending measurements
         pendingMeasurements.insert(healthKitMeasurement, at: 0)
-        return healthKitMeasurement
+        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
     }
 
     /// Discard a pending measurement.
@@ -235,6 +245,8 @@ public class HealthMeasurements {
         let value = storedMeasurements.removeValue(forKey: element.id)
         if let value {
             logger.debug("Discarding measurement \(String(describing: value.measurement))")
+        } else {
+            logger.error("Couldn't locate stored measurements when discarding pending measurement.")
         }
         return true
     }
