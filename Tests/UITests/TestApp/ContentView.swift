@@ -23,6 +23,10 @@ struct ContentView: View {
                 .tabItem {
                     Label("Measurements", systemImage: "list.bullet.clipboard.fill")
                 }
+            BluetoothViewsTest()
+                .tabItem {
+                    Label("Views", systemImage: "macwindow")
+                }
         }
     }
 }

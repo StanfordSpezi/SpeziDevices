@@ -161,6 +161,9 @@ final class HealthMeasurementsTests: XCTestCase {
 
         let measurement1 = try XCTUnwrap(device.weightScale.weightMeasurement)
         device.weightScale.$weightMeasurement.inject(measurement1)
+
+        try await Task.sleep(for: .milliseconds(50))
+
         let measurement0 = try XCTUnwrap(device.bloodPressure.bloodPressureMeasurement)
         device.bloodPressure.$bloodPressureMeasurement.inject(measurement0)
 

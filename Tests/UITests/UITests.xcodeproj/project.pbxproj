@@ -20,6 +20,10 @@
 		A959B7EB2C2CC05A00ACA775 /* HKCorrelationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7EA2C2CC05A00ACA775 /* HKCorrelationView.swift */; };
 		A959B7F02C2D602C00ACA775 /* PairedDevicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7EF2C2D602C00ACA775 /* PairedDevicesTests.swift */; };
 		A959B7F32C2D646500ACA775 /* XCTestExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = A959B7F22C2D646500ACA775 /* XCTestExtensions */; };
+		A959B7F52C2D72A500ACA775 /* BluetoothViewsTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7F42C2D72A500ACA775 /* BluetoothViewsTest.swift */; };
+		A959B7F82C2D75B400ACA775 /* BluetoothUnavailableSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7F72C2D75B400ACA775 /* BluetoothUnavailableSection.swift */; };
+		A959B7FA2C2D75F300ACA775 /* MockDeviceDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7F92C2D75F300ACA775 /* MockDeviceDetailsView.swift */; };
+		A959B7FC2C2D769A00ACA775 /* BluetoothViewsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7FB2C2D769A00ACA775 /* BluetoothViewsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +64,10 @@
 		A959B7E72C2CBF1400ACA775 /* HKQuantitySampleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKQuantitySampleView.swift; sourceTree = "<group>"; };
 		A959B7EA2C2CC05A00ACA775 /* HKCorrelationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HKCorrelationView.swift; sourceTree = "<group>"; };
 		A959B7EF2C2D602C00ACA775 /* PairedDevicesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairedDevicesTests.swift; sourceTree = "<group>"; };
+		A959B7F42C2D72A500ACA775 /* BluetoothViewsTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothViewsTest.swift; sourceTree = "<group>"; };
+		A959B7F72C2D75B400ACA775 /* BluetoothUnavailableSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothUnavailableSection.swift; sourceTree = "<group>"; };
+		A959B7F92C2D75F300ACA775 /* MockDeviceDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDeviceDetailsView.swift; sourceTree = "<group>"; };
+		A959B7FB2C2D769A00ACA775 /* BluetoothViewsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothViewsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,12 +115,14 @@
 		2F6D139428F5F384007C25D6 /* TestApp */ = {
 			isa = PBXGroup;
 			children = (
+				A959B7F42C2D72A500ACA775 /* BluetoothViewsTest.swift */,
 				A922BB192C2CB072009DD0E1 /* ContentView.swift */,
 				A922BB1D2C2CB276009DD0E1 /* DevicesTestView.swift */,
 				A922BB1F2C2CB280009DD0E1 /* MeasurementsTestView.swift */,
 				2FA7382B290ADFAA007ACEB9 /* TestApp.swift */,
 				2F6D139928F5F386007C25D6 /* Assets.xcassets */,
 				A959B7E92C2CC04400ACA775 /* Health */,
+				A959B7F62C2D759700ACA775 /* Views */,
 			);
 			path = TestApp;
 			sourceTree = "<group>";
@@ -122,6 +132,7 @@
 			children = (
 				2F8A431229130A8C005D2B8F /* HealthMeasurementsTests.swift */,
 				A959B7EF2C2D602C00ACA775 /* PairedDevicesTests.swift */,
+				A959B7FB2C2D769A00ACA775 /* BluetoothViewsTests.swift */,
 			);
 			path = TestAppUITests;
 			sourceTree = "<group>";
@@ -136,11 +147,20 @@
 		A959B7E92C2CC04400ACA775 /* Health */ = {
 			isa = PBXGroup;
 			children = (
-				A959B7E52C2CBF0900ACA775 /* HKSampleView.swift */,
-				A959B7E72C2CBF1400ACA775 /* HKQuantitySampleView.swift */,
 				A959B7EA2C2CC05A00ACA775 /* HKCorrelationView.swift */,
+				A959B7E72C2CBF1400ACA775 /* HKQuantitySampleView.swift */,
+				A959B7E52C2CBF0900ACA775 /* HKSampleView.swift */,
 			);
 			path = Health;
+			sourceTree = "<group>";
+		};
+		A959B7F62C2D759700ACA775 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A959B7F72C2D75B400ACA775 /* BluetoothUnavailableSection.swift */,
+				A959B7F92C2D75F300ACA775 /* MockDeviceDetailsView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -256,10 +276,13 @@
 				A959B7E82C2CBF1400ACA775 /* HKQuantitySampleView.swift in Sources */,
 				A922BB1A2C2CB072009DD0E1 /* ContentView.swift in Sources */,
 				A959B7EB2C2CC05A00ACA775 /* HKCorrelationView.swift in Sources */,
+				A959B7FA2C2D75F300ACA775 /* MockDeviceDetailsView.swift in Sources */,
+				A959B7F82C2D75B400ACA775 /* BluetoothUnavailableSection.swift in Sources */,
 				A922BB202C2CB280009DD0E1 /* MeasurementsTestView.swift in Sources */,
 				A922BB1E2C2CB276009DD0E1 /* DevicesTestView.swift in Sources */,
 				A959B7E62C2CBF0900ACA775 /* HKSampleView.swift in Sources */,
 				2FA7382C290ADFAA007ACEB9 /* TestApp.swift in Sources */,
+				A959B7F52C2D72A500ACA775 /* BluetoothViewsTest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +290,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A959B7FC2C2D769A00ACA775 /* BluetoothViewsTests.swift in Sources */,
 				A959B7F02C2D602C00ACA775 /* PairedDevicesTests.swift in Sources */,
 				2F8A431329130A8C005D2B8F /* HealthMeasurementsTests.swift in Sources */,
 			);

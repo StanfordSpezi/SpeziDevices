@@ -147,9 +147,6 @@
         }
       }
     },
-    "Close" : {
-      "comment" : "For closing sheets."
-    },
     "Connected" : {
       "localizations" : {
         "en" : {

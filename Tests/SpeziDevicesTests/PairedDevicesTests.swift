@@ -30,6 +30,8 @@ final class PairedDevicesTests: XCTestCase {
             devices
         }
 
+        device.isInPairingMode = true
+
 
         XCTAssertFalse(devices.isConnected(device: device.id))
         XCTAssertFalse(devices.isPaired(device))
@@ -106,6 +108,8 @@ final class PairedDevicesTests: XCTestCase {
             devices
         }
 
+        device.isInPairingMode = true
+
         device.$nearby.inject(false)
         try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
             XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .invalidState)
@@ -141,6 +145,8 @@ final class PairedDevicesTests: XCTestCase {
             devices
         }
 
+        device.isInPairingMode = true
+
         let task = Task {
             try await devices.pair(with: device)
         }
@@ -167,6 +173,8 @@ final class PairedDevicesTests: XCTestCase {
             device
             devices
         }
+
+        device.isInPairingMode = true
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 

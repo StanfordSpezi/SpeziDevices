@@ -80,14 +80,14 @@ final class SpeziOmronTests: XCTestCase {
             CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
         ]))
 
-        XCTAssertTrue(device.isInPairingMode)
+        XCTAssertEqual(device.manufacturerData?.pairingMode, .pairingMode)
 
         let manufacturerData0 = OmronManufacturerData(pairingMode: .transferMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
         device.$advertisementData.inject(AdvertisementData([
             CBAdvertisementDataManufacturerDataKey: manufacturerData0.encode()
         ]))
 
-        XCTAssertFalse(device.isInPairingMode)
+        XCTAssertEqual(device.manufacturerData?.pairingMode, .transferMode)
 
 
         device.deviceInformation.$modelNumber.inject(OmronModel.bp5250.rawValue)

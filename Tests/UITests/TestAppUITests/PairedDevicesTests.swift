@@ -162,5 +162,36 @@ class PairedDevicesTests: XCTestCase {
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
     }
 
-    // TODO: forget devices test
+    @MainActor
+    func testPairingFailed() {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCTAssert(app.buttons["Devices"].waitForExistence(timeout: 2.0))
+        app.buttons["Devices"].tap()
+
+        XCTAssert(app.navigationBars.buttons["More"].exists)
+        app.navigationBars.buttons["More"].tap()
+        XCTAssert(app.buttons["Connect"].exists)
+        app.buttons["Connect"].tap()
+
+        XCTAssert(app.navigationBars.buttons["More"].exists)
+        app.navigationBars.buttons["More"].tap()
+        XCTAssert(app.buttons["Discover Device"].exists)
+        app.buttons["Discover Device"].tap()
+
+        XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
+        XCTAssert(app.buttons["Pair"].exists)
+        app.buttons["Pair"].tap()
+
+        XCTAssert(app.staticTexts["Pairing Failed"].waitForExistence(timeout: 2.0))
+        XCTAssert(app.staticTexts["Failed to pair with device. Please try again."].exists)
+        XCTAssert(app.buttons["OK"].exists)
+        app.buttons["OK"].tap()
+
+        XCTAssert(app.navigationBars.buttons["Add Device"].waitForExistence(timeout: 0.5))
+        app.navigationBars.buttons["Add Device"].tap()
+
+        XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
+    }
 }
