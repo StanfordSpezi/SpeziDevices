@@ -12,7 +12,6 @@ import SpeziBluetoothServices
 import SpeziNumerics
 
 
-#if DEBUG || TEST
 @_spi(TestingSupport)
 public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice {
     @DeviceState(\.id) public var id
@@ -214,4 +213,3 @@ extension WeightMeasurement {
         )
     }
 }
-#endif

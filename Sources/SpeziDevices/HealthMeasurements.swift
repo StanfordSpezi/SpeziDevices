@@ -234,7 +234,6 @@ public class HealthMeasurements {
 extension HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {}
 
 
-#if DEBUG || TEST
 extension HealthMeasurements {
     /// Call in preview simulator wrappers.
     ///
@@ -266,4 +265,3 @@ extension HealthMeasurements {
         handleNewMeasurement(.bloodPressure(measurement, device.bloodPressure.features ?? []), from: device.hkDevice)
     }
 }
-#endif

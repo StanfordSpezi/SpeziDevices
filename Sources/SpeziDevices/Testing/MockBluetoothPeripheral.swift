@@ -9,7 +9,6 @@
 import SpeziBluetooth
 
 
-#if DEBUG || TEST
 /// Mock peripheral used for internal previews.
 @_spi(TestingSupport)
 public struct MockBluetoothPeripheral: GenericBluetoothPeripheral {
@@ -24,4 +23,3 @@ public struct MockBluetoothPeripheral: GenericBluetoothPeripheral {
         self.requiresUserAttention = requiresUserAttention
     }
 }
-#endif
