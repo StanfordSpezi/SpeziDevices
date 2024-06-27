@@ -33,12 +33,16 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         get {
             storage[key]
         }
-        _modify {
+        mutating _modify {
             yield &storage[key]
         }
-        set {
+        mutating set {
             storage[key] = newValue
         }
+    }
+
+    mutating func removeValue(forKey key: Key) {
+        storage.removeValue(forKey: key)
     }
 }
 

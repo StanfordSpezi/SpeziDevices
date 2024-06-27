@@ -231,7 +231,8 @@ public class HealthMeasurements {
             return false
         }
         let element = self.pendingMeasurements.remove(at: index)
-        storedMeasurements[element.id] = nil
+        
+        storedMeasurements.removeValue(forKey: element.id)
         return true
     }
 }
