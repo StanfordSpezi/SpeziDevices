@@ -134,7 +134,11 @@ final class SpeziOmronTests: XCTestCase {
         try await service.reportStoredRecords(.allRecords)
 
         service.$recordAccessControlPoint.onRequest { _ in
-            RACP(opCode: .responseCode, operator: .null, operand: .generalResponse(.init(requestOpCode: .reportStoredRecords, response: .noRecordsFound)))
+            RACP(
+                opCode: .responseCode,
+                operator: .null,
+                operand: .generalResponse(.init(requestOpCode: .reportStoredRecords, response: .noRecordsFound))
+            )
         }
         try await XCTAssertThrowsErrorAsync(await service.reportStoredRecords(.allRecords)) { error in
             try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseCode), .noRecordsFound)

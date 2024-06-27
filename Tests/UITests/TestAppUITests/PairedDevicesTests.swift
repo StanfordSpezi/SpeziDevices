@@ -58,7 +58,7 @@ class PairedDevicesTests: XCTestCase {
     }
 
     @MainActor
-    func testPairDevice() throws {
+    func testPairDevice() throws { // swiftlint:disable:this function_body_length
         let app = XCUIApplication()
         app.launch()
 

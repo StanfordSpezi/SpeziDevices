@@ -17,7 +17,7 @@ import XCTSpezi
 
 final class PairedDevicesTests: XCTestCase {
     @MainActor
-    func testPairDevice() async throws {
+    func testPairDevice() async throws { // swiftlint:disable:this function_body_length
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
         defer {
