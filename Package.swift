@@ -81,6 +81,9 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
+            resources: [
+                .process("Resources")
+            ],
             swiftSettings: [
                 swiftConcurrency
             ],

@@ -68,6 +68,7 @@ extension MockDevice {
     /// - Parameters:
     ///   - name: The name of the device.
     ///   - state: The initial peripheral state.
+    ///   - nearby: The nearby state.
     ///   - bloodPressureMeasurement:  The blood pressure measurement loaded into the device.
     ///   - weightMeasurement: The weight measurement loaded into the device.
     ///   - weightResolution: The weight resolution to use.
@@ -124,10 +125,7 @@ extension MockDevice {
         }
 
         device.$disconnect.inject { @MainActor [weak device] in
-            guard let device else {
-                return
-            }
-            device.$state.inject(.disconnected)
+            device?.$state.inject(.disconnected)
         }
 
         device.$state.enableSubscriptions()
@@ -142,8 +140,6 @@ extension MockDevice {
 
         device.weightScale.$weightMeasurement.enableSubscriptions()
         device.weightScale.$weightMeasurement.enablePeripheralSimulation()
-
-        device.configure()
 
         return device
     }

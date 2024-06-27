@@ -20,6 +20,11 @@
 
 ### Omron Devices
 
+- ``OmronBloodPressureCuff``
+- ``OmronWeightScale``
+
+### Omron Device
+
 - ``OmronHealthDevice``
 - ``OmronModel``
 - ``OmronManufacturerData``

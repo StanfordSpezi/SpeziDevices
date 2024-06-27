@@ -23,7 +23,6 @@ Below is a list of important symbols of SpeziDevices.
 - ``PairedDevices``
 - ``PairedDeviceInfo``
 - ``DevicePairingError``
-- ``PairingContinuation``
 - ``ImageReference``
 
 ### Devices
