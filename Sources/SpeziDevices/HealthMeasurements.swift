@@ -233,6 +233,7 @@ public class HealthMeasurements {
         let element = self.pendingMeasurements.remove(at: index)
         
         storedMeasurements.removeValue(forKey: element.id)
+        storedMeasurements = storedMeasurements // TODO: remove?
         return true
     }
 }
