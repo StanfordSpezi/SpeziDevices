@@ -154,11 +154,11 @@ public final class PairedDevices {
 
         // We need to detach to not copy task local values
         Task.detached { @MainActor in
+            self.syncDeviceIcons() // make sure assets are up to date
+
             guard !self.pairedDevices.isEmpty else {
                 return // no devices paired, no need to power up central
             }
-
-            self.syncDeviceIcons() // make sure assets are up to date
 
             await self.setupBluetoothStateSubscription()
         }
@@ -499,18 +499,12 @@ extension PairedDevices {
 
         let configuredDevices = bluetooth.configuredPairableDevices
 
-        var didUpdate = false
         for deviceInfo in pairedDevices {
             guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
                 continue
             }
 
             deviceInfo.icon = deviceType.icon
-            didUpdate = true
-        }
-
-        if didUpdate {
-            flush()
         }
     }
 

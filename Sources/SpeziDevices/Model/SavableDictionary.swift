@@ -29,6 +29,11 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         storage.removeAll()
     }
 
+    @discardableResult
+    mutating func removeValue(forKey key: Key) -> Value? {
+        storage.removeValue(forKey: key)
+    }
+
     subscript(key: Key) -> Value? {
         get {
             storage[key]
@@ -39,11 +44,6 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         mutating set {
             storage[key] = newValue
         }
-    }
-
-    @discardableResult
-    mutating func removeValue(forKey key: Key) -> Value? {
-        storage.removeValue(forKey: key)
     }
 }
 

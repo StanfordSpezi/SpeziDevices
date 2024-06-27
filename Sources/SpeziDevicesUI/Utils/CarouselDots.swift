@@ -59,7 +59,7 @@ struct CarouselDots: View {
 
 
     private var dragGesture: some Gesture {
-        DragGesture(minimumDistance: 2)
+        DragGesture(minimumDistance: 0)
             .onChanged { value in
                 isDragging = true
                 updateIndexBasedOnDrag(value.location)

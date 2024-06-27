@@ -188,6 +188,7 @@ public class HealthMeasurements {
     }
 
     @MainActor
+    @discardableResult
     private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) -> HealthKitMeasurement? {
         let healthKitMeasurement: HealthKitMeasurement
         switch measurement {
@@ -231,9 +232,10 @@ public class HealthMeasurements {
             return false
         }
         let element = self.pendingMeasurements.remove(at: index)
-        
-        storedMeasurements.removeValue(forKey: element.id)
-        storedMeasurements = storedMeasurements // TODO: remove?
+        let value = storedMeasurements.removeValue(forKey: element.id)
+        if let value {
+            logger.debug("Discarding measurement \(String(describing: value.measurement))")
+        }
         return true
     }
 }

@@ -18,8 +18,6 @@ public class PairedDeviceInfo {
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
     public let deviceType: String
-    /// Visual representation of the device.
-    public var icon: ImageReference?
     /// A model string of the device.
     public let model: String?
 
@@ -29,8 +27,13 @@ public class PairedDeviceInfo {
     public internal(set) var lastSeen: Date
     /// The last reported battery percentage of the device.
     public internal(set) var lastBatteryPercentage: UInt8?
+
+    // NOT STORED ON DISK
+
     /// Could not retrieve the device from the Bluetooth central.
     public internal(set) var notLocatable: Bool = false
+    /// Visual representation of the device.
+    public var icon: ImageReference?
 
     /// Create new paired device information.
     /// - Parameters:
@@ -46,7 +49,7 @@ public class PairedDeviceInfo {
         deviceType: String,
         name: String,
         model: String?,
-        icon: ImageReference?,
+        icon: ImageReference? = nil,
         lastSeen: Date = .now,
         batteryPercentage: UInt8? = nil
     ) {
@@ -68,7 +71,6 @@ public class PairedDeviceInfo {
             deviceType: container.decode(String.self, forKey: .deviceType),
             name: container.decode(String.self, forKey: .name),
             model: container.decodeIfPresent(String.self, forKey: .name),
-            icon: container.decodeIfPresent(ImageReference.self, forKey: .icon),
             lastSeen: container.decode(Date.self, forKey: .lastSeen),
             batteryPercentage: container.decodeIfPresent(UInt8.self, forKey: .batteryPercentage)
         )
@@ -82,7 +84,6 @@ extension PairedDeviceInfo: Identifiable, Codable {
         case deviceType
         case name
         case model
-        case icon
         case lastSeen
         case batteryPercentage
     }
@@ -94,7 +95,6 @@ extension PairedDeviceInfo: Identifiable, Codable {
         try container.encode(deviceType, forKey: .deviceType)
         try container.encode(name, forKey: .name)
         try container.encodeIfPresent(model, forKey: .model)
-        try container.encodeIfPresent(icon, forKey: .icon)
         try container.encode(lastSeen, forKey: .lastSeen)
         try container.encodeIfPresent(lastBatteryPercentage, forKey: .batteryPercentage)
     }
