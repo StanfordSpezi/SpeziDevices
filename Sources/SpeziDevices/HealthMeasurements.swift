@@ -121,6 +121,7 @@ public class HealthMeasurements {
     @MainActor
     public func clearStorage() {
         storedMeasurements.removeAll()
+        pendingMeasurements.removeAll()
     }
 
     /// Configure the Module.

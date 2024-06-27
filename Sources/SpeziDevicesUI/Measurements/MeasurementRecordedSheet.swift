@@ -88,6 +88,7 @@ public struct MeasurementRecordedSheet: View {
                 }
         }
             .presentationDetents([dynamicDetent])
+            .presentationCornerRadius(25)
     }
 
 
