@@ -50,6 +50,7 @@ class PairedDevicesTests: XCTestCase {
         app.buttons["Pair New Device"].tap()
 
         XCTAssert(app.staticTexts["Discovering"].waitForExistence(timeout: 0.5))
+        XCTAssert(app.staticTexts["Enable pairing mode on the device."].exists)
         XCTAssert(app.navigationBars.buttons["Dismiss"].exists)
         app.navigationBars.buttons["Dismiss"].tap()
 

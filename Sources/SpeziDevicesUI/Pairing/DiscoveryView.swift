@@ -27,16 +27,6 @@ struct DiscoveryView<Hint: View>: View {
     init(@ViewBuilder pairingHint: () -> Hint = { EmptyView() }) {
         self.pairingHint = pairingHint()
     }
-
-    init(pairingHint: Text) where Hint == Text {
-        self.init {
-            pairingHint
-        }
-    }
-
-    init(pairingHint: LocalizedStringResource) where Hint == Text {
-        self.init(pairingHint: Text(pairingHint))
-    }
 }
 
 
