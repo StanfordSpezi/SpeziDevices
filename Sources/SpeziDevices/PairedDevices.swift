@@ -405,13 +405,16 @@ extension PairedDevices {
     /// You call this method from your device implementation on events that indicate that the device was successfully paired.
     /// - Note: This method does nothing if there is currently no ongoing pairing session for a device.
     /// - Parameter device: The device that can be considered paired and might have an ongoing pairing session.
+    /// - Returns: Returns `true` if there was an ongoing pairing session and the device is now paired.
     @MainActor
-    public func signalDevicePaired(_ device: some PairableDevice) {
+    @discardableResult
+    public func signalDevicePaired(_ device: some PairableDevice) -> Bool {
         guard let continuation = ongoingPairings.removeValue(forKey: device.id) else {
-            return
+            return false
         }
         logger.debug("Device \(device.label), \(device.id) signaled it is fully paired.")
         continuation.signalPaired()
+        return true
     }
 
     @MainActor
