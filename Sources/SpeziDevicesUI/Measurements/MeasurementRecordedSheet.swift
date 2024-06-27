@@ -145,7 +145,7 @@ public struct MeasurementRecordedSheet: View {
 
     @MainActor
     @discardableResult
-    private func ensureCorrectIndex() -> EmptyView { // TODO: not protected from changes from the outside?
+    private func ensureCorrectIndex() -> EmptyView {
         if selectedMeasurementIndex >= measurements.pendingMeasurements.count {
             selectedMeasurementIndex = max(0, measurements.pendingMeasurements.count - 1)
         }

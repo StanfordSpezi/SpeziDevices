@@ -505,10 +505,8 @@ extension PairedDevices {
                 continue
             }
 
-            if deviceInfo.icon != deviceType.icon {
-                deviceInfo.icon = deviceType.icon
-                didUpdate = true
-            }
+            deviceInfo.icon = deviceType.icon
+            didUpdate = true
         }
 
         if didUpdate {

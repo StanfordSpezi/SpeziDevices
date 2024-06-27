@@ -39,7 +39,6 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     var body: some View {
         PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
             if devices.count > 1 {
-                // TODO: what happens if device disappears!
                 ACarousel(devices, id: \.id, index: $selectedDeviceIndex, spacing: 0, headspace: 0) { device in
                     AccessoryImageView(device)
                 }
