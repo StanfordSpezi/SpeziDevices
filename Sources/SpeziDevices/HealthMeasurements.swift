@@ -172,6 +172,8 @@ public class HealthMeasurements {
             logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
             await handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
         }
+
+        logger.debug("Registered device \(device.label), \(device.id) with HealthMeasurements")
     }
 
     @MainActor

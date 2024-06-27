@@ -236,6 +236,8 @@ public final class PairedDevices {
                 await updateBattery(for: device, percentage: value)
             }
         }
+
+        logger.debug("Registered device \(device.label), \(device.id) with PairedDevices")
     }
 
     @MainActor
