@@ -95,7 +95,6 @@ public struct MeasurementRecordedSheet: View {
     @ViewBuilder @MainActor private var content: some View {
         if measurements.pendingMeasurements.count > 1 {
             HStack {
-                // TODO: carousel might crash if the index is not right after deleting! (change the test to test this?)
                 ACarousel(measurements.pendingMeasurements, index: $selectedMeasurementIndex, spacing: 0, headspace: 0) { measurement in
                     MeasurementLayer(measurement: measurement)
                 }
@@ -120,6 +119,7 @@ public struct MeasurementRecordedSheet: View {
             }
 
             measurements.discardMeasurement(selectedMeasurement)
+            ensureCorrectIndex()
 
             logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
             dismiss() // TODO: maintain to show last measurement when dismissing!
@@ -128,6 +128,8 @@ public struct MeasurementRecordedSheet: View {
                 return
             }
             measurements.discardMeasurement(selectedMeasurement)
+            ensureCorrectIndex()
+
             if measurements.pendingMeasurements.isEmpty {
                 dismiss() // TODO: maintain to show last measurement when dismissing!
             }
@@ -138,6 +140,16 @@ public struct MeasurementRecordedSheet: View {
     /// Create a new measurement sheet.
     public init(save saveSamples: @escaping ([HKSample]) async throws -> Void) {
         self.saveSamples = saveSamples
+    }
+
+
+    @MainActor
+    @discardableResult
+    private func ensureCorrectIndex() -> EmptyView { // TODO: not protected from changes from the outside?
+        if selectedMeasurementIndex >= measurements.pendingMeasurements.count {
+            selectedMeasurementIndex = max(0, measurements.pendingMeasurements.count - 1)
+        }
+        return EmptyView()
     }
 }
 

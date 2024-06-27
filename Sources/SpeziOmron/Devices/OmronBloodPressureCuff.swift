@@ -18,7 +18,7 @@ import SpeziNumerics
 /// Implementation of Omron BP5250 Blood Pressure Cuff.
 public class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice {
     private static let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
-    
+
     public static var icon: ImageReference? {
         .asset("Omron-BP5250", bundle: .module)
     }

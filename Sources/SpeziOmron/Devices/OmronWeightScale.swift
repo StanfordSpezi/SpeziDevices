@@ -18,7 +18,7 @@ import SpeziDevices
 public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice {
     private static let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
 
-    public var icon: ImageReference? {
+    public static var icon: ImageReference? {
         .asset("Omron-SC-150", bundle: .module)
     }
 

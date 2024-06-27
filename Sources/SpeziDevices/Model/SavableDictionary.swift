@@ -41,7 +41,8 @@ struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
         }
     }
 
-    mutating func removeValue(forKey key: Key) {
+    @discardableResult
+    mutating func removeValue(forKey key: Key) -> Value? {
         storage.removeValue(forKey: key)
     }
 }
