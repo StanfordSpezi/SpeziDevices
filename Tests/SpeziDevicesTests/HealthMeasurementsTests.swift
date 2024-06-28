@@ -136,6 +136,7 @@ final class HealthMeasurementsTests: XCTestCase {
         // tests that order stays same over storage retrieval
 
         // Restoring from disk doesn't preserve HealthKit UUIDs
+        // TODO: order is not always guaranteed! => probably also a problem for the PairedDevices thingy!
         guard case .bloodPressure = measurements.pendingMeasurements.first,
               case .weight = measurements.pendingMeasurements.last else {
             XCTFail("Order of measurements doesn't match: \(measurements.pendingMeasurements)")

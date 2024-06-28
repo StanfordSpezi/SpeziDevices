@@ -294,9 +294,7 @@ extension HealthMeasurements {
             print("Otherwise asdf: \(storedMeasurement.device)")
             print("Sample: \(storedMeasurement.measurement)")
 
-            return
-            /*
-            guard let id = loadMeasurement(storedMeasurement.measurement, form: storedMeasurement.device) else {
+            guard let id = loadMeasurement(storedMeasurement.measurement.measurement, form: storedMeasurement.device) else {
                 context.delete(storedMeasurement)
                 continue
             }
@@ -306,7 +304,7 @@ extension HealthMeasurements {
             // Therefore, we need to make sure to update all associated ids after loading.
             storedMeasurement.associatedMeasurement = id
             print("hasChanges1: \(context.hasChanges == true)")
-            try? context.save()*/
+            try? context.save()
         }
         // TODO: save all?
     }

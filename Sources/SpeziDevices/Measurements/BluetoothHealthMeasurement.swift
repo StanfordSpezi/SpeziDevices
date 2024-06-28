@@ -34,25 +34,25 @@ private struct BloodPressureMeasurementCopy: Codable {
     /// The systolic value of the blood pressure measurement.
     ///
     /// The unit of this value is defined by the ``unit-swift.property`` property.
-    // TODO: public let systolicValue: MedFloat16
+    public let systolicValue: MedFloat16
     /// The diastolic value of the blood pressure measurement.
     ///
     /// The unit of this value is defined by the ``unit-swift.property`` property.
-    // TODO: public let diastolicValue: MedFloat16
+    public let diastolicValue: MedFloat16
     /// The Mean Arterial Pressure (MAP)
     ///
     /// The unit of this value is defined by the ``unit-swift.property`` property.
-    // TODO: public let meanArterialPressure: MedFloat16
+    public let meanArterialPressure: MedFloat16
     /// The unit of the blood pressure measurement values.
     ///
     /// This property defines the unit of the ``systolicValue``, ``diastolicValue`` and ``meanArterialPressure`` properties.
     public let unit: String
 
     /// The timestamp of the measurement.
-    // TODO: public let timeStamp: DateTime?
+    public let timeStamp: DateTime?
 
     /// The pulse rate in beats per minute.
-    // TODO: public let pulseRate: MedFloat16?
+    public let pulseRate: UInt16?
 
     /// The associated user of the blood pressure measurement.
     ///
@@ -60,21 +60,69 @@ private struct BloodPressureMeasurementCopy: Codable {
     /// - Note: The special value of `0xFF` (`UInt8.max`) is used to represent an unknown user.
     ///
     /// The values are left to the implementation but should be unique per device.
-    // TODO: public let userId: UInt8?
+    public let userId: UInt8?
 
     /// Additional metadata information of a blood pressure measurement.
-    // TOOD: public let measurementStatus: UInt16?
+    public let measurementStatus: UInt16?
 
+
+    var measurement: BloodPressureMeasurement {
+        .init(
+            systolic: systolicValue,
+            diastolic: diastolicValue,
+            meanArterialPressure: meanArterialPressure,
+            unit: .init(rawValue: unit) ?? .mmHg,
+            timeStamp: timeStamp,
+            pulseRate: pulseRate.map { MedFloat16(bitPattern: $0) },
+            userId: userId,
+            measurementStatus: measurementStatus.map { .init(rawValue: $0) }
+        )
+    }
 
     init(from measurement: BloodPressureMeasurement) {
-        // TODO: self.systolicValue = measurement.systolicValue
-        // TODO: self.diastolicValue = measurement.diastolicValue
-        // TODO: self.meanArterialPressure = measurement.meanArterialPressure
+        self.systolicValue = measurement.systolicValue
+        self.diastolicValue = measurement.diastolicValue
+        self.meanArterialPressure = measurement.meanArterialPressure
         self.unit = measurement.unit.rawValue
-        // TODO: self.timeStamp = measurement.timeStamp
-        // TODO: self.pulseRate = measurement.pulseRate
-        // TODO: self.userId = measurement.userId
-        // TODO: self.measurementStatus = measurement.measurementStatus?.rawValue
+        self.timeStamp = measurement.timeStamp
+        self.pulseRate = measurement.pulseRate?.bitPattern
+        self.userId = measurement.userId
+        self.measurementStatus = measurement.measurementStatus?.rawValue
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.systolicValue, forKey: .systolicValue)
+        try container.encode(self.diastolicValue, forKey: .diastolicValue)
+        try container.encode(self.meanArterialPressure, forKey: .meanArterialPressure)
+        try container.encode(self.unit, forKey: .unit)
+        try container.encodeIfPresent(self.timeStamp, forKey: .timeStamp)
+        try container.encodeIfPresent(self.pulseRate, forKey: .pulseRate)
+        try container.encodeIfPresent(self.userId, forKey: .userId)
+        try container.encodeIfPresent(self.measurementStatus, forKey: .measurementStatus)
+    }
+
+    enum CodingKeys: CodingKey {
+        case systolicValue
+        case diastolicValue
+        case meanArterialPressure
+        case unit
+        case timeStamp
+        case pulseRate
+        case userId
+        case measurementStatus
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.systolicValue = try container.decode(MedFloat16.self, forKey: .systolicValue)
+        self.diastolicValue = try container.decode(MedFloat16.self, forKey: .diastolicValue)
+        self.meanArterialPressure = try container.decode(MedFloat16.self, forKey: .meanArterialPressure)
+        self.unit = try container.decode(String.self, forKey: .unit)
+        self.timeStamp = try container.decodeIfPresent(DateTime.self, forKey: .timeStamp)
+        self.pulseRate = try container.decodeIfPresent(UInt16.self, forKey: .pulseRate)
+        self.userId = try container.decodeIfPresent(UInt8.self, forKey: .userId)
+        self.measurementStatus = try container.decodeIfPresent(UInt16.self, forKey: .measurementStatus)
     }
 }
 
@@ -86,23 +134,41 @@ struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer: Codable {
 
     private let type: MeasurementType
 
-    private var bloodPressureMeasurement2: BloodPressureMeasurementCopy?
-    private var bloodPressureFeatures: BloodPressureFeature.RawValue? // TODO: non-transient!
+    private var bloodPressureMeasurement: BloodPressureMeasurementCopy?
+    private var bloodPressureFeatures: BloodPressureFeature.RawValue?
 
-    // TODO: private var weightMeasurement: WeightMeasurement?
+    private var weightMeasurement: WeightMeasurement?
     private var weightScaleFeatures: WeightScaleFeature.RawValue?
+
+    var measurement: BluetoothHealthMeasurement {
+        switch type {
+        case .bloodPressure:
+            guard let bloodPressureMeasurement, let bloodPressureFeatures else {
+                preconditionFailure("Inconsistent type")
+            }
+            return .bloodPressure(bloodPressureMeasurement.measurement, .init(rawValue: bloodPressureFeatures))
+        case .weight:
+            guard let weightMeasurement, let weightScaleFeatures else {
+                preconditionFailure("Inconsistent type")
+            }
+            return .weight(weightMeasurement, .init(rawValue: weightScaleFeatures))
+        }
+    }
 
     init(from measurement: BluetoothHealthMeasurement) {
         switch measurement {
         case let .bloodPressure(measurement, feature):
             type = .bloodPressure
-            bloodPressureMeasurement2 = BloodPressureMeasurementCopy(from: measurement)
-            // TODO: bloodPressureMeasurement = .init(from: measurement)
+            bloodPressureMeasurement = .init(from: measurement)
             bloodPressureFeatures = feature.rawValue
+            weightMeasurement = nil
+            weightScaleFeatures = nil
         case let .weight(measurement, features):
             type = .weight
+            bloodPressureMeasurement = nil
+            bloodPressureFeatures = nil
             // bloodPressureMeasurement2 = BloodPressureMeasurementCopy(from: .mock())
-            // TODO:  weightMeasurement = measurement
+            weightMeasurement = measurement
             weightScaleFeatures = features.rawValue
         }
     }
@@ -110,9 +176,31 @@ struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer: Codable {
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(self.type, forKey: .type)
-        try container.encodeIfPresent(self.bloodPressureMeasurement2, forKey: .bloodPressureMeasurement2)
+        try container.encodeIfPresent(self.bloodPressureMeasurement, forKey: .bloodPressureMeasurement)
         try container.encodeIfPresent(self.bloodPressureFeatures, forKey: .bloodPressureFeatures)
-        // TOOD: try container.encodeIfPresent(self.weightScaleFeatures, forKey: .weightScaleFeatures)
+        try container.encodeIfPresent(self.weightMeasurement, forKey: .weightMeasurement)
+        try container.encodeIfPresent(self.weightScaleFeatures, forKey: .weightScaleFeatures)
+    }
+
+    enum CodingKeys: CodingKey {
+        case type
+        case bloodPressureMeasurement
+        case bloodPressureFeatures
+        case weightMeasurement
+        case weightScaleFeatures
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = try container.decode(SwiftDataBluetoothHealthMeasurementWorkaroundContainer.MeasurementType.self, forKey: .type)
+        switch type {
+        case .bloodPressure:
+            self.bloodPressureMeasurement = try container.decodeIfPresent(BloodPressureMeasurementCopy.self, forKey: .bloodPressureMeasurement)
+            self.bloodPressureFeatures = try container.decodeIfPresent(BloodPressureFeature.RawValue.self, forKey: .bloodPressureFeatures)
+        case .weight:
+            self.weightMeasurement = try container.decodeIfPresent(WeightMeasurement.self, forKey: .weightMeasurement)
+            self.weightScaleFeatures = try container.decodeIfPresent(WeightScaleFeature.RawValue.self, forKey: .weightScaleFeatures)
+        }
     }
 }
 
