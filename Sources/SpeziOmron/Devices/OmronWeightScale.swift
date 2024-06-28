@@ -66,7 +66,6 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
         case .connected:
             switch manufacturerData?.pairingMode {
             case .pairingMode:
-                print("Device connection is NOW!")
                 dateOfConnection = .now
             case .transferMode:
                 time.synchronizeDeviceTime()
@@ -79,7 +78,7 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
     }
 
     @MainActor
-    private func handleCurrentTimeChange(_ time: CurrentTime) {
+    private func handleCurrentTimeChange(_ time: CurrentTime) {/*
         if case .pairingMode = manufacturerData?.pairingMode,
            let dateOfConnection,
            abs(Date.now.timeIntervalSince1970 - dateOfConnection.timeIntervalSince1970) < 1 {
@@ -87,7 +86,7 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
             // because of the notification registration.
             return
         }
-
+*/
         Self.logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
         let paired = pairedDevices?.signalDevicePaired(self) == true
         if paired {
