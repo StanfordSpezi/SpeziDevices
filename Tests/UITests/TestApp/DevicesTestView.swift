@@ -55,8 +55,6 @@ struct DevicesTestView: View {
                 }
         }
             .onAppear {
-                pairedDevices.clearStorage() // we clear storage for testing purposes
-
                 guard !didRegister else {
                     return
                 }

@@ -17,12 +17,9 @@ import XCTSpezi
 
 final class PairedDevicesTests: XCTestCase {
     @MainActor
-    func testPairDevice() async throws { // swiftlint:disable:this function_body_length
+    func testPairDevice() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
-        defer {
-            devices.clearStorage()
-        }
 
 
         // ensure PairedDevices gets injected into the MockDevice
@@ -101,9 +98,6 @@ final class PairedDevicesTests: XCTestCase {
     func testPairingErrors() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
-        defer {
-            devices.clearStorage()
-        }
 
         withDependencyResolution {
             devices
@@ -138,9 +132,6 @@ final class PairedDevicesTests: XCTestCase {
     func testPairingCancellation() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
-        defer {
-            devices.clearStorage()
-        }
 
         withDependencyResolution {
             devices
@@ -166,9 +157,6 @@ final class PairedDevicesTests: XCTestCase {
     func testFailedPairing() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
-        defer {
-            devices.clearStorage()
-        }
 
         withDependencyResolution {
             device

@@ -7,13 +7,14 @@
 //
 
 import Foundation
+import SwiftData
 
 
 /// Persistent information stored of a paired device.
-@Observable
+@Model
 public class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
-    public let id: UUID
+    @Attribute(.unique) public let id: UUID
     /// The device type.
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
@@ -28,12 +29,10 @@ public class PairedDeviceInfo {
     /// The last reported battery percentage of the device.
     public internal(set) var lastBatteryPercentage: UInt8?
 
-    // NOT STORED ON DISK
-
     /// Could not retrieve the device from the Bluetooth central.
-    public internal(set) var notLocatable: Bool = false
+    @Transient public internal(set) var notLocatable: Bool = false
     /// Visual representation of the device.
-    public var icon: ImageReference?
+    @Transient public var icon: ImageReference?
 
     /// Create new paired device information.
     /// - Parameters:
@@ -61,44 +60,10 @@ public class PairedDeviceInfo {
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
     }
-
-    /// Initialize from decoder.
-    public required convenience init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        try self.init(
-            id: container.decode(UUID.self, forKey: .id),
-            deviceType: container.decode(String.self, forKey: .deviceType),
-            name: container.decode(String.self, forKey: .name),
-            model: container.decodeIfPresent(String.self, forKey: .name),
-            lastSeen: container.decode(Date.self, forKey: .lastSeen),
-            batteryPercentage: container.decodeIfPresent(UInt8.self, forKey: .batteryPercentage)
-        )
-    }
 }
 
 
-extension PairedDeviceInfo: Identifiable, Codable {
-    fileprivate enum CodingKeys: String, CodingKey {
-        case id
-        case deviceType
-        case name
-        case model
-        case lastSeen
-        case batteryPercentage
-    }
-
-    public func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-
-        try container.encode(id, forKey: .id)
-        try container.encode(deviceType, forKey: .deviceType)
-        try container.encode(name, forKey: .name)
-        try container.encodeIfPresent(model, forKey: .model)
-        try container.encode(lastSeen, forKey: .lastSeen)
-        try container.encodeIfPresent(lastBatteryPercentage, forKey: .batteryPercentage)
-    }
-}
+extension PairedDeviceInfo: Identifiable {}
 
 
 extension PairedDeviceInfo: Hashable {

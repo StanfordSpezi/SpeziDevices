@@ -10,8 +10,9 @@ import OrderedCollections
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
-import SpeziFoundation
+@_spi(TestingSupport) import SpeziFoundation
 import SpeziViews
+import SwiftData
 import SwiftUI
 
 
@@ -88,24 +89,18 @@ import SwiftUI
 public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var shouldPresentDevicePairing = false
+
     /// Collection of discovered devices indexed by their Bluetooth identifier.
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
-
-    @MainActor private(set) var peripherals: [UUID: any PairableDevice] = [:]
-
-    /// Device Information of paired devices.
+    /// The collection of paired devices that are persisted on disk.
     @MainActor public var pairedDevices: [PairedDeviceInfo] {
-        get {
-            access(keyPath: \.pairedDevices)
-            return _pairedDevices.values
-        }
-        set {
-            withMutation(keyPath: \.pairedDevices) {
-                _pairedDevices = SavableCollection(newValue)
-            }
-        }
+        Array(_pairedDevices.values)
     }
-    @AppStorage @MainActor @ObservationIgnored private var _pairedDevices: SavableCollection<PairedDeviceInfo>
+
+    @MainActor private var _pairedDevices: OrderedDictionary<UUID, PairedDeviceInfo> = [:]
+
+    /// Bluetooth Peripheral instances of paired devices.
+    @MainActor private(set) var peripherals: [UUID: any PairableDevice] = [:]
 
     @MainActor @ObservationIgnored private var pendingConnectionAttempts: [UUID: Task<Void, Never>] = [:]
     @MainActor @ObservationIgnored private var ongoingPairings: [UUID: PairingContinuation] = [:]
@@ -117,6 +112,8 @@ public final class PairedDevices {
 
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
     @Dependency @ObservationIgnored private var tipKit: ConfigureTipKit
+
+    private var modelContainer: ModelContainer?
 
     /// Determine if Bluetooth is scanning to discovery nearby devices.
     ///
@@ -133,27 +130,34 @@ public final class PairedDevices {
 
 
     /// Initialize the Paired Devices Module.
-    public required convenience init() {
-        self.init("edu.stanford.spezi.SpeziDevices.PairedDevices.devices-default")
-    }
-
-    /// Initialize the Paired Devices Module with custom storage key.
-    /// - Parameter storageKey: The storage key for storing paired device information.
-    public init(_ storageKey: String) {
-        self.__pairedDevices = AppStorage(wrappedValue: [], storageKey)
-    }
+    public required init() {}
 
 
     /// Configures the Module.
     @_documentation(visibility: internal)
     public func configure() {
-        guard bluetooth != nil else {
+        if bluetooth != nil {
             self.logger.warning("PairedDevices Module initialized without Bluetooth dependency!")
-            return // useful for e.g. previews
+        }
+
+        var configuration: ModelConfiguration
+#if targetEnvironment(simulator)
+        configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+#else
+        configuration = ModelConfiguration()
+#endif
+
+        do {
+            self.modelContainer = try ModelContainer(for: PairedDeviceInfo.self, configurations: configuration)
+        } catch {
+            self.modelContainer = nil
+            self.logger.error("PairedDevices failed to initialize ModelContainer: \(error)")
         }
 
         // We need to detach to not copy task local values
         Task.detached { @MainActor in
+            self.fetchAllPairedInfos()
+
             self.syncDeviceIcons() // make sure assets are up to date
 
             guard !self.pairedDevices.isEmpty else {
@@ -162,13 +166,6 @@ public final class PairedDevices {
 
             await self.setupBluetoothStateSubscription()
         }
-    }
-
-    /// Clears all currently stored paired devices.
-    @_spi(TestingSupport)
-    @MainActor
-    public func clearStorage() {
-        pairedDevices.removeAll()
     }
 
     /// Determine if a device is currently connected.
@@ -193,8 +190,8 @@ public final class PairedDevices {
     ///   - name: The new name.
     @MainActor
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
+        logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
-        flush()
     }
 
     /// Configure a device to be managed by this PairedDevices instance.
@@ -284,22 +281,20 @@ public final class PairedDevices {
 
     @MainActor
     private func updateBattery<Device: PairableDevice>(for device: Device, percentage: UInt8) {
-        guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
+        guard let deviceInfo = _pairedDevices[device.id] else {
             return
         }
         logger.debug("Updated battery level for \(device.label): \(percentage) %")
-        pairedDevices[index].lastBatteryPercentage = percentage
-        flush()
+        deviceInfo.lastBatteryPercentage = percentage
     }
 
     @MainActor
     private func updateLastSeen<Device: PairableDevice>(for device: Device, lastSeen: Date = .now) {
-        guard let index = pairedDevices.firstIndex(where: { $0.id == device.id }) else {
-            return // not paired
+        guard let deviceInfo = _pairedDevices[device.id] else {
+            return
         }
         logger.debug("Updated lastSeen for \(device.label): \(lastSeen) %")
-        pairedDevices[index].lastSeen = lastSeen
-        flush()
+        deviceInfo.lastSeen = lastSeen
     }
 
     @MainActor
@@ -329,11 +324,6 @@ public final class PairedDevices {
         let task = pendingConnectionAttempts.removeValue(forKey: device.id)
         task?.cancel()
         return task
-    }
-
-    @MainActor
-    private func flush() {
-        _pairedDevices = _pairedDevices // update app storage
     }
 
     deinit {
@@ -449,7 +439,13 @@ extension PairedDevices {
             batteryPercentage: batteryLevel
         )
 
-        pairedDevices.append(deviceInfo)
+        _pairedDevices[deviceInfo.id] = deviceInfo
+        if let modelContainer {
+            modelContainer.mainContext.insert(deviceInfo)
+        } else {
+            logger.warning("PairedDevice \(device.label), \(device.id) could not be persisted on disk due to missing ModelContainer!")
+        }
+
         discoveredDevices[device.id] = nil
 
 
@@ -467,12 +463,15 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) {
-        pairedDevices.removeAll { info in
-            info.id == id
+        let removed = _pairedDevices.removeValue(forKey: id)
+        if let removed {
+            modelContainer?.mainContext.delete(removed)
         }
+
 
         discoveredDevices.removeValue(forKey: id)
         let device = peripherals.removeValue(forKey: id)
+
         if let device {
             Task {
                 await device.disconnect()
@@ -491,6 +490,26 @@ extension PairedDevices {
 // MARK: - Paired Peripheral Management
 
 extension PairedDevices {
+    @MainActor
+    private func fetchAllPairedInfos() {
+        guard let modelContainer else {
+            return
+        }
+
+        let context = modelContainer.mainContext
+        var allPairedDevices = FetchDescriptor<PairedDeviceInfo>()
+        allPairedDevices.includePendingChanges = true
+
+        do {
+            let pairedDevices = try context.fetch(allPairedDevices)
+            self._pairedDevices = pairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
+                partialResult[deviceInfo.id] = deviceInfo
+            }
+        } catch {
+            logger.error("Failed to fetch paired device info from disk: \(error)")
+        }
+    }
+
     @MainActor
     private func syncDeviceIcons() {
         guard let bluetooth else {
