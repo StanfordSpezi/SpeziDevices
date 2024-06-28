@@ -8,7 +8,7 @@
 
 @_spi(TestingSupport) import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport) @testable import SpeziDevices
 import SpeziFoundation
 import XCTest
 import XCTestExtensions
@@ -42,8 +42,8 @@ final class PairedDevicesTests: XCTestCase {
         XCTAssertTrue(devices.isPaired(device))
         XCTAssertTrue(devices.isConnected(device: device.id))
 
-        XCTAssertEqual(devices.pairedDevices.count, 1)
-        let deviceInfo = try XCTUnwrap(devices.pairedDevices.first)
+        XCTAssertEqual(devices.pairedDevices?.count, 1)
+        let deviceInfo = try XCTUnwrap(devices.pairedDevices?.first)
 
         XCTAssertEqual(deviceInfo.id, device.id)
         XCTAssertEqual(deviceInfo.deviceType, MockDevice.deviceTypeIdentifier)
@@ -71,10 +71,12 @@ final class PairedDevicesTests: XCTestCase {
         XCTAssertEqual(deviceInfo.name, "Custom Name")
 
         let recentLastSeen = deviceInfo.lastSeen
-        try { // test storage persistence!
-            let devices2 = PairedDevices()
-            XCTAssertEqual(devices2.pairedDevices.count, 1)
-            let info0 = try XCTUnwrap(devices2.pairedDevices.first)
+
+        // test storage persistence!
+        try devices.refreshPairedDevices()
+        try {
+            XCTAssertEqual(devices.pairedDevices?.count, 1)
+            let info0 = try XCTUnwrap(devices.pairedDevices?.first)
             XCTAssertEqual(info0.name, "Custom Name")
             XCTAssertEqual(info0.lastBatteryPercentage, 71)
             XCTAssertEqual(info0.lastSeen, recentLastSeen)
@@ -90,7 +92,7 @@ final class PairedDevicesTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(50))
 
         XCTAssertEqual(device.state, .disconnected)
-        XCTAssertTrue(devices.pairedDevices.isEmpty)
+        XCTAssertEqual(devices.pairedDevices?.isEmpty, true)
         XCTAssertTrue(devices.discoveredDevices.isEmpty)
     }
 

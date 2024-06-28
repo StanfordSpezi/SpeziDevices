@@ -13,7 +13,7 @@ import TipKit
 
 /// Grid view of paired devices.
 public struct DevicesGrid: View {
-    private let devices: [PairedDeviceInfo]
+    private let devices: [PairedDeviceInfo]? // swiftlint:disable:this discouraged_optional_collection
     @Binding private var presentingDevicePairing: Bool
 
     @State private var detailedDeviceInfo: PairedDeviceInfo?
@@ -27,35 +27,39 @@ public struct DevicesGrid: View {
 
     public var body: some View {
         Group {
-            if devices.isEmpty {
-                ZStack {
-                    VStack {
-                        TipView(ForgetDeviceTip.instance)
-                            .padding([.leading, .trailing], 20)
-                        Spacer()
+            if let devices {
+                if devices.isEmpty {
+                    ZStack {
+                        VStack {
+                            TipView(ForgetDeviceTip.instance)
+                                .padding([.leading, .trailing], 20)
+                            Spacer()
+                        }
+                        DevicesUnavailableView(presentingDevicePairing: $presentingDevicePairing)
                     }
-                    DevicesUnavailableView(presentingDevicePairing: $presentingDevicePairing)
-                }
-            } else {
-                ScrollView(.vertical) {
-                    VStack(spacing: 16) {
-                        TipView(ForgetDeviceTip.instance)
-                            .tipBackground(Color(uiColor: .secondarySystemGroupedBackground))
+                } else {
+                    ScrollView(.vertical) {
+                        VStack(spacing: 16) {
+                            TipView(ForgetDeviceTip.instance)
+                                .tipBackground(Color(uiColor: .secondarySystemGroupedBackground))
 
-                        LazyVGrid(columns: gridItems) {
-                            ForEach(devices) { device in
-                                Button {
-                                    detailedDeviceInfo = device
-                                } label: {
-                                    DeviceTile(device)
-                                }
+                            LazyVGrid(columns: gridItems) {
+                                ForEach(devices) { device in
+                                    Button {
+                                        detailedDeviceInfo = device
+                                    } label: {
+                                        DeviceTile(device)
+                                    }
                                     .foregroundStyle(.primary)
+                                }
                             }
                         }
-                    }
                         .padding([.leading, .trailing], 20)
-                }
+                    }
                     .background(Color(uiColor: .systemGroupedBackground))
+                }
+            } else {
+                ProgressView()
             }
         }
             .navigationTitle("Devices")
@@ -76,7 +80,8 @@ public struct DevicesGrid: View {
     /// - Parameters:
     ///   - devices: The list of paired devices to display.
     ///   - presentingDevicePairing: Binding to indicate if the device discovery menu should be presented.
-    public init(devices: [PairedDeviceInfo], presentingDevicePairing: Binding<Bool>) {
+    public init(devices: [PairedDeviceInfo]?, presentingDevicePairing: Binding<Bool>) {
+        // swiftlint:disable:previous discouraged_optional_collection
         self.devices = devices
         self._presentingDevicePairing = presentingDevicePairing
     }

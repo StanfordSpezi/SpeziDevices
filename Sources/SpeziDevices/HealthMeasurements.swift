@@ -6,11 +6,13 @@
 // SPDX-License-Identifier: MIT
 //
 
+import OrderedCollections
 import HealthKit
 import OSLog
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
+import SwiftData
 import SwiftUI
 
 
@@ -92,20 +94,13 @@ public class HealthMeasurements {
     /// The newest measurement is always prepended.
     /// To clear pending measurements call ``discardMeasurement(_:)``.
     @MainActor public private(set) var pendingMeasurements: [HealthKitMeasurement] = []
-    @MainActor @AppStorage @ObservationIgnored private var storedMeasurements: SavableDictionary<UUID, StoredMeasurement>
 
     @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
 
-    /// Initialize the Health Measurements Module.
-    public required convenience init() {
-        self.init("edu.stanford.spezi.SpeziDevices.HealthMeasurements.measurements-default")
-    }
+    private var modelContainer: ModelContainer?
 
-    /// Initialize the Health Measurements Module with custom storage key.
-    /// - Parameter storageKey: The storage key for pending measurements.
-    public init(_ storageKey: String) {
-        self._storedMeasurements = AppStorage(wrappedValue: [:], storageKey)
-    }
+    /// Initialize the Health Measurements Module.
+    public required init() {}
 
     /// Initialize the Health Measurements Module with mock measurements.
     /// - Parameter measurements: The list of measurements to inject.
@@ -116,37 +111,27 @@ public class HealthMeasurements {
         self.pendingMeasurements = measurements
     }
 
-    /// Clears all currently stored records on disk.
-    @_spi(TestingSupport)
-    @MainActor
-    public func clearStorage() {
-        storedMeasurements.removeAll()
-        pendingMeasurements.removeAll()
-    }
-
     /// Configure the Module.
     @_documentation(visibility: internal)
     public func configure() {
+        let configuration: ModelConfiguration
+#if targetEnvironment(simulator)
+        configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+#else
+        configuration = ModelConfiguration()
+#endif
+
+        do {
+            self.modelContainer = try ModelContainer(for: StoredMeasurement.self, configurations: configuration)
+        } catch {
+            self.modelContainer = nil
+            self.logger.error("HealthMeasurements failed to initialize ModelContainer: \(error)")
+            return
+        }
+
+
         Task.detached { @MainActor in
-            // Note, we index `storedMeasurements` by the HealthKit sample UUID.
-            // However, when we redo the conversion, the identifier changes. Therefore,
-            // we store the current container in local scope, clear everything and completely rebuild the dictionary.
-            let storedMeasurements = self.storedMeasurements
-            self.storedMeasurements.removeAll()
-
-            for measurement in storedMeasurements.values {
-                self.loadMeasurement(measurement.measurement, form: measurement.device)
-            }
-
-            // assert check that they have the same count.
-            assert(self.storedMeasurements.count == self.pendingMeasurements.count, "Non-matching count after initialization. Storage out of sync.")
-            // assert that both key sets are equal.
-            assert(
-                Set(self.storedMeasurements.keys)
-                    .union(self.pendingMeasurements.reduce(into: Set(), { $0.insert($1.id) }))
-                    .count == self.storedMeasurements.count,
-                "Inconsistent key storage in health store. Storage out of sync."
-            )
+            self.fetchMeasurements()
         }
     }
 
@@ -194,12 +179,23 @@ public class HealthMeasurements {
 
     @MainActor
     private func handleNewMeasurement(_ measurement: BluetoothHealthMeasurement, from source: HKDevice) {
-        loadMeasurement(measurement, form: source)
+        let id = loadMeasurement(measurement, form: source)
+        guard let id else {
+            return
+        }
+
+        if let modelContainer {
+            let storeMeasurement = StoredMeasurement(associatedMeasurement: id, measurement: .init(from: measurement), device: source)
+            modelContainer.mainContext.insert(storeMeasurement)
+        } else {
+            logger.warning("Measurement \(id) could not be persisted on disk due to missing ModelContainer!")
+        }
+
         shouldPresentMeasurements = true
     }
 
     @MainActor
-    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) {
+    private func loadMeasurement(_ measurement: BluetoothHealthMeasurement, form source: HKDevice) -> UUID? {
         let healthKitMeasurement: HealthKitMeasurement
         switch measurement {
         case let .weight(measurement, feature):
@@ -215,7 +211,7 @@ public class HealthMeasurements {
 
             guard let bloodPressureSample else {
                 logger.debug("Discarding invalid blood pressure measurement ...")
-                return
+                return nil
             }
 
             logger.debug("Measurement loaded: \(String(describing: measurement))")
@@ -225,7 +221,7 @@ public class HealthMeasurements {
 
         // prepend to pending measurements
         pendingMeasurements.insert(healthKitMeasurement, at: 0)
-        storedMeasurements[healthKitMeasurement.id] = StoredMeasurement(measurement: measurement, device: source)
+        return healthKitMeasurement.id
     }
 
     /// Discard a pending measurement.
@@ -242,18 +238,79 @@ public class HealthMeasurements {
             return false
         }
         let element = self.pendingMeasurements.remove(at: index)
-        let value = storedMeasurements.removeValue(forKey: element.id)
-        if let value {
-            logger.debug("Discarding measurement \(String(describing: value.measurement))")
-        } else {
-            logger.error("Couldn't locate stored measurements when discarding pending measurement.")
+
+        let id = element.id // we need to capture id, element.id results in #Predicate to not compile
+        do {
+            try modelContainer?.mainContext.delete(
+                model: StoredMeasurement.self,
+                where: #Predicate<StoredMeasurement> { $0.associatedMeasurement == id }
+            )
+        } catch {
+            logger.error("Failed to remove measurement from storage: \(error)")
         }
+
         return true
     }
 }
 
 
 extension HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {}
+
+
+extension HealthMeasurements {
+    @MainActor
+    func refreshFetchingMeasurements() throws {
+        pendingMeasurements.removeAll()
+        if let modelContainer, modelContainer.mainContext.hasChanges {
+            try modelContainer.mainContext.save()
+        }
+        fetchMeasurements()
+    }
+
+    @MainActor
+    private func fetchMeasurements() {
+        guard let modelContainer else {
+            return
+        }
+
+        var fetchAll = FetchDescriptor<StoredMeasurement>()
+        // TODO: fetchAll.includePendingChanges = true
+
+        let context = modelContainer.mainContext
+        let storedMeasurements: [StoredMeasurement]
+        do {
+            storedMeasurements = try context.fetch(fetchAll)
+        } catch {
+            logger.error("Failed to retrieve stored measurements from disk \(error)")
+            return
+        }
+
+        print("hasChanges1: \(context.hasChanges == true)")
+        try? context.save()
+
+        for storedMeasurement in storedMeasurements {
+            print("Looking at \(storedMeasurement)")
+            print("checking id \(storedMeasurement.associatedMeasurement)")
+            print("Otherwise asdf: \(storedMeasurement.device)")
+            print("Sample: \(storedMeasurement.measurement)")
+
+            return
+            /*
+            guard let id = loadMeasurement(storedMeasurement.measurement, form: storedMeasurement.device) else {
+                context.delete(storedMeasurement)
+                continue
+            }
+
+            // Note, we associate `storedMeasurements` by the HealthKit sample UUID.
+            // However, when we redo the conversion, the identifier changes.
+            // Therefore, we need to make sure to update all associated ids after loading.
+            storedMeasurement.associatedMeasurement = id
+            print("hasChanges1: \(context.hasChanges == true)")
+            try? context.save()*/
+        }
+        // TODO: save all?
+    }
+}
 
 
 extension HealthMeasurements {

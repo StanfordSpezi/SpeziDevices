@@ -8,6 +8,7 @@
 
 
 import HealthKit
+import SwiftData
 
 
 private struct CodableHKDevice {
@@ -21,16 +22,23 @@ private struct CodableHKDevice {
     let udiDeviceIdentifier: String?
 }
 
+private struct CodableHKQuantitySample {
 
-struct StoredMeasurement {
-    let measurement: BluetoothHealthMeasurement
+}
+
+
+@Model
+final class StoredMeasurement {
+    @Attribute(.unique) var associatedMeasurement: UUID
+    let measurement: SwiftDataBluetoothHealthMeasurementWorkaroundContainer
     fileprivate let codableDevice: CodableHKDevice
 
     var device: HKDevice {
         codableDevice.hkDevice
     }
 
-    init(measurement: BluetoothHealthMeasurement, device: HKDevice) {
+    init(associatedMeasurement: UUID, measurement: SwiftDataBluetoothHealthMeasurementWorkaroundContainer, device: HKDevice) {
+        self.associatedMeasurement = associatedMeasurement
         self.measurement = measurement
         self.codableDevice = CodableHKDevice(from: device)
     }
@@ -38,13 +46,6 @@ struct StoredMeasurement {
 
 
 extension CodableHKDevice: Codable {}
-
-extension StoredMeasurement: Codable {
-    private enum CodingKeys: String, CodingKey {
-        case measurement
-        case codableDevice = "device"
-    }
-}
 
 
 extension CodableHKDevice {
@@ -72,3 +73,18 @@ extension CodableHKDevice {
         self.udiDeviceIdentifier = hkDevice.udiDeviceIdentifier
     }
 }
+
+
+/*
+extension CodableHKQuantitySample {
+    var hkSample: HKQuantitySample {
+        HKQuantitySample(
+            type: <#T##HKQuantityType#>,
+            quantity: <#T##HKQuantity#>,
+            start: <#T##Date#>,
+            end: <#T##Date#>,
+            device: <#T##HKDevice?#>,
+            metadata: <#T##[String : Any]?#>
+        )
+    }
+}*/

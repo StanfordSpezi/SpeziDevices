@@ -10,7 +10,7 @@ import OrderedCollections
 import OSLog
 
 
-struct SavableDictionary<Key: Hashable & Codable, Value: Codable> {
+struct SavableDictionary<Key: Hashable & Codable, Value: Codable> { // TODO: remove both!
     private var storage: OrderedDictionary<Key, Value>
 
     var keys: OrderedSet<Key> {

@@ -9,7 +9,7 @@
 import HealthKit
 @_spi(TestingSupport) import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport) @testable import SpeziDevices
 import XCTest
 
 
@@ -18,9 +18,6 @@ final class HealthMeasurementsTests: XCTestCase {
     func testReceivingWeightMeasurements() async throws {
         let device = MockDevice.createMockDevice(weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
-        defer {
-            measurements.clearStorage()
-        }
 
         measurements.configureReceivingMeasurements(for: device, on: device.weightScale)
 
@@ -69,9 +66,6 @@ final class HealthMeasurementsTests: XCTestCase {
     func testReceivingBloodPressureMeasurements() async throws {
         let device = MockDevice.createMockDevice()
         let measurements = HealthMeasurements()
-        defer {
-            measurements.clearStorage()
-        }
 
         measurements.configureReceivingMeasurements(for: device, on: device.bloodPressure)
 
@@ -121,29 +115,30 @@ final class HealthMeasurementsTests: XCTestCase {
 
     @MainActor
     func testMeasurementStorage() async throws {
-        let measurements1 = HealthMeasurements()
-        let measurements2 = HealthMeasurements()
-        defer {
-            measurements2.clearStorage()
-        }
+        let measurements = HealthMeasurements()
 
-        measurements1.loadMockWeightMeasurement()
-        measurements1.loadMockBloodPressureMeasurement()
-
-        XCTAssertEqual(measurements1.pendingMeasurements.count, 2)
-        XCTAssertEqual(measurements2.pendingMeasurements.count, 0)
-
-        measurements2.configure()
+        measurements.configure() // init model container
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(measurements2.pendingMeasurements.count, 2)
+
+        measurements.loadMockWeightMeasurement()
+        measurements.loadMockBloodPressureMeasurement()
+
+        XCTAssertEqual(measurements.pendingMeasurements.count, 2)
+
+        print("WE ARE HERE!")
+
+        // TODO: let previousMeasurements = measurements.pendingMeasurements
+
+        try measurements.refreshFetchingMeasurements() // clear pending measurements and fetch again from storage
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(measurements.pendingMeasurements.count, 2)
         // tests that order stays same over storage retrieval
 
         // Restoring from disk doesn't preserve HealthKit UUIDs
-        guard case .bloodPressure = measurements1.pendingMeasurements.first,
-              case .bloodPressure = measurements2.pendingMeasurements.first,
-              case .weight = measurements1.pendingMeasurements.last,
-              case .weight = measurements2.pendingMeasurements.last else {
-            XCTFail("Order of measurements doesn't match: \(measurements1.pendingMeasurements) vs. \(measurements2.pendingMeasurements)")
+        guard case .bloodPressure = measurements.pendingMeasurements.first,
+              case .weight = measurements.pendingMeasurements.last else {
+            XCTFail("Order of measurements doesn't match: \(measurements.pendingMeasurements)")
             return
         }
     }
@@ -152,9 +147,6 @@ final class HealthMeasurementsTests: XCTestCase {
     func testDiscardingMeasurements() async throws {
         let device = MockDevice.createMockDevice()
         let measurements = HealthMeasurements()
-        defer {
-            measurements.clearStorage()
-        }
 
         measurements.configureReceivingMeasurements(for: device, on: device.bloodPressure)
         measurements.configureReceivingMeasurements(for: device, on: device.weightScale)

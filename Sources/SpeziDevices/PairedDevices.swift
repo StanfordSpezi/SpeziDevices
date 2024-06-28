@@ -93,11 +93,14 @@ public final class PairedDevices {
     /// Collection of discovered devices indexed by their Bluetooth identifier.
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
     /// The collection of paired devices that are persisted on disk.
-    @MainActor public var pairedDevices: [PairedDeviceInfo] {
-        Array(_pairedDevices.values)
+    @MainActor public var pairedDevices: [PairedDeviceInfo]? { // swiftlint:disable:this discouraged_optional_collection
+        didLoadDevices
+            ? Array(_pairedDevices.values)
+            : nil
     }
 
     @MainActor private var _pairedDevices: OrderedDictionary<UUID, PairedDeviceInfo> = [:]
+    @MainActor private var didLoadDevices = false
 
     /// Bluetooth Peripheral instances of paired devices.
     @MainActor private(set) var peripherals: [UUID: any PairableDevice] = [:]
@@ -119,7 +122,7 @@ public final class PairedDevices {
     ///
     /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
-        (pairedDevices.isEmpty && !everPairedDevice) || shouldPresentDevicePairing
+        (pairedDevices?.isEmpty == true && !everPairedDevice) || shouldPresentDevicePairing
     }
 
     private var stateSubscriptionTask: Task<Void, Never>? {
@@ -136,11 +139,11 @@ public final class PairedDevices {
     /// Configures the Module.
     @_documentation(visibility: internal)
     public func configure() {
-        if bluetooth != nil {
+        if bluetooth == nil {
             self.logger.warning("PairedDevices Module initialized without Bluetooth dependency!")
         }
 
-        var configuration: ModelConfiguration
+        let configuration: ModelConfiguration
 #if targetEnvironment(simulator)
         configuration = ModelConfiguration(isStoredInMemoryOnly: true)
 #else
@@ -160,7 +163,7 @@ public final class PairedDevices {
 
             self.syncDeviceIcons() // make sure assets are up to date
 
-            guard !self.pairedDevices.isEmpty else {
+            guard !self._pairedDevices.isEmpty else {
                 return // no devices paired, no need to power up central
             }
 
@@ -181,7 +184,7 @@ public final class PairedDevices {
     /// - Returns: Returns `true` if the given device is paired.
     @MainActor
     public func isPaired<Device: PairableDevice>(_ device: Device) -> Bool {
-        pairedDevices.contains { $0.id == device.id }
+        _pairedDevices[device.id] != nil
     }
 
     /// Update the user-chosen name of a paired device.
@@ -478,7 +481,7 @@ extension PairedDevices {
             }
         }
 
-        if pairedDevices.isEmpty {
+        if _pairedDevices.isEmpty {
             Task {
                 await cancelSubscription()
             }
@@ -505,9 +508,24 @@ extension PairedDevices {
             self._pairedDevices = pairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
                 partialResult[deviceInfo.id] = deviceInfo
             }
+            didLoadDevices = true
+            logger.debug("Initialized PairedDevices with \(self._pairedDevices.count) paired devices!")
         } catch {
             logger.error("Failed to fetch paired device info from disk: \(error)")
         }
+        didLoadDevices = true
+    }
+
+    @MainActor
+    func refreshPairedDevices() throws {
+        _pairedDevices.removeAll()
+        didLoadDevices = false
+
+        if let modelContainer, modelContainer.mainContext.hasChanges {
+            try modelContainer.mainContext.save()
+        }
+
+        fetchAllPairedInfos()
     }
 
     @MainActor
@@ -518,7 +536,7 @@ extension PairedDevices {
 
         let configuredDevices = bluetooth.configuredPairableDevices
 
-        for deviceInfo in pairedDevices {
+        for deviceInfo in _pairedDevices.values {
             guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
                 continue
             }
@@ -529,7 +547,7 @@ extension PairedDevices {
 
     @MainActor
     private func setupBluetoothStateSubscription() async {
-        assert(!pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+        assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
 
         guard let bluetooth else {
             return
@@ -555,7 +573,7 @@ extension PairedDevices {
 
     @MainActor
     private func cancelSubscription() async {
-        assert(pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
+        assert(_pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
         assert(peripherals.isEmpty, "Peripherals were unexpectedly not empty.")
 
         stateSubscriptionTask = nil
@@ -591,7 +609,7 @@ extension PairedDevices {
         let configuredDevices = bluetooth.configuredPairableDevices
 
         await withDiscardingTaskGroup { group in
-            for deviceInfo in self.pairedDevices {
+            for deviceInfo in self._pairedDevices.values {
                 group.addTask { @MainActor in
                     guard self.peripherals[deviceInfo.id] == nil else {
                         return
@@ -599,6 +617,7 @@ extension PairedDevices {
 
                     guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
                         self.logger.error("Unsupported device type \"\(deviceInfo.deviceType)\" for paired device \(deviceInfo.name).")
+                        deviceInfo.notLocatable = true
                         return
                     }
                     await self.handleDeviceRetrieval(for: deviceInfo, deviceType: deviceType)
