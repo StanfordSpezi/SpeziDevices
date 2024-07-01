@@ -37,7 +37,7 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.4.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "2.0.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.0.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", branch: "feature/raw-representable"),
         .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.11")),
         .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0"))
     ] + swiftLintPackage(),

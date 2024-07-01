@@ -53,7 +53,6 @@ struct ConfirmMeasurementButton: View {
             DiscardButton(viewState: $viewState, discard: discard)
                 .padding(.top, 8)
         }
-            .padding()
     }
 
     init(viewState: Binding<ViewState>, confirm: @escaping () async throws -> Void, discard: @escaping () -> Void) {

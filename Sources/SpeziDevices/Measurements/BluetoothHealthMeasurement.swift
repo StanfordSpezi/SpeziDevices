@@ -52,7 +52,7 @@ private struct BloodPressureMeasurementCopy: Codable {
     public let timeStamp: DateTime?
 
     /// The pulse rate in beats per minute.
-    public let pulseRate: UInt16?
+    public let pulseRate: MedFloat16?
 
     /// The associated user of the blood pressure measurement.
     ///
@@ -73,7 +73,7 @@ private struct BloodPressureMeasurementCopy: Codable {
             meanArterialPressure: meanArterialPressure,
             unit: .init(rawValue: unit) ?? .mmHg,
             timeStamp: timeStamp,
-            pulseRate: pulseRate.map { MedFloat16(bitPattern: $0) },
+            pulseRate: pulseRate,
             userId: userId,
             measurementStatus: measurementStatus.map { .init(rawValue: $0) }
         )
@@ -85,7 +85,7 @@ private struct BloodPressureMeasurementCopy: Codable {
         self.meanArterialPressure = measurement.meanArterialPressure
         self.unit = measurement.unit.rawValue
         self.timeStamp = measurement.timeStamp
-        self.pulseRate = measurement.pulseRate?.bitPattern
+        self.pulseRate = measurement.pulseRate
         self.userId = measurement.userId
         self.measurementStatus = measurement.measurementStatus?.rawValue
     }
@@ -120,7 +120,7 @@ private struct BloodPressureMeasurementCopy: Codable {
         self.meanArterialPressure = try container.decode(MedFloat16.self, forKey: .meanArterialPressure)
         self.unit = try container.decode(String.self, forKey: .unit)
         self.timeStamp = try container.decodeIfPresent(DateTime.self, forKey: .timeStamp)
-        self.pulseRate = try container.decodeIfPresent(UInt16.self, forKey: .pulseRate)
+        self.pulseRate = try container.decodeIfPresent(MedFloat16.self, forKey: .pulseRate)
         self.userId = try container.decodeIfPresent(UInt8.self, forKey: .userId)
         self.measurementStatus = try container.decodeIfPresent(UInt16.self, forKey: .measurementStatus)
     }

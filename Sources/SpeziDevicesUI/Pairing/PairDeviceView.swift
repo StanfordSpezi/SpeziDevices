@@ -39,11 +39,22 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     var body: some View {
         PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
             if devices.count > 1 {
+                TabView { // TODO: tab index
+                    ForEach(devices, id: \.id) { device in
+                        AccessoryImageView(device)
+                            .padding(.bottom, 35)
+                    }
+                }
+                    .tabViewStyle(.page)
+                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+                /*
+                 TODO: carousel
                 ACarousel(devices, id: \.id, index: $selectedDeviceIndex, spacing: 0, headspace: 0) { device in
                     AccessoryImageView(device)
                 }
                     .frame(maxHeight: 150)
                 CarouselDots(count: devices.count, selectedIndex: $selectedDeviceIndex)
+                 */
             } else if let device = devices.first {
                 AccessoryImageView(device)
             }

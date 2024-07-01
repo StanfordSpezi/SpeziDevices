@@ -25,15 +25,26 @@ public struct MeasurementRecordedSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    @State private var selectedMeasurement: HealthKitMeasurement?
+
     @State private var viewState = ViewState.idle
-    @State private var selectedMeasurementIndex: Int = 0
     @State private var dynamicDetent: PresentationDetent = .medium
 
-    @MainActor private var selectedMeasurement: HealthKitMeasurement? {
-        guard selectedMeasurementIndex < measurements.pendingMeasurements.count else {
-            return nil
+    @MainActor
+    private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
+        Binding {
+            guard let selectedMeasurement else {
+                guard let selectedMeasurement = measurements.pendingMeasurements.first else {
+                    preconditionFailure("Entered code path where selectedMeasurement was not set.")
+                }
+                self.selectedMeasurement = selectedMeasurement
+                return selectedMeasurement
+            }
+            return selectedMeasurement
+        } set: { newValue in
+            selectedMeasurement = newValue
         }
-        return measurements.pendingMeasurements[selectedMeasurementIndex]
+
     }
 
     @MainActor private var supportedTypeSize: ClosedRange<DynamicTypeSize> {
@@ -79,6 +90,7 @@ public struct MeasurementRecordedSheet: View {
                     GeometryReader { proxy in
                         Color.clear
                             .task {
+                                // TODO: doesn't work?
                                 dynamicDetent = .height(proxy.size.height)
                             }
                     }
@@ -94,12 +106,16 @@ public struct MeasurementRecordedSheet: View {
 
     @ViewBuilder @MainActor private var content: some View {
         if measurements.pendingMeasurements.count > 1 {
-            HStack {
-                ACarousel(measurements.pendingMeasurements, index: $selectedMeasurementIndex, spacing: 0, headspace: 0) { measurement in
+            TabView(selection: forcedUnwrappedMeasurement) {
+                ForEach(measurements.pendingMeasurements) { measurement in
                     MeasurementLayer(measurement: measurement)
+                        .padding(.bottom, 35)
+                        .tag(measurement)
                 }
             }
-            CarouselDots(count: measurements.pendingMeasurements.count, selectedIndex: $selectedMeasurementIndex)
+                .scaledToFill()
+                .tabViewStyle(.page)
+                .indexViewStyle(.page(backgroundDisplayMode: .always))
         } else if let measurement = measurements.pendingMeasurements.first {
             MeasurementLayer(measurement: measurement)
         }
@@ -119,7 +135,6 @@ public struct MeasurementRecordedSheet: View {
             }
 
             measurements.discardMeasurement(selectedMeasurement)
-            ensureCorrectIndex()
 
             logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
             dismiss() // TODO: maintain to show last measurement when dismissing!
@@ -128,7 +143,6 @@ public struct MeasurementRecordedSheet: View {
                 return
             }
             measurements.discardMeasurement(selectedMeasurement)
-            ensureCorrectIndex()
 
             if measurements.pendingMeasurements.isEmpty {
                 dismiss() // TODO: maintain to show last measurement when dismissing!
@@ -140,16 +154,6 @@ public struct MeasurementRecordedSheet: View {
     /// Create a new measurement sheet.
     public init(save saveSamples: @escaping ([HKSample]) async throws -> Void) {
         self.saveSamples = saveSamples
-    }
-
-
-    @MainActor
-    @discardableResult
-    private func ensureCorrectIndex() -> EmptyView {
-        if selectedMeasurementIndex >= measurements.pendingMeasurements.count {
-            selectedMeasurementIndex = max(0, measurements.pendingMeasurements.count - 1)
-        }
-        return EmptyView()
     }
 }
 
@@ -197,6 +201,7 @@ public struct MeasurementRecordedSheet: View {
             MeasurementRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
+                .dynamicTypeSize(.accessibility3)
         }
         .previewWith {
             HealthMeasurements(mock: [
