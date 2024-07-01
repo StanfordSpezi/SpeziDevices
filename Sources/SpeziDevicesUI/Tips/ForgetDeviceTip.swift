@@ -28,7 +28,9 @@ struct ForgetDeviceTip: Tip {
             guard let url = URL(string: "App-Prefs:root=General") else {
                 return
             }
-            UIApplication.shared.open(url)
+            Task { @MainActor in
+                UIApplication.shared.open(url)
+            }
         } _: {
             Text("Open Settings")
         }

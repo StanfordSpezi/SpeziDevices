@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import HealthKit
+@preconcurrency import HealthKit
 import OSLog
 @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
@@ -28,8 +28,7 @@ public struct MeasurementsRecordedSheet: View {
 
     @State private var viewState = ViewState.idle
 
-    @MainActor
-    private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
+    @MainActor private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
         Binding {
             guard let selectedMeasurement else {
                 guard let selectedMeasurement = measurements.pendingMeasurements.first else {
@@ -42,7 +41,6 @@ public struct MeasurementsRecordedSheet: View {
         } set: { newValue in
             selectedMeasurement = newValue
         }
-
     }
 
     public var body: some View {

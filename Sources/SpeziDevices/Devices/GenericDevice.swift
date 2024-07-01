@@ -14,7 +14,7 @@ import SpeziBluetoothServices
 /// A generic Bluetooth device.
 ///
 /// A generic Bluetooth device that provides access to basic device information.
-public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable {
+public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable, Sendable {
     /// An icon that is used to visually present the device to the user.
     static var icon: ImageReference? { get }
 

@@ -86,7 +86,7 @@ import SwiftUI
 /// - ``isConnected(device:)``
 /// - ``updateName(for:name:)``
 @Observable
-public final class PairedDevices {
+public final class PairedDevices: @unchecked Sendable {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var shouldPresentDevicePairing = false
 
@@ -500,7 +500,9 @@ extension PairedDevices {
         }
 
         let context = modelContainer.mainContext
-        var allPairedDevices = FetchDescriptor<PairedDeviceInfo>()
+        var allPairedDevices = FetchDescriptor<PairedDeviceInfo>(
+            sortBy: [SortDescriptor(\.pairedAt)]
+        )
         allPairedDevices.includePendingChanges = true
 
         do {

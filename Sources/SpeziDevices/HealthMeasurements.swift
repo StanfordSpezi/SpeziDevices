@@ -6,8 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import OrderedCollections
-import HealthKit
+@preconcurrency import HealthKit
 import OSLog
 import Spezi
 import SpeziBluetooth
@@ -84,7 +83,7 @@ import SwiftUI
 /// - ``pendingMeasurements``
 /// - ``discardMeasurement(_:)``
 @Observable
-public class HealthMeasurements {
+public final class HealthMeasurements: @unchecked Sendable {
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
     /// Determine if UI components displaying pending measurements should be displayed.
@@ -185,7 +184,7 @@ public class HealthMeasurements {
         }
 
         if let modelContainer {
-            let storeMeasurement = StoredMeasurement(associatedMeasurement: id, measurement: .init(from: measurement), device: source)
+            let storeMeasurement = StoredMeasurement(associatedMeasurement: id, measurement: measurement, device: source)
             modelContainer.mainContext.insert(storeMeasurement)
         } else {
             logger.warning("Measurement \(id) could not be persisted on disk due to missing ModelContainer!")
@@ -273,8 +272,10 @@ extension HealthMeasurements {
             return
         }
 
-        var fetchAll = FetchDescriptor<StoredMeasurement>()
-        // TODO: fetchAll.includePendingChanges = true
+        var fetchAll = FetchDescriptor<StoredMeasurement>(
+            sortBy: [SortDescriptor(\.storageDate)]
+        )
+        fetchAll.includePendingChanges = true
 
         let context = modelContainer.mainContext
         let storedMeasurements: [StoredMeasurement]
@@ -285,16 +286,8 @@ extension HealthMeasurements {
             return
         }
 
-        print("hasChanges1: \(context.hasChanges == true)")
-        try? context.save()
-
         for storedMeasurement in storedMeasurements {
-            print("Looking at \(storedMeasurement)")
-            print("checking id \(storedMeasurement.associatedMeasurement)")
-            print("Otherwise asdf: \(storedMeasurement.device)")
-            print("Sample: \(storedMeasurement.measurement)")
-
-            guard let id = loadMeasurement(storedMeasurement.measurement.measurement, form: storedMeasurement.device) else {
+            guard let id = loadMeasurement(storedMeasurement.healthMeasurement, form: storedMeasurement.device) else {
                 context.delete(storedMeasurement)
                 continue
             }
@@ -303,10 +296,15 @@ extension HealthMeasurements {
             // However, when we redo the conversion, the identifier changes.
             // Therefore, we need to make sure to update all associated ids after loading.
             storedMeasurement.associatedMeasurement = id
-            print("hasChanges1: \(context.hasChanges == true)")
-            try? context.save()
         }
-        // TODO: save all?
+
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                logger.error("Failed to save updated measurement id associations: \(error)")
+            }
+        }
     }
 }
 

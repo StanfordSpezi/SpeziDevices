@@ -12,7 +12,7 @@ import SwiftData
 
 /// Persistent information stored of a paired device.
 @Model
-public class PairedDeviceInfo {
+public final class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
     @Attribute(.unique) public let id: UUID
     /// The device type.
@@ -28,6 +28,9 @@ public class PairedDeviceInfo {
     public internal(set) var lastSeen: Date
     /// The last reported battery percentage of the device.
     public internal(set) var lastBatteryPercentage: UInt8?
+
+    /// The date at which the device was paired.
+    public let pairedAt: Date
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
@@ -59,6 +62,8 @@ public class PairedDeviceInfo {
         self.icon = icon
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
+
+        self.pairedAt = .now
     }
 }
 

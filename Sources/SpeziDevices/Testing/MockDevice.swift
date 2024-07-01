@@ -13,7 +13,7 @@ import SpeziNumerics
 
 
 @_spi(TestingSupport)
-public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice {
+public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice, @unchecked Sendable {
     @DeviceState(\.id) public var id
     @DeviceState(\.name) public var name
     @DeviceState(\.state) public var state

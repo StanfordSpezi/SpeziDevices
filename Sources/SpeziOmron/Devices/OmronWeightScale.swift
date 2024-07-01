@@ -15,12 +15,12 @@ import SpeziDevices
 
 
 /// Implementation of Omron SC150 Weight Scale.
-public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice {
-    private static let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
-
+public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice, @unchecked Sendable {
     public static var icon: ImageReference? {
         .asset("Omron-SC-150", bundle: .module)
     }
+
+    private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
 
     @DeviceState(\.id) public var id: UUID
     @DeviceState(\.name) public var name: String?
@@ -78,7 +78,9 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
     }
 
     @MainActor
-    private func handleCurrentTimeChange(_ time: CurrentTime) {/*
+    private func handleCurrentTimeChange(_ time: CurrentTime) {
+        /*
+         TODO: what to do now with pairing?
         if case .pairingMode = manufacturerData?.pairingMode,
            let dateOfConnection,
            abs(Date.now.timeIntervalSince1970 - dateOfConnection.timeIntervalSince1970) < 1 {
@@ -87,7 +89,7 @@ public class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice 
             return
         }
 */
-        Self.logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
+        logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
         let paired = pairedDevices?.signalDevicePaired(self) == true
         if paired {
             dateOfConnection = nil

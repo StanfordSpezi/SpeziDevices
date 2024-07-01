@@ -16,12 +16,12 @@ import SpeziNumerics
 
 
 /// Implementation of Omron BP5250 Blood Pressure Cuff.
-public class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice {
-    private static let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
-
+public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
     public static var icon: ImageReference? {
         .asset("Omron-BP5250", bundle: .module)
     }
+
+    private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
 
     @DeviceState(\.id) public var id: UUID
     @DeviceState(\.name) public var name: String?
@@ -78,7 +78,7 @@ public class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthD
 
     @MainActor
     private func handleCurrentTimeChange(_ time: CurrentTime) {
-        Self.logger.debug("Received updated device time for \(self.label) is \(String(describing: time))")
+        logger.debug("Received updated device time for \(self.label) is \(String(describing: time))")
         let paired = pairedDevices?.signalDevicePaired(self)
 
         if paired == true {
