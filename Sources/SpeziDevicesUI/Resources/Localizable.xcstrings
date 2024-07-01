@@ -411,26 +411,6 @@
         }
       }
     },
-    "Page" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Page"
-          }
-        }
-      }
-    },
-    "Page %lld of %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Page %1$lld of %2$lld"
-          }
-        }
-      }
-    },
     "Pair" : {
       "localizations" : {
         "en" : {

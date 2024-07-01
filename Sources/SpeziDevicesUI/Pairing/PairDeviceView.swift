@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import ACarousel
 @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
 import SwiftUI
@@ -20,16 +19,24 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     @Environment(\.dismiss) private var dismiss
 
     @Binding private var pairingState: PairingViewState
-    @State private var selectedDeviceIndex: Int = 0
-
     @AccessibilityFocusState private var isHeaderFocused: Bool
 
-    private var selectedDevice: (any PairableDevice)? {
-        guard selectedDeviceIndex < devices.count else {
-            return nil
+    @State private var selectedDeviceId: UUID?
+    @State private var selectedDevice: (any PairableDevice)?
+
+    private var forcedUnwrappedDeviceId: Binding<UUID> {
+        Binding {
+            guard let selectedDeviceId else {
+                guard let selectedDeviceId = devices.first?.id else {
+                    preconditionFailure("Entered code path where selectedMeasurement was not set.")
+                }
+                self.selectedDeviceId = selectedDeviceId
+                return selectedDeviceId
+            }
+            return selectedDeviceId
+        } set: { newValue in
+            selectedDeviceId = newValue
         }
-        let index = devices.index(devices.startIndex, offsetBy: selectedDeviceIndex)
-        return devices[index]
     }
 
     private var selectedDeviceName: String {
@@ -39,24 +46,27 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     var body: some View {
         PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
             if devices.count > 1 {
-                TabView { // TODO: tab index
+                TabView(selection: forcedUnwrappedDeviceId) {
                     ForEach(devices, id: \.id) { device in
-                        AccessoryImageView(device)
-                            .padding(.bottom, 35)
+                        VStack {
+                            AccessoryImageView(device)
+                            Spacer()
+                                .frame(minHeight: 30, idealHeight: 45, maxHeight: 60)
+                                .fixedSize()
+                        }
+                            .tag(device.id)
                     }
                 }
+                    .onChange(of: selectedDeviceId) {
+                        selectedDevice = devices.first(where: { $0.id == selectedDeviceId })
+                    }
                     .tabViewStyle(.page)
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
-                /*
-                 TODO: carousel
-                ACarousel(devices, id: \.id, index: $selectedDeviceIndex, spacing: 0, headspace: 0) { device in
-                    AccessoryImageView(device)
-                }
-                    .frame(maxHeight: 150)
-                CarouselDots(count: devices.count, selectedIndex: $selectedDeviceIndex)
-                 */
             } else if let device = devices.first {
                 AccessoryImageView(device)
+                    .onAppear {
+                        selectedDevice = device
+                    }
             }
         } action: {
             AsyncButton {
@@ -83,11 +93,6 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
             .buttonStyle(.borderedProminent)
             .padding([.leading, .trailing], 36)
         }
-            .onChange(of: IndexCount(selectedDeviceIndex, devices.count)) {
-                if selectedDeviceIndex >= devices.count {
-                    selectedDeviceIndex = max(0, devices.count - 1)
-                }
-            }
     }
 
 

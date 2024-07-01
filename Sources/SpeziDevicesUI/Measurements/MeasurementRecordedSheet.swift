@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import ACarousel
 import HealthKit
 import OSLog
 @_spi(TestingSupport) import SpeziDevices
@@ -28,7 +27,6 @@ public struct MeasurementRecordedSheet: View {
     @State private var selectedMeasurement: HealthKitMeasurement?
 
     @State private var viewState = ViewState.idle
-    @State private var dynamicDetent: PresentationDetent = .medium
 
     @MainActor
     private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
@@ -45,19 +43,6 @@ public struct MeasurementRecordedSheet: View {
             selectedMeasurement = newValue
         }
 
-    }
-
-    @MainActor private var supportedTypeSize: ClosedRange<DynamicTypeSize> {
-        let upperBound: DynamicTypeSize = switch selectedMeasurement {
-        case .weight:
-            .accessibility4
-        case .bloodPressure:
-            .accessibility3
-        case nil:
-            .accessibility5
-        }
-
-        return DynamicTypeSize.xSmall...upperBound
     }
 
     public var body: some View {
@@ -83,23 +68,14 @@ public struct MeasurementRecordedSheet: View {
                     }
                         .viewStateAlert(state: $viewState)
                         .interactiveDismissDisabled(viewState != .idle)
-                        .dynamicTypeSize(supportedTypeSize)
+                        .dynamicTypeSize(.xSmall...DynamicTypeSize.accessibility3)
                 }
             }
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear
-                            .task {
-                                // TODO: doesn't work?
-                                dynamicDetent = .height(proxy.size.height)
-                            }
-                    }
-                }
                 .toolbar {
                     DismissButton()
                 }
         }
-            .presentationDetents([dynamicDetent])
+            .presentationDetents([.fraction(0.45), .fraction(0.6), .large])
             .presentationCornerRadius(25)
     }
 
@@ -108,12 +84,15 @@ public struct MeasurementRecordedSheet: View {
         if measurements.pendingMeasurements.count > 1 {
             TabView(selection: forcedUnwrappedMeasurement) {
                 ForEach(measurements.pendingMeasurements) { measurement in
-                    MeasurementLayer(measurement: measurement)
-                        .padding(.bottom, 35)
+                    VStack {
+                        MeasurementLayer(measurement: measurement)
+                        Spacer()
+                            .frame(minHeight: 30, idealHeight: 45, maxHeight: 60)
+                            .fixedSize()
+                    }
                         .tag(measurement)
                 }
             }
-                .scaledToFill()
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
         } else if let measurement = measurements.pendingMeasurements.first {
@@ -201,7 +180,6 @@ public struct MeasurementRecordedSheet: View {
             MeasurementRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
-                .dynamicTypeSize(.accessibility3)
         }
         .previewWith {
             HealthMeasurements(mock: [

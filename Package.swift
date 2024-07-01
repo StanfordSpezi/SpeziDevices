@@ -38,8 +38,7 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "2.0.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", branch: "feature/raw-representable"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.11")),
-        .package(url: "https://github.com/JWAutumn/ACarousel", .upToNextMinor(from: "0.2.0"))
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.11"))
     ] + swiftLintPackage(),
     targets: [
         .target(
@@ -63,8 +62,7 @@ let package = Package(
                 .target(name: "SpeziDevices"),
                 .product(name: "SpeziViews", package: "SpeziViews"),
                 .product(name: "SpeziValidation", package: "SpeziViews"),
-                .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "ACarousel", package: "ACarousel")
+                .product(name: "SpeziBluetooth", package: "SpeziBluetooth")
             ],
             resources: [
                 .process("Resources")
