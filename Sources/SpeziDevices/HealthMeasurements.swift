@@ -44,7 +44,7 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// To display new measurements to the user and save them to your external data store, you can use ``MeasurementRecordedSheet``.
+/// To display new measurements to the user and save them to your external data store, you can use ``MeasurementsRecordedSheet``.
 /// Below is a short code example.
 ///
 /// ```swift
@@ -58,7 +58,7 @@ import SwiftUI
 ///         @Bindable var measurements = measurements
 ///         ContentView()
 ///             .sheet(isPresented: $measurements.shouldPresentMeasurements) {
-///                 MeasurementRecordedSheet { measurement in
+///                 MeasurementsRecordedSheet { measurement in
 ///                     // handle saving the measurement
 ///                 }
 ///             }

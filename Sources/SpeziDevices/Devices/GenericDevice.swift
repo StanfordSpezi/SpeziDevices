@@ -26,6 +26,7 @@ public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Iden
     /// @DeviceState(\.id) var id
     /// ```
     var id: UUID { get }
+
     /// The device name.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to
@@ -34,6 +35,7 @@ public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Iden
     /// @DeviceState(\.name) var name
     /// ```
     var name: String? { get }
+
     /// The advertisement data received in the latest advertisement.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to

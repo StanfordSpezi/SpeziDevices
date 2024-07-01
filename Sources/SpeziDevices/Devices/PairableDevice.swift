@@ -32,6 +32,7 @@ public protocol PairableDevice: GenericDevice {
     /// ```swift
     /// @DeviceAction(\.connect) var connect
     /// ```
+    /// 
     var connect: BluetoothConnectAction { get }
     /// Disconnect action.
     ///

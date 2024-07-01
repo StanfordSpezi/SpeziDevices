@@ -13,11 +13,11 @@ import SpeziViews
 import SwiftUI
 
 
-/// A sheet view displaying a newly recorded measurement.
+/// A sheet view displaying one or many newly recorded measurements.
 ///
 /// This view retrieves the pending measurements from the ``HealthMeasurements`` Module that is present in the SwiftUI environment.
-public struct MeasurementRecordedSheet: View {
-    private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementRecordedSheet")
+public struct MeasurementsRecordedSheet: View {
+    private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementsRecordedSheet")
     private let saveSamples: ([HKSample]) async throws -> Void
 
     @Environment(HealthMeasurements.self) private var measurements
@@ -141,7 +141,7 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet { samples in
+            MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
         }
@@ -153,7 +153,7 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet { samples in
+            MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
         }
@@ -165,7 +165,7 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet { samples in
+            MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
         }
@@ -177,7 +177,7 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet { samples in
+            MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
         }
@@ -193,7 +193,7 @@ public struct MeasurementRecordedSheet: View {
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {
-            MeasurementRecordedSheet { samples in
+            MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
         }

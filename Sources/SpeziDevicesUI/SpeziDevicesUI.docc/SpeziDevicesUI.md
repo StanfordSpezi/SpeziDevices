@@ -40,4 +40,4 @@ Views that are helpful when building a nearby devices view.
 
 ### Measurements
 
-- ``MeasurementRecordedSheet``
+- ``MeasurementsRecordedSheet``

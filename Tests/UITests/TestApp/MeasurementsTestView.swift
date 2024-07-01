@@ -38,7 +38,7 @@ struct MeasurementsTestView: View {
             }
                 .navigationTitle("Measurements")
                 .sheet(isPresented: $healthMeasurements.shouldPresentMeasurements) {
-                    MeasurementRecordedSheet { samples in
+                    MeasurementsRecordedSheet { samples in
                         self.samples.append(contentsOf: samples)
                     }
                 }
