@@ -95,6 +95,9 @@ public struct MeasurementsRecordedSheet: View {
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
         } else if let measurement = measurements.pendingMeasurements.first {
             MeasurementLayer(measurement: measurement)
+                .onAppear {
+                    selectedMeasurement = measurement
+                }
         }
     }
 
@@ -117,6 +120,7 @@ public struct MeasurementsRecordedSheet: View {
             dismiss() // TODO: maintain to show last measurement when dismissing!
         } discard: {
             guard let selectedMeasurement else {
+                print("None selected?")
                 return
             }
             measurements.discardMeasurement(selectedMeasurement)
