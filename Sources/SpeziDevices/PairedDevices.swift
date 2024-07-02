@@ -150,7 +150,8 @@ public final class PairedDevices: @unchecked Sendable {
 #if targetEnvironment(simulator)
         configuration = ModelConfiguration(isStoredInMemoryOnly: true)
 #else
-        configuration = ModelConfiguration()
+        let storageUrl = URL.documentsDirectory.appending(path: "edu.stanford.spezidevices.paired-devices.sqlite")
+        configuration = ModelConfiguration(url: storageUrl)
 #endif
 
         do {
@@ -498,6 +499,10 @@ extension PairedDevices {
 extension PairedDevices {
     @MainActor
     private func fetchAllPairedInfos() {
+        defer {
+            didLoadDevices = true
+        }
+
         guard let modelContainer else {
             return
         }
@@ -513,12 +518,10 @@ extension PairedDevices {
             self._pairedDevices = pairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
                 partialResult[deviceInfo.id] = deviceInfo
             }
-            didLoadDevices = true
             logger.debug("Initialized PairedDevices with \(self._pairedDevices.count) paired devices!")
         } catch {
             logger.error("Failed to fetch paired device info from disk: \(error)")
         }
-        didLoadDevices = true
     }
 
     @MainActor

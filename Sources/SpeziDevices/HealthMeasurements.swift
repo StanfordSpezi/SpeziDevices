@@ -117,7 +117,8 @@ public final class HealthMeasurements: @unchecked Sendable {
 #if targetEnvironment(simulator)
         configuration = ModelConfiguration(isStoredInMemoryOnly: true)
 #else
-        configuration = ModelConfiguration()
+        let storageUrl = URL.documentsDirectory.appending(path: "edu.stanford.spezidevices.health-measurements.sqlite")
+        configuration = ModelConfiguration(url: storageUrl)
 #endif
 
         do {
