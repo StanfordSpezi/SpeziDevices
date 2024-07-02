@@ -34,7 +34,7 @@ struct DevicesTestView: View {
 
     var body: some View {
         NavigationStack {
-            DevicesTab(appName: "TestApp", pairingHint: "Enable pairing mode on the device.")
+            DevicesView(appName: "TestApp", pairingHint: "Enable pairing mode on the device.")
                 .toolbar {
                     ToolbarItemGroup(placement: .secondaryAction) {
                         Button("Discover Device", systemImage: "plus.rectangle.fill.on.rectangle.fill") {

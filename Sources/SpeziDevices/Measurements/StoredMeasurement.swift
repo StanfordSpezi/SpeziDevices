@@ -26,7 +26,7 @@ private struct CodableHKDevice {
 
 
 /// Copy of the `BloodPressureMeasurement` type that just uses plain RawValue types to work around SwiftData coding issues and crashes.
-private struct BloodPressureMeasurementCopy {
+private struct BloodPressureMeasurementSwiftDataWorkaroundContainer { // swiftlint:disable:this type_name
     let systolicValue: UInt16
     let diastolicValue: UInt16
     let meanArterialPressure: UInt16
@@ -75,7 +75,7 @@ private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
 
     private let type: MeasurementType
 
-    private var bloodPressureMeasurement: BloodPressureMeasurementCopy?
+    private var bloodPressureMeasurement: BloodPressureMeasurementSwiftDataWorkaroundContainer?
     private var bloodPressureFeatures: BloodPressureFeature.RawValue?
 
     private var weightMeasurement: WeightMeasurement?
@@ -172,7 +172,7 @@ extension CodableHKDevice {
 }
 
 
-extension BloodPressureMeasurementCopy: Codable {
+extension BloodPressureMeasurementSwiftDataWorkaroundContainer: Codable {
     enum CodingKeys: CodingKey {
         case systolicValue
         case diastolicValue
@@ -224,7 +224,10 @@ extension SwiftDataBluetoothHealthMeasurementWorkaroundContainer: Codable {
         self.type = try container.decode(SwiftDataBluetoothHealthMeasurementWorkaroundContainer.MeasurementType.self, forKey: .type)
         switch type {
         case .bloodPressure:
-            self.bloodPressureMeasurement = try container.decodeIfPresent(BloodPressureMeasurementCopy.self, forKey: .bloodPressureMeasurement)
+            self.bloodPressureMeasurement = try container.decodeIfPresent(
+                BloodPressureMeasurementSwiftDataWorkaroundContainer.self,
+                forKey: .bloodPressureMeasurement
+            )
             self.bloodPressureFeatures = try container.decodeIfPresent(BloodPressureFeature.RawValue.self, forKey: .bloodPressureFeatures)
         case .weight:
             self.weightMeasurement = try container.decodeIfPresent(WeightMeasurement.self, forKey: .weightMeasurement)

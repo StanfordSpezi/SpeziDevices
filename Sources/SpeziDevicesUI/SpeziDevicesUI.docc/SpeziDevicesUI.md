@@ -1,6 +1,6 @@
 # ``SpeziDevicesUI``
 
-<!--@START_MENU_TOKEN@-->Summary<!--@END_MENU_TOKEN@-->
+Visualize Bluetooth device interactions.
 
 <!--
 
@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 ## Overview
 
-<!--@START_MENU_TOKEN@-->Text<!--@END_MENU_TOKEN@-->
+SpeziDevicesUI helps you to visualize Bluetooth device state and communicate interactions to the user.
 
 ## Topics
 
@@ -32,7 +32,7 @@ Views that are helpful when building a nearby devices view.
 
 ### Paired Devices
 
-- ``DevicesTab``
+- ``DevicesView``
 - ``DevicesGrid``
 - ``DeviceTile``
 - ``DeviceDetailsView``

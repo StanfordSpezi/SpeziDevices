@@ -11,10 +11,10 @@ import SpeziDevices
 import SwiftUI
 
 
-/// Devices tab showing grid of paired devices and functionality to pair new devices.
+/// Devices view showing grid of paired devices and provides functionality to pair new devices.
 ///
 /// - Note: Make sure to place this view into an `NavigationStack`.
-public struct DevicesTab<PairingHint: View>: View {
+public struct DevicesView<PairingHint: View>: View {
     private let appName: String
     private let pairingHint: PairingHint
 
@@ -25,6 +25,7 @@ public struct DevicesTab<PairingHint: View>: View {
         @Bindable var pairedDevices = pairedDevices
 
         DevicesGrid(devices: pairedDevices.pairedDevices, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
+            .navigationTitle("Devices")
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
@@ -32,10 +33,17 @@ public struct DevicesTab<PairingHint: View>: View {
                     pairingHint
                 }
             }
-            .toolbar {
-                // indicate that we are scanning in the background
-                if pairedDevices.isScanningForNearbyDevices && !pairedDevices.shouldPresentDevicePairing {
-                    ProgressView()
+            .toolbar { // TODO: verify order!
+                ToolbarItem(placement: .primaryAction) {
+                    // indicate that we are scanning in the background
+                    if pairedDevices.isScanningForNearbyDevices && !pairedDevices.shouldPresentDevicePairing {
+                        ProgressView()
+                    }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Add Device", systemImage: "plus") {
+                        pairedDevices.shouldPresentDevicePairing = true
+                    }
                 }
             }
     }
@@ -72,7 +80,7 @@ public struct DevicesTab<PairingHint: View>: View {
 #if DEBUG
 #Preview {
     NavigationStack {
-        DevicesTab(appName: "Example")
+        DevicesView(appName: "Example")
             .previewWith {
                 Bluetooth {}
                 PairedDevices()

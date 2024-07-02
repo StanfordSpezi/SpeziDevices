@@ -17,7 +17,7 @@ import SwiftUI
 
 /// Manage and process health measurements from nearby Bluetooth Peripherals.
 ///
-/// Use the `HealthMeasurements` module to collect health measurements from nearby Bluetooth Peripherals like connected weight scales or
+/// Use the `HealthMeasurements` module to collect health measurements from nearby Bluetooth devices like connected weight scales or
 /// blood pressure cuffs.
 /// - Note: Implement your device as a [`BluetoothDevice`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetoothdevice)
 ///     using [SpeziBluetooth](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth).
@@ -66,7 +66,7 @@ import SwiftUI
 /// ```
 ///
 /// - Important: Don't forget to configure the `HealthMeasurements` module in
-///     your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate)
+///     your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate).
 ///
 /// ## Topics
 ///

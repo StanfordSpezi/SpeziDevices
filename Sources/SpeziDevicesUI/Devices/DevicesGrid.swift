@@ -62,16 +62,8 @@ public struct DevicesGrid: View {
                 ProgressView()
             }
         }
-            .navigationTitle("Devices")
             .navigationDestination(item: $detailedDeviceInfo) { deviceInfo in
                 DeviceDetailsView(deviceInfo)
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Add Device", systemImage: "plus") {
-                        presentingDevicePairing = true
-                    }
-                }
             }
     }
 
@@ -80,6 +72,7 @@ public struct DevicesGrid: View {
     /// - Parameters:
     ///   - devices: The list of paired devices to display.
     ///   - presentingDevicePairing: Binding to indicate if the device discovery menu should be presented.
+    ///     The view shows an `ContentUnavailableView` if no paired devices exists and uses the binding to provide an action that present device pairing.
     public init(devices: [PairedDeviceInfo]?, presentingDevicePairing: Binding<Bool>) {
         // swiftlint:disable:previous discouraged_optional_collection
         self.devices = devices

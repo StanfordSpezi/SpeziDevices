@@ -34,6 +34,7 @@ public protocol PairableDevice: GenericDevice {
     /// ```
     /// 
     var connect: BluetoothConnectAction { get }
+    
     /// Disconnect action.
     ///
     /// Use the [`DeviceAction`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/deviceaction) property wrapper to

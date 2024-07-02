@@ -43,4 +43,4 @@ final class PairingContinuation {
 }
 
 
-extension PairingContinuation: @unchecked Sendable {}
+extension PairingContinuation {}

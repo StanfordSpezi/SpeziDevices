@@ -177,7 +177,6 @@ final class PairedDevicesTests: XCTestCase {
         await device.disconnect()
 
         try await XCTAssertThrowsErrorAsync(await task.value) { error in
-            print(error)
             XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .deviceDisconnected)
         }
 

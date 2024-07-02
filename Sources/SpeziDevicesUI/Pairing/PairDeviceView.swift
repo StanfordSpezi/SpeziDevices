@@ -24,6 +24,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     @State private var selectedDeviceId: UUID?
     @State private var selectedDevice: (any PairableDevice)?
 
+
     private var forcedUnwrappedDeviceId: Binding<UUID> {
         Binding {
             guard let selectedDeviceId else {

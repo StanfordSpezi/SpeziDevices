@@ -1,6 +1,6 @@
 # ``SpeziOmron``
 
-<!--@START_MENU_TOKEN@-->Summary<!--@END_MENU_TOKEN@-->
+Support interactions with Omron Bluetooth Devices.
 
 <!--
 #
@@ -14,7 +14,16 @@
 
 ## Overview
 
-<!--@START_MENU_TOKEN@-->Text<!--@END_MENU_TOKEN@-->
+SpeziOmron extends SpeziDevices with support for Omron devices. This includes Omron-specific models, characteristics, services and fully reusable
+device support.
+
+### Omron Devices
+
+
+
+- models (e.g., manufcaturer data)
+- characteristic & services
+- device implementations
 
 ## Topics
 

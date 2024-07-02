@@ -18,14 +18,18 @@ import SwiftUI
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
 ///
-/// Use the `PairedDevices` module to discover and pair ``PairedDevices`` and automatically manage connection establishment
+/// Use the `PairedDevices` module to discover and pair ``PairableDevice``s and automatically manage connection establishment
 /// of connected devices.
 /// - Note: Implement your device as a [`BluetoothDevice`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetoothdevice)
 ///     using [SpeziBluetooth](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth).
 ///
-/// To support `PairedDevices`, you need to adopt the ``PairedDevices`` protocol for your device.
-/// Optionally you can adopt ``BatteryPoweredDevice`` if your device supports the `BatteryService`.
+/// To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
+/// Optionally you can adopt ``BatteryPoweredDevice`` if your device supports the
+/// [`BatteryService`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/batteryservice).
 /// Once your device is loaded, register it with the `PairedDevices` module by calling the ``configure(device:accessing:_:_:)`` method.
+///
+/// - Important: Don't forget to configure the `PairedDevices` module in
+///   your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate).
 ///
 /// ```swift
 /// import SpeziDevices
@@ -60,13 +64,12 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesTab`` view.
+/// - Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesTab`` view.
 ///
 /// ## Topics
 ///
 /// ### Configuring Paired Devices
 /// - ``init()``
-/// - ``init(_:)``
 ///
 /// ### Register Devices
 /// - ``configure(device:accessing:_:_:)``
