@@ -57,7 +57,6 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
-            // TODO: measurements are doubled?
             measurements.configureReceivingMeasurements(for: self, on: weightScale)
         }
     }
@@ -80,16 +79,6 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
 
     @MainActor
     private func handleCurrentTimeChange(_ time: CurrentTime) {
-        /*
-         TODO: what to do now with pairing?
-        if case .pairingMode = manufacturerData?.pairingMode,
-           let dateOfConnection,
-           abs(Date.now.timeIntervalSince1970 - dateOfConnection.timeIntervalSince1970) < 1 {
-            // if its pairing mode, and we just connected, we ignore the first current time notification as its triggered
-            // because of the notification registration.
-            return
-        }
-*/
         logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
         let paired = pairedDevices?.signalDevicePaired(self) == true
         if paired {

@@ -30,13 +30,8 @@ public struct MeasurementsRecordedSheet: View {
 
     @MainActor private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
         Binding {
-            guard let selectedMeasurement else {
-                guard let selectedMeasurement = measurements.pendingMeasurements.first else {
-                    preconditionFailure("Entered code path where selectedMeasurement was not set.")
-                }
-                // TODO: modifying state while view update!
-                self.selectedMeasurement = selectedMeasurement
-                return selectedMeasurement
+            guard let selectedMeasurement = selectedMeasurement ?? measurements.pendingMeasurements.first else {
+                preconditionFailure("Entered code path where selectedMeasurement was not set.")
             }
             return selectedMeasurement
         } set: { newValue in
@@ -68,6 +63,11 @@ public struct MeasurementsRecordedSheet: View {
                         .viewStateAlert(state: $viewState)
                         .interactiveDismissDisabled(viewState != .idle)
                         .dynamicTypeSize(.xSmall...DynamicTypeSize.accessibility3)
+                        .onChange(of: selectedMeasurement, initial: true) {
+                            if selectedMeasurement == nil {
+                                selectedMeasurement = measurements.pendingMeasurements.first
+                            }
+                        }
                 }
             }
                 .toolbar {
@@ -96,9 +96,6 @@ public struct MeasurementsRecordedSheet: View {
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
         } else if let measurement = measurements.pendingMeasurements.first {
             MeasurementLayer(measurement: measurement)
-                .onAppear {
-                    selectedMeasurement = measurement
-                }
         }
     }
 
@@ -115,20 +112,21 @@ public struct MeasurementsRecordedSheet: View {
                 throw error
             }
 
-            measurements.discardMeasurement(selectedMeasurement)
 
             logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
-            dismiss() // TODO: maintain to show last measurement when dismissing!
+            dismiss()
+
+            discardSelectedMeasurement(selectedMeasurement)
         } discard: {
             guard let selectedMeasurement else {
-                print("None selected?")
                 return
             }
-            measurements.discardMeasurement(selectedMeasurement)
 
             if measurements.pendingMeasurements.isEmpty {
-                dismiss() // TODO: maintain to show last measurement when dismissing!
+                dismiss()
             }
+
+            discardSelectedMeasurement(selectedMeasurement)
         }
     }
 
@@ -136,6 +134,21 @@ public struct MeasurementsRecordedSheet: View {
     /// Create a new measurement sheet.
     public init(save saveSamples: @escaping ([HKSample]) async throws -> Void) {
         self.saveSamples = saveSamples
+    }
+
+
+    @MainActor
+    private func discardSelectedMeasurement(_ measurement: HealthKitMeasurement) {
+        guard let index = measurements.pendingMeasurements.firstIndex(of: measurement) else {
+            return
+        }
+
+        measurements.discardMeasurement(measurement)
+        if index >= measurements.pendingMeasurements.count {
+            selectedMeasurement = measurements.pendingMeasurements.last
+        } else {
+            selectedMeasurement = measurements.pendingMeasurements[index]
+        }
     }
 }
 

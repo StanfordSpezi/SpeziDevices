@@ -233,7 +233,7 @@ public final class HealthMeasurements: @unchecked Sendable {
     @MainActor
     @discardableResult
     public func discardMeasurement(_ measurement: HealthKitMeasurement) -> Bool {
-        guard let index = self.pendingMeasurements.firstIndex(where: { $0.id == measurement.id }) else {
+        guard let index = self.pendingMeasurements.firstIndex(of: measurement) else {
             return false
         }
         let element = self.pendingMeasurements.remove(at: index)

@@ -27,13 +27,8 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 
     private var forcedUnwrappedDeviceId: Binding<UUID> {
         Binding {
-            guard let selectedDeviceId else {
-                guard let selectedDeviceId = devices.first?.id else {
-                    preconditionFailure("Entered code path where selectedMeasurement was not set.")
-                }
-                // TODO: modifying state while view update!
-                self.selectedDeviceId = selectedDeviceId
-                return selectedDeviceId
+            guard let selectedDeviceId = selectedDeviceId ?? devices.first?.id else {
+                preconditionFailure("Entered code path where selectedMeasurement was not set.")
             }
             return selectedDeviceId
         } set: { newValue in
@@ -59,7 +54,10 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                             .tag(device.id)
                     }
                 }
-                    .onChange(of: selectedDeviceId) {
+                    .onChange(of: selectedDeviceId, initial: true) {
+                        if selectedDeviceId == nil {
+                            self.selectedDeviceId = devices.first?.id
+                        }
                         selectedDevice = devices.first(where: { $0.id == selectedDeviceId })
                     }
                     .tabViewStyle(.page)
@@ -121,7 +119,8 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
             MockDevice.createMockDevice(name: "Device 1"),
             MockDevice.createMockDevice(name: "Device 2")
         ]
-        PairDeviceView(devices: device, appName: "Example", state: .constant(.discovery)) { _ in
+        PairDeviceView(devices: device, appName: "Example", state: .constant(.discovery)) { device in
+            print("Pairing \(device.label)")
         }
     }
 }
