@@ -66,6 +66,42 @@ private struct BloodPressureMeasurementSwiftDataWorkaroundContainer { // swiftli
 }
 
 
+private struct WeightMeasurementSwiftDataWorkaroundContainer { // swiftlint:disable:this type_name
+    let weight: UInt16
+    let unit: String
+    
+    let timestamp: DateTime?
+    
+    let userId: UInt8?
+    let bmi: UInt16?
+    let height: UInt16?
+
+    var measurement: WeightMeasurement {
+        var info: WeightMeasurement.AdditionalInfo?
+        if let bmi, let height {
+            info = .init(bmi: bmi, height: height)
+        }
+
+        return WeightMeasurement(
+            weight: weight,
+            unit: .init(rawValue: unit) ?? .si,
+            timeStamp: timestamp,
+            userId: userId,
+            additionalInfo: info
+        )
+    }
+
+    init(from measurement: WeightMeasurement) {
+        self.weight = measurement.weight
+        self.unit = measurement.unit.rawValue
+        self.timestamp = measurement.timeStamp
+        self.userId = measurement.userId
+        self.bmi = measurement.additionalInfo?.bmi
+        self.height = measurement.additionalInfo?.height
+    }
+}
+
+
 // swiftlint:disable:next type_name
 private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
     enum MeasurementType: String, Codable {
@@ -78,7 +114,7 @@ private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
     private var bloodPressureMeasurement: BloodPressureMeasurementSwiftDataWorkaroundContainer?
     private var bloodPressureFeatures: BloodPressureFeature.RawValue?
 
-    private var weightMeasurement: WeightMeasurement?
+    private var weightMeasurement: WeightMeasurementSwiftDataWorkaroundContainer?
     private var weightScaleFeatures: WeightScaleFeature.RawValue?
 
     var measurement: BluetoothHealthMeasurement {
@@ -92,7 +128,7 @@ private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
             guard let weightMeasurement, let weightScaleFeatures else {
                 preconditionFailure("Inconsistent type")
             }
-            return .weight(weightMeasurement, .init(rawValue: weightScaleFeatures))
+            return .weight(weightMeasurement.measurement, .init(rawValue: weightScaleFeatures))
         }
     }
 
@@ -108,8 +144,7 @@ private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
             type = .weight
             bloodPressureMeasurement = nil
             bloodPressureFeatures = nil
-            // bloodPressureMeasurement2 = BloodPressureMeasurementCopy(from: .mock())
-            weightMeasurement = measurement
+            weightMeasurement = .init(from: measurement)
             weightScaleFeatures = features.rawValue
         }
     }
@@ -210,6 +245,39 @@ extension BloodPressureMeasurementSwiftDataWorkaroundContainer: Codable {
 }
 
 
+extension WeightMeasurementSwiftDataWorkaroundContainer: Codable {
+    enum CodingKeys: CodingKey {
+        case weight
+        case unit
+        case timestamp
+        case userId
+        case bmi
+        case height
+    }
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.weight = try container.decode(UInt16.self, forKey: .weight)
+        self.unit = try container.decode(String.self, forKey: .unit)
+        self.timestamp = try container.decodeIfPresent(DateTime.self, forKey: .timestamp)
+        self.userId = try container.decodeIfPresent(UInt8.self, forKey: .userId)
+        self.bmi = try container.decodeIfPresent(UInt16.self, forKey: .bmi)
+        self.height = try container.decodeIfPresent(UInt16.self, forKey: .height)
+    }
+
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(self.weight, forKey: .weight)
+        try container.encode(self.unit, forKey: .unit)
+        try container.encodeIfPresent(self.timestamp, forKey: .timestamp)
+        try container.encodeIfPresent(self.userId, forKey: .userId)
+        try container.encodeIfPresent(self.bmi, forKey: .bmi)
+        try container.encodeIfPresent(self.height, forKey: .height)
+    }
+}
+
+
 extension SwiftDataBluetoothHealthMeasurementWorkaroundContainer: Codable {
     enum CodingKeys: CodingKey {
         case type
@@ -230,7 +298,7 @@ extension SwiftDataBluetoothHealthMeasurementWorkaroundContainer: Codable {
             )
             self.bloodPressureFeatures = try container.decodeIfPresent(BloodPressureFeature.RawValue.self, forKey: .bloodPressureFeatures)
         case .weight:
-            self.weightMeasurement = try container.decodeIfPresent(WeightMeasurement.self, forKey: .weightMeasurement)
+            self.weightMeasurement = try container.decodeIfPresent(WeightMeasurementSwiftDataWorkaroundContainer.self, forKey: .weightMeasurement)
             self.weightScaleFeatures = try container.decodeIfPresent(WeightScaleFeature.RawValue.self, forKey: .weightScaleFeatures)
         }
     }

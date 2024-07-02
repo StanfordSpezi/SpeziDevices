@@ -33,7 +33,7 @@ public struct DevicesView<PairingHint: View>: View {
                     pairingHint
                 }
             }
-            .toolbar { // TODO: verify order!
+            .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     // indicate that we are scanning in the background
                     if pairedDevices.isScanningForNearbyDevices && !pairedDevices.shouldPresentDevicePairing {

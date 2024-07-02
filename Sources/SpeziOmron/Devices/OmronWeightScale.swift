@@ -57,6 +57,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
+            // TODO: measurements are doubled?
             measurements.configureReceivingMeasurements(for: self, on: weightScale)
         }
     }
