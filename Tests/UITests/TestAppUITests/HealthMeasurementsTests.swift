@@ -117,12 +117,12 @@ class HealthMeasurementsTests: XCTestCase {
         XCTAssert(app.buttons["Save"].exists)
         XCTAssert(app.buttons["Discard"].exists)
 
-        XCTAssert(app.steppers["Page"].exists)
-        let page1Value = try XCTUnwrap(app.steppers["Page"].value as? String, "Unexpected value \(String(describing: app.steppers["Page"].value))")
-        XCTAssertEqual(page1Value, "Page 1 of 2")
-        app.steppers["Page"].coordinate(withNormalizedOffset: .init(dx: 0.8, dy: 0.5)).tap()
-        let page2Value = try XCTUnwrap(app.steppers["Page"].value as? String, "Unexpected value \(String(describing: app.steppers["Page"].value))")
-        XCTAssertEqual(page2Value, "Page 2 of 2")
+        XCTAssert(app.pageIndicators.firstMatch.exists)
+        let page1Value = try XCTUnwrap(app.pageIndicators.firstMatch.value as? String, "Unexpected value \(String(describing: app.steppers["Page"].value))")
+        XCTAssertEqual(page1Value, "page 1 of 2")
+        app.pageIndicators.firstMatch.coordinate(withNormalizedOffset: .init(dx: 0.8, dy: 0.5)).tap()
+        let page2Value = try XCTUnwrap(app.pageIndicators.firstMatch.value as? String, "Unexpected value \(String(describing: app.steppers["Page"].value))")
+        XCTAssertEqual(page2Value, "page 2 of 2")
 
         XCTAssert(app.staticTexts["Measurement Recorded"].waitForExistence(timeout: 2.0))
         XCTAssert(app.staticTexts["42 kg"].exists)
@@ -141,5 +141,12 @@ class HealthMeasurementsTests: XCTestCase {
 
         XCTAssert(app.staticTexts["42 kg"].waitForExistence(timeout: 2.0))
         XCTAssert(app.staticTexts["179 cm,  23 BMI"].exists)
+
+        XCTAssert(app.buttons["Discard"].waitForExistence(timeout: 0.5))
+        app.buttons["Discard"].tap()
+
+        XCTAssert(app.staticTexts["No Pending Measurements"].waitForExistence(timeout: 2.0))
+        XCTAssert(app.navigationBars.buttons["Dismiss"].exists)
+        app.navigationBars.buttons["Dismiss"].tap()
     }
 }
