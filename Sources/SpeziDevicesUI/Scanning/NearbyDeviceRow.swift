@@ -13,6 +13,7 @@ import SpeziViews
 import SwiftUI
 
 
+/// A row that displays information of a nearby Bluetooth peripheral in a List view.
 public struct NearbyDeviceRow: View {
     private let peripheral: any GenericBluetoothPeripheral
     private let devicePrimaryActionClosure: () -> Void
@@ -110,6 +111,13 @@ public struct NearbyDeviceRow: View {
     }
 
 
+    /// Create a new nearby device row.
+    /// - Parameters:
+    ///   - peripheral: The nearby peripheral.
+    ///   - primaryAction: The action that is executed when tapping the peripheral.
+    ///     It is recommended to connect or disconnect devices when tapping on them.
+    ///   - secondaryAction: The action that is executed when the device details button is pressed.
+    ///     The device details button is displayed once the peripheral is connected.
     public init(
         peripheral: any GenericBluetoothPeripheral,
         primaryAction: @escaping () -> Void,

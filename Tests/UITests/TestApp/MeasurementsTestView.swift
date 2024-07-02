@@ -58,9 +58,6 @@ struct MeasurementsTestView: View {
                     }
                 }
         }
-            .onAppear {
-                healthMeasurements.clearStorage()
-            }
     }
 
     init() {}

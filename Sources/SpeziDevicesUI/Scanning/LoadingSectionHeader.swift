@@ -9,6 +9,10 @@
 import SwiftUI
 
 
+/// A section header that displays a title and an optional loading indicator.
+///
+/// This view is useful to, e.g., render the Section header of a list of nearby peripherals. The ProgressView can be used to
+/// communicate that the application is currently scanning for nearby Bluetooth peripherals.
 public struct LoadingSectionHeader: View {
     private let text: Text
     private let loading: Bool

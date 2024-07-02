@@ -30,7 +30,7 @@ of connected devices.
 To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
 Optionally you can adopt the ``BatteryPoweredDevice`` protocol, if your device supports the
 [`BatteryService`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/batteryservice).
-Once your device is loaded, register it with the `PairedDevices` module by calling the ``configure(device:accessing:_:_:)`` method.
+Once your device is loaded, register it with the `PairedDevices` module by calling the ``PairedDevices/configure(device:accessing:_:_:)`` method.
 
 
 > Important: Don't forget to configure the `PairedDevices` module in

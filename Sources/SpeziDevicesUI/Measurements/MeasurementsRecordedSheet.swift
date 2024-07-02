@@ -34,6 +34,7 @@ public struct MeasurementsRecordedSheet: View {
                 guard let selectedMeasurement = measurements.pendingMeasurements.first else {
                     preconditionFailure("Entered code path where selectedMeasurement was not set.")
                 }
+                // TODO: modifying state while view update!
                 self.selectedMeasurement = selectedMeasurement
                 return selectedMeasurement
             }

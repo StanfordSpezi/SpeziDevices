@@ -57,8 +57,8 @@ import SwiftUI
 ///         @Bindable var measurements = measurements
 ///         ContentView()
 ///             .sheet(isPresented: $measurements.shouldPresentMeasurements) {
-///                 MeasurementsRecordedSheet { measurement in
-///                     // handle saving the measurement
+///                 MeasurementsRecordedSheet { samples in
+///                     // save the array of HKSamples
 ///                 }
 ///             }
 ///     }
@@ -72,7 +72,6 @@ import SwiftUI
 ///
 /// ### Configuring Health Measurements
 /// - ``init()``
-/// - ``init(_:)``
 ///
 /// ### Register Devices
 /// - ``configureReceivingMeasurements(for:on:)-8cbd0``

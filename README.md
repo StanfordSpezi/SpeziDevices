@@ -2,53 +2,240 @@
                   
 This source file is part of the Stanford SpeziDevices open source project
 
-SPDX-FileCopyrightText: 2022 Stanford University and the project authors (see CONTRIBUTORS.md)
+SPDX-FileCopyrightText: 2024 Stanford University and the project authors (see CONTRIBUTORS.md)
 
 SPDX-License-Identifier: MIT
              
 -->
 
-# TemplatePackage
+# SpeziDevices
 
 [![Build and Test](https://github.com/StanfordSpezi/SpeziDevices/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordSpezi/SpeziDevices/actions/workflows/build-and-test.yml)
 [![codecov](https://codecov.io/gh/StanfordSpezi/SpeziDevices/graph/badge.svg?token=pZeJyWYhAk)](https://codecov.io/gh/StanfordSpezi/SpeziDevices)
 <!-- TODO: DOI BADGE-->
 <!-- TODO: SPI BADES-->
 
+Support interactions with Bluetooth Devices.
 
-## How To Use This Template
+## Overview
 
-The template repository contains a template Swift Package, including a continuous integration setup. 
+SpeziDevices provides three different targets: `SpeziDevices`, `SpeziDevicesUI` and `SpeziOmron`.
 
-Follow these steps to customize it to your needs:
-1. Rename the Swift Package. Be sure that you update the name in the `build-and-test.yml` GitHub Action accordingly. If you have multiple targets in your Swift Package, you need to pass the name of the Swift Package followed by an `-Package` as the scheme to the GitHub Action, e.g., `StanfordProject-Package` if your Swift Package is named `StanfordProject`.
-2. If your Swift Package does not provide any user interface or does not require an iOS application environment to function, you can remove the `UITests` application from the `Tests` folder. You need to update the `build-and-test.yml` GitHub Action accordingly by removing the GitHub Action that builds and tests the application, removing the dependency from the code coverage upload step, and removing the UI test `.xresult` input from the code coverage test. 
-3. If your Swift Package uses UI test, you need to ...
-   - ... add it to the scheme editor (*Scheme > Edit Scheme*) and your targets to the "Build" configuration and ensure that it is built before the test app target when building for the "Test" configuration. It is not required to enable building for other configurations like "Analyze", "Run", "Profile", or "Archive".
-   - ... add it as a linked framework in the main target configuration (In your Xcode project settings, select your *test app target > General > Frameworks, Libraries, and Embedded Comments*).
-   - ... add ensure that the targets are all added in the code coverage settings of your .xctestplan file in the Xcode Project (*Shared Settings > Code Coverage > Code Coverage*).
-4. You will either need to add the [CodeCov GitHub App](https://github.com/apps/codecov) or add a codecov.io token to your [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-an-environment) following the instructions of the [Codecov GitHub Action](https://github.com/marketplace/actions/codecov#usage). The StanfordBDHG organization already has the [CodeCov GitHub App](https://github.com/apps/codecov) installed. If you do not want to cover test coverage data, you can remove the code coverage job in the `build-and-test.yml` GitHub Action.
-5. Adjust this README.md to describe your project and adjust the badges at the top to point to the correct GitHub Action of your repository and Codecov badge.
-6. The Swift Package template includes a Swift Package Index configuration file to automatically build the package and [host the documentation on the Swift Package Index website](https://blog.swiftpackageindex.com/posts/auto-generating-auto-hosting-and-auto-updating-docc-documentation/). Adjust the `.spi.yml` file to include all targets that you want to build documentation for. You can follow the [instructions of the Swift Package Index](https://swiftpackageindex.com/add-a-package) to include your Swift Package in the Swift Package Index. You can link to the [API documentation](https://swiftpackageindex.com/StanfordBDHG/SwiftPackageTemplate/documentation) from your README file.
-7. Adjust the CITATION.cff file to amend information about the new Swift Package ([learn more about CITATION files on GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files)) and [register the Swift Package on Zenodo](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content). 
+### SpeziDevices
+
+SpeziDevices abstracts common interactions with Bluetooth devices that are implemented using
+[SpeziBluetooth](https://swiftpackageindex.com/StanfordSpezi/SpeziBluetooth/documentation/spezibluetooth).
+It supports pairing with devices and process health measurements.
+
+#### Pairing Devices
+
+Pairing devices is a good way of making sure that your application only connects to fixed set of devices and doesn't accept data from 
+non-authorized devices.
+Further, it might be necessary to ensure certain operations stay secure.
+
+Use the ``PairedDevices`` module to discover and pair ``PairableDevice``s and automatically manage connection establishment
+of connected devices.
+
+To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
+Optionally you can adopt the ``BatteryPoweredDevice`` protocol, if your device supports the
+[`BatteryService`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/batteryservice).
+Once your device is loaded, register it with the `PairedDevices` module by calling the ``PairedDevices/configure(device:accessing:_:_:)`` method.
 
 
-## Installation
+> [!IMPORTANT]
+> Don't forget to configure the `PairedDevices` module in
+  your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate).
 
-The project can be added to your Xcode project or Swift Package using the [Swift Package Manager](https://github.com/apple/swift-package-manager).
+```swift
+import SpeziDevices
 
-**Xcode:** For an Xcode project, follow the instructions on [adding package dependencies to your app](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app).
+class MyDevice: PairableDevice {
+    @DeviceState(\.id) var id
+    @DeviceState(\.name) var name
+    @DeviceState(\.state) var state
+    @DeviceState(\.advertisementData) var advertisementData
+    @DeviceState(\.nearby) var nearby
 
-**Swift Package:** You can follow the [Swift Package Manager documentation about defining dependencies](https://github.com/apple/swift-package-manager/blob/main/Documentation/Usage.md#defining-dependencies) to add this project as a dependency to your Swift Package.
+    @Service var deviceInformation = DeviceInformationService()
 
+    @DeviceAction(\.connect) var connect
+    @DeviceAction(\.disconnect) var disconnect
+
+    var isInPairingMode: Bool {
+        // determine if a nearby device is in pairing mode
+    }
+
+    @Dependency private var pairedDevices: PairedDevices?
+
+    required init() {}
+
+    func configure() {
+        pairedDevices?.configure(device: self, accessing: $state, $advertisementData, $nearby)
+    }
+
+    func handleSuccessfulPairing() { // called on events where a device can be considered paired (e.g., incoming notifications)
+        pairedDevices?.signalDevicePaired(self)
+    }
+}
+```
+
+> [!TIP]
+> To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesView`` view.
+
+#### Health Measurements
+
+Use the ``HealthMeasurements`` module to collect health measurements from nearby Bluetooth devices like connected weight scales or
+blood pressure cuffs.
+
+To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
+One your device is loaded, register its measurement service with the `HealthMeasurements` module
+by calling a suitable variant of `configureReceivingMeasurements(for:on:)`.
+
+```swift
+import SpeziDevices
+
+class MyDevice: HealthDevice {
+    @Service var deviceInformation = DeviceInformationService()
+    @Service var weightScale = WeightScaleService()
+
+    @Dependency private var measurements: HealthMeasurements?
+
+    required init() {}
+
+    func configure() {
+        measurements?.configureReceivingMeasurements(for: self, on: weightScale)
+    }
+}
+```
+
+To display new measurements to the user and save them to your external data store, you can use ``MeasurementsRecordedSheet``.
+Below is a short code example.
+
+```swift
+import SpeziDevices
+import SpeziDevicesUI
+
+struct MyHomeView: View {
+    @Environment(HealthMeasurements.self) private var measurements
+
+    var body: some View {
+        @Bindable var measurements = measurements
+        ContentView()
+            .sheet(isPresented: $measurements.shouldPresentMeasurements) {
+                MeasurementsRecordedSheet { measurement in
+                    // handle saving the measurement
+                }
+            }
+    }
+}
+```
+
+> [!IMPORTANT]
+> Don't forget to configure the `HealthMeasurements` module in
+  your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate).
+
+### SpeziDevicesUI
+
+SpeziDevicesUI helps you to visualize Bluetooth device state and communicate interactions to the user.
+
+#### Displaying paired devices
+
+When managing paired devices using ``PairedDevices``, SpeziDevicesUI provides reusable View components to display paired devices.
+
+The ``DevicesView`` provides everything you need to pair and manage paired devices. 
+It shows already paired devices in a grid layout using the ``DevicesGrid``. Additionally, it places an add button in the toolbar
+to discover new devices using the ``AccessorySetupSheet`` view.
+
+```swift
+struct MyHomeView: View {
+    var body: some View {
+        TabView {
+            NavigationStack {
+                DevicesView(appName: "Example") {
+                    Text("Provide helpful pairing instructions to the user.")
+                }
+            }
+                .tabItem {
+                    Label("Devices", systemImage: "sensor.fill")
+                }
+        }
+    }
+}
+```
+
+#### Displaying Measurements
+
+When managing measurements using ``HealthMeasurements``, you can use the ``MeasurementsRecordedSheet`` to display pending measurements.
+Below is a short code example on how you would configure this view.
+
+```swift
+struct MyHomeView: View {
+    @Environment(HealthMeasurements.self) private var measurements
+
+    var body: some View {
+        @Bindable var measurements = measurements
+        ContentView()
+            .sheet(isPresented: $measurements.shouldPresentMeasurements) {
+                MeasurementsRecordedSheet { samples in
+                    // save the array of HKSamples
+                }
+            }
+    }
+}
+```
+
+> [!IMPORTANT]
+> Don't forget to configure the `HealthMeasurements` module in
+  your [`SpeziAppDelegate`](https://swiftpackageindex.com/stanfordspezi/spezi/documentation/spezi/speziappdelegate).
+    
+### SpeziOmron
+
+SpeziOmron extends SpeziDevices with support for Omron devices. This includes Omron-specific models, characteristics, services and fully reusable
+device support.
+
+#### Omron Devices
+
+The ``OmronBloodPressureCuff`` and ``OmronWeightScale`` devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
+and the Omron `SC-150` weight scale.
+Both devices automatically integrate with the ``HealthMeasurements`` and ``PairedDevices`` modules of SpeziDevices.
+You just need to configure them for use with the [`Bluetooth`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetooth#Configure-the-Bluetooth-Module)
+module.
+
+```swift
+import SpeziBluetooth
+import SpeziBluetoothServices
+import SpeziDevices
+import SpeziOmron
+
+class ExampleAppDelegate: SpeziAppDelegate {
+    override var configuration: Configuration {
+        Configuration {
+            Bluetooth {
+                Discover(OmronBloodPressureCuff.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: BloodPressureService.self))
+                Discover(OmronWeightScale.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: WeightScaleService.self))
+            }
+
+            // If required, configure the PairedDevices and HealthMeasurements modules
+            PairedDevices()
+            HealthMeasurements()
+        }
+    }
+}
+```
+
+## Setup
+
+You need to add the SpeziDevices Swift package to
+[your app in Xcode](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app#) or
+[Swift package](https://developer.apple.com/documentation/xcode/creating-a-standalone-swift-package-with-xcode#Add-a-dependency-on-another-Swift-package).
 
 ## License
-This project is licensed under the MIT License. See [Licenses](https://github.com/StanfordBDHG/TemplatePackage/tree/main/LICENSES) for more information.
+This project is licensed under the MIT License. See [Licenses](https://github.com/StanfordSpezi/SpeziDevices/tree/main/LICENSES) for more information.
 
 
 ## Contributors
 This project is developed as part of the Stanford Byers Center for Biodesign at Stanford University.
-See [CONTRIBUTORS.md](https://github.com/StanfordBDHG/TemplatePackage/tree/main/CONTRIBUTORS.md) for a full list of all TemplatePackage contributors.
+See [CONTRIBUTORS.md](https://github.com/StanfordSpezi/SpeziDevices/tree/main/CONTRIBUTORS.md) for a full list of all TemplatePackage contributors.
 
-![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordBDHG/.github/main/assets/biodesign-footer-light.png#gh-light-mode-only)
-![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordBDHG/.github/main/assets/biodesign-footer-dark.png#gh-dark-mode-only)
+![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordSpezi/.github/main/assets/Footer.png#gh-light-mode-only)
+![Stanford Byers Center for Biodesign Logo](https://raw.githubusercontent.com/StanfordSpezi/.github/main/assets/Footer~dark.png#gh-dark-mode-only)

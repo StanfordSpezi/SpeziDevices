@@ -31,6 +31,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                 guard let selectedDeviceId = devices.first?.id else {
                     preconditionFailure("Entered code path where selectedMeasurement was not set.")
                 }
+                // TODO: modifying state while view update!
                 self.selectedDeviceId = selectedDeviceId
                 return selectedDeviceId
             }
@@ -91,8 +92,8 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                 Text("Pair")
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
-            .buttonStyle(.borderedProminent)
-            .padding([.leading, .trailing], 36)
+                .buttonStyle(.borderedProminent)
+                .padding([.leading, .trailing], 36)
         }
     }
 

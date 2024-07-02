@@ -19,11 +19,33 @@ device support.
 
 ### Omron Devices
 
+The ``OmronBloodPressureCuff`` and ``OmronWeightScale`` devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
+and the Omron `SC-150` weight scale.
+Both devices automatically integrate with the ``HealthMeasurements`` and ``PairedDevices`` modules of SpeziDevices.
+You just need to configure them for use with the [`Bluetooth`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetooth#Configure-the-Bluetooth-Module)
+module.
 
+```swift
+import SpeziBluetooth
+import SpeziBluetoothServices
+import SpeziDevices
+import SpeziOmron
 
-- models (e.g., manufcaturer data)
-- characteristic & services
-- device implementations
+class ExampleAppDelegate: SpeziAppDelegate {
+    override var configuration: Configuration {
+        Configuration {
+            Bluetooth {
+                Discover(OmronBloodPressureCuff.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: BloodPressureService.self))
+                Discover(OmronWeightScale.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: WeightScaleService.self))
+            }
+
+            // If required, configure the PairedDevices and HealthMeasurements modules
+            PairedDevices()
+            HealthMeasurements()
+        }
+    }
+}
+```
 
 ## Topics
 
