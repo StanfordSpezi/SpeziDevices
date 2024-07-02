@@ -13,8 +13,18 @@
       "targets" : [
         {
           "containerPath" : "container:..\/..",
-          "identifier" : "TemplatePackage",
-          "name" : "TemplatePackage"
+          "identifier" : "SpeziDevices",
+          "name" : "SpeziDevices"
+        },
+        {
+          "containerPath" : "container:..\/..",
+          "identifier" : "SpeziDevicesUI",
+          "name" : "SpeziDevicesUI"
+        },
+        {
+          "containerPath" : "container:..\/..",
+          "identifier" : "SpeziOmron",
+          "name" : "SpeziOmron"
         }
       ]
     },
