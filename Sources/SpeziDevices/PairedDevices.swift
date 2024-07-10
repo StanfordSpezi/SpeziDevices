@@ -64,7 +64,8 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// - Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesTab`` view.
+/// - Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured
+/// [`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview).
 ///
 /// ## Topics
 ///

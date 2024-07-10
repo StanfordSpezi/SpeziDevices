@@ -43,7 +43,8 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// To display new measurements to the user and save them to your external data store, you can use ``MeasurementsRecordedSheet``.
+/// To display new measurements to the user and save them to your external data store, you can use
+/// [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet).
 /// Below is a short code example.
 ///
 /// ```swift

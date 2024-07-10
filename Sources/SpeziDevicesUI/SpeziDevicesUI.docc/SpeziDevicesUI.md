@@ -43,7 +43,8 @@ struct MyHomeView: View {
 
 ### Displaying Measurements
 
-When managing measurements using ``HealthMeasurements``, you can use the ``MeasurementsRecordedSheet`` to display pending measurements.
+When managing measurements using ``HealthMeasurements``, you can use the [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet)
+to display pending measurements.
 Below is a short code example on how you would configure this view.
 
 ```swift
