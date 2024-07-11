@@ -46,6 +46,7 @@ class BluetoothViewsTests: XCTestCase {
         app.buttons["Open Settings"].tap()
 
         let settingsApp = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        try await Task.sleep(for: .seconds(2))
         XCTAssertEqual(settingsApp.state, .runningForeground)
     }
 
