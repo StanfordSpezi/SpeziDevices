@@ -17,7 +17,7 @@ class BluetoothViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testBluetoothUnavailableViews() async {
+    func testBluetoothUnavailableViews() async throws {
         let app = XCUIApplication()
         app.launch()
 
