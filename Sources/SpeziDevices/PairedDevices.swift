@@ -383,7 +383,7 @@ extension PairedDevices {
         await device.connect()
 
         let id = device.id
-        let timeoutHandler = { @MainActor in
+        let timeoutHandler = { @Sendable @MainActor in
             _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
         }
 

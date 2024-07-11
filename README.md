@@ -13,7 +13,8 @@ SPDX-License-Identifier: MIT
 [![Build and Test](https://github.com/StanfordSpezi/SpeziDevices/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/StanfordSpezi/SpeziDevices/actions/workflows/build-and-test.yml)
 [![codecov](https://codecov.io/gh/StanfordSpezi/SpeziDevices/graph/badge.svg?token=pZeJyWYhAk)](https://codecov.io/gh/StanfordSpezi/SpeziDevices)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.12627487.svg)](https://doi.org/10.5281/zenodo.12627487)
-<!-- TODO: SPI BADGES-->
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FStanfordSpezi%2FSpeziDevices%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2FStanfordSpezi%2FSpeziDevices%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices)
 
 Support interactions with Bluetooth Devices.
 

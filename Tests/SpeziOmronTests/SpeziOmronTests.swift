@@ -183,4 +183,4 @@ final class SpeziOmronTests: XCTestCase {
 }
 
 
-extension MockDevice: OmronHealthDevice {}
+extension MockDevice: @retroactive OmronHealthDevice {}
