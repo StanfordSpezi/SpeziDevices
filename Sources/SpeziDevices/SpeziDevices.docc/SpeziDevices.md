@@ -74,7 +74,8 @@ class MyDevice: PairableDevice {
 
 ### Health Measurements
 
-Use the ``HealthMeasurements`` module to collect health measurements from nearby Bluetooth devices like connected weight scales or
+Use the ``HealthMeasurements``
+module to collect health measurements from nearby Bluetooth devices like connected weight scales or
 blood pressure cuffs.
 
 To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.

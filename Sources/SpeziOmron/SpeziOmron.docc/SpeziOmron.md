@@ -21,7 +21,8 @@ device support.
 
 The ``OmronBloodPressureCuff`` and ``OmronWeightScale`` devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
 and the Omron `SC-150` weight scale.
-Both devices automatically integrate with the ``HealthMeasurements`` and ``PairedDevices`` modules of SpeziDevices.
+Both devices automatically integrate with the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
+and [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices) modules of SpeziDevices.
 You just need to configure them for use with the [`Bluetooth`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetooth#Configure-the-Bluetooth-Module)
 module.
 

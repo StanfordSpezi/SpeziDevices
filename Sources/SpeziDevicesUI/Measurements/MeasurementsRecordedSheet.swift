@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-@preconcurrency import HealthKit
+import HealthKit
 import OSLog
 @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
@@ -15,10 +15,11 @@ import SwiftUI
 
 /// A sheet view displaying one or many newly recorded measurements.
 ///
-/// This view retrieves the pending measurements from the ``HealthMeasurements`` Module that is present in the SwiftUI environment.
+/// This view retrieves the pending measurements from the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
+/// Module that is present in the SwiftUI environment.
 public struct MeasurementsRecordedSheet: View {
     private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementsRecordedSheet")
-    private let saveSamples: ([HKSample]) async throws -> Void
+    private let saveSamples: @MainActor ([HKSample]) async throws -> Void
 
     @Environment(HealthMeasurements.self) private var measurements
     @Environment(\.dismiss) private var dismiss
@@ -132,7 +133,7 @@ public struct MeasurementsRecordedSheet: View {
 
 
     /// Create a new measurement sheet.
-    public init(save saveSamples: @escaping ([HKSample]) async throws -> Void) {
+    public init(save saveSamples: @MainActor @escaping ([HKSample]) async throws -> Void) {
         self.saveSamples = saveSamples
     }
 

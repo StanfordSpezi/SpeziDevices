@@ -383,9 +383,11 @@ extension PairedDevices {
         await device.connect()
 
         let id = device.id
-        async let _ = withTimeout(of: timeout) { @MainActor in
-            ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+        let timeoutHandler = { @MainActor in
+            _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
         }
+
+        async let _ = withTimeout(of: timeout, perform: timeoutHandler)
 
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
@@ -671,7 +673,7 @@ extension Bluetooth {
 
 extension PairableDevice {
     fileprivate static func retrieveDevice(from bluetooth: Bluetooth, with id: UUID) async -> Self? {
-        await bluetooth.retrieveDevice(for: id)
+        await bluetooth.retrieveDevice(for: id, as: Self.self)
     }
 }
 

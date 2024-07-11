@@ -33,7 +33,8 @@ Pairing devices is a good way of making sure that your application only connects
 non-authorized devices.
 Further, it might be necessary to ensure certain operations stay secure.
 
-Use the ``PairedDevices`` module to discover and pair ``PairableDevice``s and automatically manage connection establishment
+Use the [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices)
+module to discover and pair ``PairableDevice``s and automatically manage connection establishment
 of connected devices.
 
 To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
@@ -85,7 +86,8 @@ class MyDevice: PairableDevice {
 
 #### Health Measurements
 
-Use the ``HealthMeasurements`` module to collect health measurements from nearby Bluetooth devices like connected weight scales or
+Use the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
+module to collect health measurements from nearby Bluetooth devices like connected weight scales or
 blood pressure cuffs.
 
 To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
@@ -142,7 +144,8 @@ SpeziDevicesUI helps you to visualize Bluetooth device state and communicate int
 
 #### Displaying paired devices
 
-When managing paired devices using ``PairedDevices``, SpeziDevicesUI provides reusable View components to display paired devices.
+When managing paired devices using [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices),
+SpeziDevicesUI provides reusable View components to display paired devices.
 
 The [`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview)
 provides everything you need to pair and manage paired devices. 
@@ -168,7 +171,8 @@ struct MyHomeView: View {
 
 #### Displaying Measurements
 
-When managing measurements using ``HealthMeasurements``, you can use the [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet)
+When managing measurements using [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements),
+you can use the [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet)
 to display pending measurements.
 Below is a short code example on how you would configure this view.
 
@@ -201,7 +205,8 @@ device support.
 
 The ``OmronBloodPressureCuff`` and ``OmronWeightScale`` devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
 and the Omron `SC-150` weight scale.
-Both devices automatically integrate with the ``HealthMeasurements`` and ``PairedDevices`` modules of SpeziDevices.
+Both devices automatically integrate with the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
+and [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices) modules of SpeziDevices.
 You just need to configure them for use with the [`Bluetooth`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetooth#Configure-the-Bluetooth-Module)
 module.
 

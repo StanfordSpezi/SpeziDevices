@@ -19,11 +19,13 @@ public enum OmronRecordAccessOperand {
 
     // RESPONSE
 
-    /// The general response operand used with the ``RecordAccessOpCode/responseCode`` operation.
+    /// The general response operand used with the [`responseCode`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/recordaccessopcode/responsecode)
+    /// operation.
     case generalResponse(RecordAccessGeneralResponse)
-    /// Reports the number of records in the ``RecordAccessOpCode/numberOfStoredRecordsResponse`` operation.
+    /// Reports the number of records in the [`numberOfStoredRecordsResponse`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/recordaccessopcode/numberofstoredrecordsresponse)
+    /// operation.
     case numberOfRecords(UInt16)
-    /// Reports the sequence number of the latest records in the ``BluetoothServices/RecordAccessOpCode/omronSequenceNumberOfLatestRecordsResponse`` operation.
+    /// Reports the sequence number of the latest records in the ``SpeziBluetoothServices/RecordAccessOpCode/omronSequenceNumberOfLatestRecordsResponse`` operation.
     case sequenceNumber(UInt16)
 }
 
