@@ -80,7 +80,7 @@ blood pressure cuffs.
 
 To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
 One your device is loaded, register its measurement service with the `HealthMeasurements` module
-by calling a suitable variant of `configureReceivingMeasurements(for:on:)`.
+by calling a suitable variant of [`configureReceivingMeasurements(for:on:)`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements#register-devices).
 
 ```swift
 import SpeziDevices

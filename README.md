@@ -20,7 +20,9 @@ Support interactions with Bluetooth Devices.
 
 ## Overview
 
-SpeziDevices provides three different targets: `SpeziDevices`, `SpeziDevicesUI` and `SpeziOmron`.
+SpeziDevices provides three different targets: [`SpeziDevices`](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices/documentation/spezidevices),
+[`SpeziDevicesUI`](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices/documentation/spezidevicesui)
+and [`SpeziOmron`](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices/documentation/speziomron).
 
 ### SpeziDevices
 
@@ -35,13 +37,17 @@ non-authorized devices.
 Further, it might be necessary to ensure certain operations stay secure.
 
 Use the [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices)
-module to discover and pair ``PairableDevice``s and automatically manage connection establishment
-of connected devices.
+module to discover and pair [`PairableDevice`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/pairabledevice)s
+and automatically manage connection establishment of connected devices.
 
-To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
-Optionally you can adopt the ``BatteryPoweredDevice`` protocol, if your device supports the
+To support `PairedDevices`, you need to adopt the
+[`PairableDevice`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/pairabledevice) protocol for your device.
+Optionally you can adopt the [`BatteryPoweredDevice`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/batterypowereddevice)
+protocol, if your device supports the
 [`BatteryService`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetoothservices/batteryservice).
-Once your device is loaded, register it with the `PairedDevices` module by calling the ``PairedDevices/configure(device:accessing:_:_:)`` method.
+Once your device is loaded, register it with the `PairedDevices` module by calling the
+[`PairedDevices/configure(device:accessing:_:_:)`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices/configure(device:accessing:_:_:))
+method.
 
 
 > [!IMPORTANT]
@@ -91,9 +97,9 @@ Use the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezi
 module to collect health measurements from nearby Bluetooth devices like connected weight scales or
 blood pressure cuffs.
 
-To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
+To support `HealthMeasurements`, you need to adopt the [`HealthDevice`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthdevice) protocol for your device.
 One your device is loaded, register its measurement service with the `HealthMeasurements` module
-by calling a suitable variant of `configureReceivingMeasurements(for:on:)`.
+by calling a suitable variant of [`configureReceivingMeasurements(for:on:)`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements#register-devices).
 
 ```swift
 import SpeziDevices
@@ -150,8 +156,9 @@ SpeziDevicesUI provides reusable View components to display paired devices.
 
 The [`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview)
 provides everything you need to pair and manage paired devices. 
-It shows already paired devices in a grid layout using the ``DevicesGrid``. Additionally, it places an add button in the toolbar
-to discover new devices using the ``AccessorySetupSheet`` view.
+It shows already paired devices in a grid layout using the [`DevicesGrid`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesgrid).
+Additionally, it places an add button in the toolbar to discover new devices using the
+[`AccessorySetupSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/accessorysetupsheet) view.
 
 ```swift
 struct MyHomeView: View {
@@ -204,7 +211,9 @@ device support.
 
 #### Omron Devices
 
-The ``OmronBloodPressureCuff`` and ``OmronWeightScale`` devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
+The [`OmronBloodPressureCuff`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/speziomron/omronbloodpressurecuff)
+and [`OmronWeightScale`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/speziomron/omronweightscale)
+devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
 and the Omron `SC-150` weight scale.
 Both devices automatically integrate with the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
 and [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices) modules of SpeziDevices.
