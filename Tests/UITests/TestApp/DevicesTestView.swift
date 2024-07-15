@@ -22,6 +22,7 @@ class MockDeviceLoading: Module, EnvironmentAccessible {
 
     init() {}
 
+    @MainActor
     func loadMockDevice(_ device: some PairableDevice) {
         spezi.loadModule(device, ownership: .external)
     }
