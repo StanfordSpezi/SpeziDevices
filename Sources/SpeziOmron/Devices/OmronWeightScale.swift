@@ -110,7 +110,7 @@ extension OmronWeightScale {
         let device = OmronWeightScale()
 
         device.$id.inject(UUID())
-        device.$name.inject("Mock Health Scale")
+        device.$name.inject("SC-150")
         device.$state.inject(state)
         device.$nearby.inject(nearby)
 
@@ -146,10 +146,15 @@ extension OmronWeightScale {
 
             device.$state.inject(.connecting)
 
-            try? await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(2))
 
             if case .connecting = device.state {
                 device.$state.inject(.connected)
+
+                if case .pairingMode = device.manufacturerData?.pairingMode {
+                    try? await Task.sleep(for: .seconds(1))
+                    device.time.$currentTime.inject(CurrentTime(time: .init(from: .now)))
+                }
             }
         }
 
@@ -160,6 +165,9 @@ extension OmronWeightScale {
         device.$state.enableSubscriptions()
         device.$advertisementData.enableSubscriptions()
         device.$nearby.enableSubscriptions()
+
+        device.time.$currentTime.enableSubscriptions()
+        device.time.$currentTime.enablePeripheralSimulation()
 
         device.weightScale.$weightMeasurement.enableSubscriptions()
         device.weightScale.$weightMeasurement.enablePeripheralSimulation()

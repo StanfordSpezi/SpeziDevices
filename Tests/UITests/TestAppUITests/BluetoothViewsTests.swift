@@ -17,7 +17,7 @@ class BluetoothViewsTests: XCTestCase {
     }
 
     @MainActor
-    func testBluetoothUnavailableViews() {
+    func testBluetoothUnavailableViews() async throws {
         let app = XCUIApplication()
         app.launch()
 
@@ -46,6 +46,7 @@ class BluetoothViewsTests: XCTestCase {
         app.buttons["Open Settings"].tap()
 
         let settingsApp = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        try await Task.sleep(for: .seconds(2))
         XCTAssertEqual(settingsApp.state, .runningForeground)
     }
 

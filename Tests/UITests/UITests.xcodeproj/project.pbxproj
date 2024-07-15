@@ -15,6 +15,7 @@
 		A922BB1C2C2CB0AB009DD0E1 /* SpeziDevicesUI in Frameworks */ = {isa = PBXBuildFile; productRef = A922BB1B2C2CB0AB009DD0E1 /* SpeziDevicesUI */; };
 		A922BB1E2C2CB276009DD0E1 /* DevicesTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A922BB1D2C2CB276009DD0E1 /* DevicesTestView.swift */; };
 		A922BB202C2CB280009DD0E1 /* MeasurementsTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A922BB1F2C2CB280009DD0E1 /* MeasurementsTestView.swift */; };
+		A92C76662C4561D900175B8E /* SpeziOmron in Frameworks */ = {isa = PBXBuildFile; productRef = A92C76652C4561D900175B8E /* SpeziOmron */; };
 		A959B7E62C2CBF0900ACA775 /* HKSampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7E52C2CBF0900ACA775 /* HKSampleView.swift */; };
 		A959B7E82C2CBF1400ACA775 /* HKQuantitySampleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7E72C2CBF1400ACA775 /* HKQuantitySampleView.swift */; };
 		A959B7EB2C2CC05A00ACA775 /* HKCorrelationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A959B7EA2C2CC05A00ACA775 /* HKCorrelationView.swift */; };
@@ -75,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A92C76662C4561D900175B8E /* SpeziOmron in Frameworks */,
 				A922BB1C2C2CB0AB009DD0E1 /* SpeziDevicesUI in Frameworks */,
 				2F68C3C8292EA52000B3E12C /* SpeziDevices in Frameworks */,
 			);
@@ -183,6 +185,7 @@
 			packageProductDependencies = (
 				2F68C3C7292EA52000B3E12C /* SpeziDevices */,
 				A922BB1B2C2CB0AB009DD0E1 /* SpeziDevicesUI */,
+				A92C76652C4561D900175B8E /* SpeziOmron */,
 			);
 			productName = Example;
 			productReference = 2F6D139228F5F384007C25D6 /* TestApp.app */;
@@ -733,6 +736,10 @@
 		A922BB1B2C2CB0AB009DD0E1 /* SpeziDevicesUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SpeziDevicesUI;
+		};
+		A92C76652C4561D900175B8E /* SpeziOmron */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SpeziOmron;
 		};
 		A959B7F22C2D646500ACA775 /* XCTestExtensions */ = {
 			isa = XCSwiftPackageProductDependency;

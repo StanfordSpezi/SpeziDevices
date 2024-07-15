@@ -64,7 +64,8 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// - Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesTab`` view.
+/// - Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured
+/// [`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview).
 ///
 /// ## Topics
 ///
@@ -213,6 +214,13 @@ public final class PairedDevices: @unchecked Sendable {
         _ advertisements: DeviceStateAccessor<AdvertisementData>,
         _ nearby: DeviceStateAccessor<Bool>
     ) {
+        if bluetooth?.configuredPairableDevices[Device.deviceTypeIdentifier] == nil {
+            logger.warning("""
+                           Device \(Device.self) was configured with the PairedDevices module but wasn't configured with the Bluetooth module. \
+                           The device won't be able to be retrieved on a fresh app start. Please make sure the device is configured with Bluetooth.
+                           """)
+        }
+
         state.onChange { [weak self, weak device] oldValue, newValue in
             if let device {
                 await self?.handleDeviceStateUpdated(device, old: oldValue, new: newValue)
@@ -382,9 +390,11 @@ extension PairedDevices {
         await device.connect()
 
         let id = device.id
-        async let _ = withTimeout(of: timeout) { @MainActor in
-            ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+        let timeoutHandler = { @Sendable @MainActor in
+            _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
         }
+
+        async let _ = withTimeout(of: timeout, perform: timeoutHandler)
 
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
@@ -670,7 +680,7 @@ extension Bluetooth {
 
 extension PairableDevice {
     fileprivate static func retrieveDevice(from bluetooth: Bluetooth, with id: UUID) async -> Self? {
-        await bluetooth.retrieveDevice(for: id)
+        await bluetooth.retrieveDevice(for: id, as: Self.self)
     }
 }
 

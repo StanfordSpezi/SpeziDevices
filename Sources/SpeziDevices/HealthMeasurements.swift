@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-@preconcurrency import HealthKit
+import HealthKit
 import OSLog
 import Spezi
 import SpeziBluetooth
@@ -43,7 +43,8 @@ import SwiftUI
 /// }
 /// ```
 ///
-/// To display new measurements to the user and save them to your external data store, you can use ``MeasurementsRecordedSheet``.
+/// To display new measurements to the user and save them to your external data store, you can use
+/// [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet).
 /// Below is a short code example.
 ///
 /// ```swift
@@ -145,12 +146,12 @@ public final class HealthMeasurements: @unchecked Sendable {
         let hkDevice = device.hkDevice
 
         // make sure to not capture the device
-        service.$weightMeasurement.onChange { [weak self, weak service] measurement in
+        service.$weightMeasurement.onChange { @MainActor [weak self, weak service] measurement in
             guard let self, let service else {
                 return
             }
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
-            await handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
         }
     }
 
@@ -165,12 +166,12 @@ public final class HealthMeasurements: @unchecked Sendable {
         let hkDevice = device.hkDevice
 
         // make sure to not capture the device
-        service.$bloodPressureMeasurement.onChange { [weak self, weak service] measurement in
+        service.$bloodPressureMeasurement.onChange { @MainActor [weak self, weak service] measurement in
             guard let self, let service else {
                 return
             }
             logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
-            await handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
         }
 
         logger.debug("Registered device \(device.label), \(device.id) with HealthMeasurements")

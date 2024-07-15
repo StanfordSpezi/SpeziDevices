@@ -16,9 +16,28 @@ SPDX-License-Identifier: MIT
 
 SpeziDevicesUI helps you to visualize Bluetooth device state and communicate interactions to the user.
 
+@Row {
+    @Column {
+        @Image(source: "PairedDevices", alt: "Screenshot showing paired devices in a grid layout. A sheet is presented in the foreground showing a nearby devices able to pair.") {
+            Display paired in a grid-layout devices using ``DevicesView``.
+        }
+    }
+    @Column {
+        @Image(source: "DeviceDetails", alt: "Displaying the device details of a paired device with information like Model number and battery percentage.") {
+            Display device details using ``DeviceDetailsView``.
+        }
+    }
+    @Column {
+        @Image(source: "MeasurementRecorded_BloodPressure", alt: "Showing a newly recorded blood pressure measurement.") {
+            Display recorded measurements using ``MeasurementsRecordedSheet``.
+        }
+    }
+}
+
 ### Displaying paired devices
 
-When managing paired devices using ``PairedDevices``, SpeziDevicesUI provides reusable View components to display paired devices.
+When managing paired devices using [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices),
+SpeziDevicesUI provides reusable View components to display paired devices.
 
 The ``DevicesView`` provides everything you need to pair and manage paired devices. 
 It shows already paired devices in a grid layout using the ``DevicesGrid``. Additionally, it places an add button in the toolbar
@@ -43,7 +62,9 @@ struct MyHomeView: View {
 
 ### Displaying Measurements
 
-When managing measurements using ``HealthMeasurements``, you can use the ``MeasurementsRecordedSheet`` to display pending measurements.
+When managing measurements using [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements),
+you can use the [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet)
+to display pending measurements.
 Below is a short code example on how you would configure this view.
 
 ```swift

@@ -19,7 +19,7 @@ class PairedDevicesTests: XCTestCase {
 
 
     @MainActor
-    func testTipsView() throws {
+    func testTipsView() async throws {
         let app = XCUIApplication()
         app.launchArguments = ["--testTips"]
         app.launch()
@@ -33,6 +33,7 @@ class PairedDevicesTests: XCTestCase {
         app.buttons["Open Settings"].tap()
 
         let settingsApp = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        try await Task.sleep(for: .seconds(2))
         XCTAssertEqual(settingsApp.state, .runningForeground)
     }
 
@@ -72,12 +73,12 @@ class PairedDevicesTests: XCTestCase {
         app.buttons["Discover Device"].tap()
 
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
-        XCTAssert(app.staticTexts["Do you want to pair \"Mock Device\" with the TestApp app?"].exists)
+        XCTAssert(app.staticTexts["Do you want to pair \"Mock Device\" with the Example app?"].exists)
         XCTAssert(app.buttons["Pair"].exists)
         app.buttons["Pair"].tap()
 
         XCTAssert(app.staticTexts["Accessory Paired"].waitForExistence(timeout: 5.0))
-        XCTAssert(app.staticTexts["\"Mock Device\" was successfully paired with the TestApp app."].exists)
+        XCTAssert(app.staticTexts["\"Mock Device\" was successfully paired with the Example app."].exists)
         XCTAssert(app.buttons["Done"].exists)
         app.buttons["Done"].tap()
 

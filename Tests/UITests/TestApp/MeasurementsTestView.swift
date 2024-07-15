@@ -17,17 +17,22 @@ struct MeasurementsTestView: View {
     @Environment(HealthMeasurements.self) private var healthMeasurements
 
     @State private var samples: [HKSample] = []
+    @State private var hideUnavailableView = false
 
     var body: some View {
         @Bindable var healthMeasurements = healthMeasurements
         NavigationStack { // swiftlint:disable:this closure_body_length
             Group {
                 if samples.isEmpty {
-                    ContentUnavailableView(
-                        "No Samples",
-                        systemImage: "heart.text.square",
-                        description: Text("Please add new measurements.")
-                    )
+                    if !hideUnavailableView {
+                        ContentUnavailableView(
+                            "No Samples",
+                            systemImage: "heart.text.square",
+                            description: Text("Please add new measurements.")
+                        )
+                    } else {
+                        Text(verbatim: "")
+                    }
                 } else {
                     List {
                         ForEach(samples, id: \.uuid) { sample in
@@ -54,6 +59,9 @@ struct MeasurementsTestView: View {
                         }
                         Button("Simulate Blood Pressure", systemImage: "heart.fill") {
                             healthMeasurements.loadMockBloodPressureMeasurement()
+                        }
+                        Button("\(hideUnavailableView ? "Show" : "Hide") Unavailable View", systemImage: "macwindow.on.rectangle") {
+                            hideUnavailableView.toggle()
                         }
                     }
                 }

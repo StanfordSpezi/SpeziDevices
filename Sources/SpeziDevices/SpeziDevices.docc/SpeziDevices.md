@@ -69,16 +69,18 @@ class MyDevice: PairableDevice {
 }
 ```
 
-> Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured ``DevicesView`` view.
+> Tip: To display and manage paired devices and support adding new paired devices, you can use the full-featured
+[`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview).
 
 ### Health Measurements
 
-Use the ``HealthMeasurements`` module to collect health measurements from nearby Bluetooth devices like connected weight scales or
+Use the ``HealthMeasurements``
+module to collect health measurements from nearby Bluetooth devices like connected weight scales or
 blood pressure cuffs.
 
 To support `HealthMeasurements`, you need to adopt the ``HealthDevice`` protocol for your device.
 One your device is loaded, register its measurement service with the `HealthMeasurements` module
-by calling a suitable variant of `configureReceivingMeasurements(for:on:)`.
+by calling a suitable variant of [`configureReceivingMeasurements(for:on:)`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements#register-devices).
 
 ```swift
 import SpeziDevices
@@ -97,7 +99,8 @@ class MyDevice: HealthDevice {
 }
 ```
 
-To display new measurements to the user and save them to your external data store, you can use ``MeasurementsRecordedSheet``.
+To display new measurements to the user and save them to your external data store, you can use
+ [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet).
 Below is a short code example.
 
 ```swift

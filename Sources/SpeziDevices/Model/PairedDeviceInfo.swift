@@ -14,13 +14,13 @@ import SwiftData
 @Model
 public final class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
-    @Attribute(.unique) public let id: UUID
+    @Attribute(.unique) public var id: UUID
     /// The device type.
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
-    public let deviceType: String
+    public var deviceType: String
     /// A model string of the device.
-    public let model: String?
+    public var model: String?
 
     /// The user edit-able name of the device.
     public internal(set) var name: String
@@ -30,7 +30,7 @@ public final class PairedDeviceInfo {
     public internal(set) var lastBatteryPercentage: UInt8?
 
     /// The date at which the device was paired.
-    public let pairedAt: Date
+    public var pairedAt: Date
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false

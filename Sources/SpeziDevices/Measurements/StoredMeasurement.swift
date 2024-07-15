@@ -155,10 +155,10 @@ private struct SwiftDataBluetoothHealthMeasurementWorkaroundContainer {
 final class StoredMeasurement {
     @Attribute(.unique) var associatedMeasurement: UUID
 
-    private let measurement: SwiftDataBluetoothHealthMeasurementWorkaroundContainer
-    fileprivate let codableDevice: CodableHKDevice
-    
-    let storageDate: Date
+    private var measurement: SwiftDataBluetoothHealthMeasurementWorkaroundContainer
+    fileprivate var codableDevice: CodableHKDevice
+
+    var storageDate: Date
 
     var device: HKDevice {
         codableDevice.hkDevice

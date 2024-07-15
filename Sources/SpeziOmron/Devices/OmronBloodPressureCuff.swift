@@ -112,7 +112,7 @@ extension OmronBloodPressureCuff {
         let device = OmronBloodPressureCuff()
 
         device.$id.inject(UUID())
-        device.$name.inject("Mock Blood Pressure Cuff")
+        device.$name.inject("BP5250")
         device.$state.inject(state)
         device.$nearby.inject(nearby)
 
@@ -154,10 +154,15 @@ extension OmronBloodPressureCuff {
 
             device.$state.inject(.connecting)
 
-            try? await Task.sleep(for: .seconds(1))
+            try? await Task.sleep(for: .seconds(2))
 
             if case .connecting = device.state {
                 device.$state.inject(.connected)
+
+                if case .pairingMode = device.manufacturerData?.pairingMode {
+                    try? await Task.sleep(for: .seconds(1))
+                    device.battery.$batteryLevel.inject(100)
+                }
             }
         }
 
@@ -171,6 +176,9 @@ extension OmronBloodPressureCuff {
 
         device.battery.$batteryLevel.enableSubscriptions()
         device.battery.$batteryLevel.enablePeripheralSimulation()
+
+        device.time.$currentTime.enableSubscriptions()
+        device.time.$currentTime.enablePeripheralSimulation()
 
         device.bloodPressure.$bloodPressureMeasurement.enableSubscriptions()
         device.bloodPressure.$bloodPressureMeasurement.enablePeripheralSimulation()
