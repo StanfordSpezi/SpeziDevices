@@ -16,6 +16,24 @@ SPDX-License-Identifier: MIT
 
 SpeziDevicesUI helps you to visualize Bluetooth device state and communicate interactions to the user.
 
+@Row {
+    @Column {
+        @Image(source: "PairedDevices", alt: "Screenshot showing paired devices in a grid layout. A sheet is presented in the foreground showing a nearby devices able to pair.") {
+            Display paired in a grid-layout devices using ``DevicesView``.
+        }
+    }
+    @Column {
+        @Image(source: "DeviceDetails", alt: "Displaying the device details of a paired device with information like Model number and battery percentage.") {
+            Display device details using ``DeviceDetailsView``.
+        }
+    }
+    @Column {
+        @Image(source: "MeasurementRecorded_BloodPressure", alt: "Showing a newly recorded blood pressure measurement.") {
+            Display recorded measurements using ``MeasurementsRecordedSheet``.
+        }
+    }
+}
+
 ### Displaying paired devices
 
 When managing paired devices using [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices),

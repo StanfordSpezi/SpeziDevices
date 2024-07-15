@@ -73,12 +73,12 @@ class PairedDevicesTests: XCTestCase {
         app.buttons["Discover Device"].tap()
 
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
-        XCTAssert(app.staticTexts["Do you want to pair \"Mock Device\" with the TestApp app?"].exists)
+        XCTAssert(app.staticTexts["Do you want to pair \"Mock Device\" with the Example app?"].exists)
         XCTAssert(app.buttons["Pair"].exists)
         app.buttons["Pair"].tap()
 
         XCTAssert(app.staticTexts["Accessory Paired"].waitForExistence(timeout: 5.0))
-        XCTAssert(app.staticTexts["\"Mock Device\" was successfully paired with the TestApp app."].exists)
+        XCTAssert(app.staticTexts["\"Mock Device\" was successfully paired with the Example app."].exists)
         XCTAssert(app.buttons["Done"].exists)
         app.buttons["Done"].tap()
 

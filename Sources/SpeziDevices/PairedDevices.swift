@@ -214,6 +214,13 @@ public final class PairedDevices: @unchecked Sendable {
         _ advertisements: DeviceStateAccessor<AdvertisementData>,
         _ nearby: DeviceStateAccessor<Bool>
     ) {
+        if bluetooth?.configuredPairableDevices[Device.deviceTypeIdentifier] == nil {
+            logger.warning("""
+                           Device \(Device.self) was configured with the PairedDevices module but wasn't configured with the Bluetooth module. \
+                           The device won't be able to be retrieved on a fresh app start. Please make sure the device is configured with Bluetooth.
+                           """)
+        }
+
         state.onChange { [weak self, weak device] oldValue, newValue in
             if let device {
                 await self?.handleDeviceStateUpdated(device, old: oldValue, new: newValue)

@@ -24,6 +24,10 @@ SpeziDevices provides three different targets: [`SpeziDevices`](https://swiftpac
 [`SpeziDevicesUI`](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices/documentation/spezidevicesui)
 and [`SpeziOmron`](https://swiftpackageindex.com/StanfordSpezi/SpeziDevices/documentation/speziomron).
 
+|![Screenshot showing paired devices in a grid layout. A sheet is presented in the foreground showing a nearby devices able to pair.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/PairedDevices.png#gh-light-mode-only) ![Screenshot showing paired devices in a grid layout. A sheet is presented in the foreground showing a nearby devices able to pair.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/PairedDevices~dark.png#gh-dark-mode-only)|![Displaying the device details of a paired device with information like Model number and battery percentage.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/DeviceDetails.png#gh-light-mode-only) ![Displaying the device details of a paired device with information like Model number and battery percentage.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/DeviceDetails~dark.png#gh-dark-mode-only)| ![Showing a newly recorded blood pressure measurement.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/MeasurementRecorded_BloodPressure.png#gh-light-mode-only) ![Showing a newly recorded blood pressure measurement.](Sources/SpeziDevicesUI/SpeziDevicesUI.docc/Resources/MeasurementRecorded_BloodPressure~dark.png#gh-dark-mode-only) |
+|:--:|:--:|:--:|
+|Display paired in a grid-layout devices using [`DevicesView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicesview).|Display device details using [`DeviceDetailsView`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/devicedetailsview).|Display recorded measurements using [`MeasurementsRecordedSheet`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevicesui/measurementsrecordedsheet).|
+
 ### SpeziDevices
 
 SpeziDevices abstracts common interactions with Bluetooth devices that are implemented using

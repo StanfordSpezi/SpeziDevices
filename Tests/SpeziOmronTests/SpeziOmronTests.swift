@@ -183,7 +183,8 @@ final class SpeziOmronTests: XCTestCase {
 }
 
 
-#if compiler(>=6)
-#warning("Use @retroactive annotation instead if spelling out module names once we drop support for <6 toolchains.")
-#endif
+#if compiler(<6)
 extension SpeziDevices.MockDevice: SpeziOmron.OmronHealthDevice {}
+#else
+extension MockDevice: @retroactive OmronHealthDevice {}
+#endif
