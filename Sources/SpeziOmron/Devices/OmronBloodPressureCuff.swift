@@ -60,7 +60,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
-            measurements.configureReceivingMeasurements(for: self, on: bloodPressure)
+            measurements.configureReceivingMeasurements(for: self, on: \.bloodPressure)
         }
     }
 
@@ -142,9 +142,7 @@ extension OmronBloodPressureCuff {
         device.bloodPressure.$features.inject(features)
         device.bloodPressure.$bloodPressureMeasurement.inject(measurement)
 
-        let advertisementData = AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ])
+        let advertisementData = AdvertisementData(manufacturerData: manufacturerData.encode())
         device.$advertisementData.inject(advertisementData)
 
         device.$connect.inject { @MainActor [weak device] in

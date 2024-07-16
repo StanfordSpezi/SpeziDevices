@@ -57,7 +57,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
-            measurements.configureReceivingMeasurements(for: self, on: weightScale)
+            measurements.configureReceivingMeasurements(for: self, on: \.weightScale)
         }
     }
 
@@ -134,9 +134,7 @@ extension OmronWeightScale {
         device.weightScale.$features.inject(features)
         device.weightScale.$weightMeasurement.inject(measurement)
 
-        let advertisementData = AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ])
+        let advertisementData = AdvertisementData(manufacturerData: manufacturerData.encode())
         device.$advertisementData.inject(advertisementData)
 
         device.$connect.inject { @MainActor [weak device] in

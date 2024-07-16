@@ -142,16 +142,14 @@ public final class HealthMeasurements: @unchecked Sendable {
     /// - Parameters:
     ///   - device: The device on which the service is present.
     ///   - service: The Weight Scale service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: WeightScaleService) {
-        let hkDevice = device.hkDevice
-
-        // make sure to not capture the device
-        service.$weightMeasurement.onChange { @MainActor [weak self, weak service] measurement in
-            guard let self, let service else {
+    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on keyPath: KeyPath<Device, WeightScaleService> & Sendable) {
+        device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
+            guard let self, let device else {
                 return
             }
+            let service = device[keyPath: keyPath]
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)
         }
     }
 
@@ -162,16 +160,15 @@ public final class HealthMeasurements: @unchecked Sendable {
     /// - Parameters:
     ///   - device: The device on which the service is present.
     ///   - service: The Blood Pressure service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: BloodPressureService) {
-        let hkDevice = device.hkDevice
-
+    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on keyPath: KeyPath<Device, BloodPressureService> & Sendable) {
         // make sure to not capture the device
-        service.$bloodPressureMeasurement.onChange { @MainActor [weak self, weak service] measurement in
-            guard let self, let service else {
+        device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
+            guard let self, let device else {
                 return
             }
+            let service = device[keyPath: keyPath]
             logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: device.hkDevice)
         }
 
         logger.debug("Registered device \(device.label), \(device.id) with HealthMeasurements")
