@@ -77,16 +77,13 @@ final class SpeziOmronTests: XCTestCase {
         let manufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
 
         let device = MockDevice.createMockDevice()
-        device.$advertisementData.inject(AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ]))
+        device.$advertisementData.inject(AdvertisementData(manufacturerData: manufacturerData.encode()))
 
         XCTAssertEqual(device.manufacturerData?.pairingMode, .pairingMode)
 
         let manufacturerData0 = OmronManufacturerData(pairingMode: .transferMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
-        device.$advertisementData.inject(AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData0.encode()
-        ]))
+             device.$advertisementData.inject(AdvertisementData(manufacturerData: manufacturerData0.encode())
+        )
 
         XCTAssertEqual(device.manufacturerData?.pairingMode, .transferMode)
 
@@ -179,6 +176,14 @@ final class SpeziOmronTests: XCTestCase {
         try await XCTAssertThrowsErrorAsync(await service.reportSequenceNumberOfLatestRecords()) { error in
             try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseFormatError).reason, .unexpectedOperand)
         }
+    }
+
+
+    func testOmronLocalNames() throws {
+        let sc150 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_00010112F974C431DBE2"))
+        XCTAssertEqual(sc150.prefix, "BLEsmart_")
+        XCTAssertEqual(sc150.model.rawValue, "00010112")
+        XCTAssertEqual(sc150.macAddress.rawValue, "F974C431DBE2")
     }
 }
 

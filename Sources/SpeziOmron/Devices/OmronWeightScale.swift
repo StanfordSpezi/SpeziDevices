@@ -17,6 +17,7 @@ import SpeziDevices
 /// Implementation of Omron SC150 Weight Scale.
 public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice, @unchecked Sendable {
     public static var icon: ImageReference? {
+        // TODO: better asset catalog
         .asset("Omron-SC-150", bundle: .module)
     }
 

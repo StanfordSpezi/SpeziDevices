@@ -83,7 +83,8 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("BareSlashRegexLiterals")
             ],
             plugins: [] + swiftLintPlugin()
         ),
