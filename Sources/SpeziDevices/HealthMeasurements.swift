@@ -135,6 +135,14 @@ public final class HealthMeasurements: @unchecked Sendable {
         }
     }
 
+#if compiler(<6)
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService>
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService>
+#else
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService> & Sendable
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService> & Sendable
+#endif
+
     /// Configure receiving and processing weight measurements from the provided service.
     ///
     /// Configures the device's weight measurements to be processed by the Health Measurements module.
@@ -144,7 +152,7 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///   - keyPath: A KeyPath to the Weight Scale service to register.
     public func configureReceivingMeasurements<Device: HealthDevice>(
         for device: Device,
-        on keyPath: KeyPath<Device, WeightScaleService> & Sendable
+        on keyPath: WeightScaleKeyPath<Device>
     ) {
         device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
             guard let self, let device else {
@@ -165,7 +173,7 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///   - keyPath: A KeyPath to the Blood Pressure service to register.
     public func configureReceivingMeasurements<Device: HealthDevice>(
         for device: Device,
-        on keyPath: KeyPath<Device, BloodPressureService> & Sendable
+        on keyPath: BloodPressureKeyPath<Device>
     ) {
         // make sure to not capture the device
         device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
