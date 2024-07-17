@@ -13,11 +13,11 @@ public struct DeviceAsset {
         case name(_ substring: String, isSubstring: Bool)
     }
 
-    let descriptor: DeviceDescriptor
-    let asset: ImageReference
+    private let descriptor: DeviceDescriptor
+    fileprivate let asset: ImageReference
 
 
-    func matches(pairedDevice: PairedDeviceInfo) -> Bool {
+    func matches(for pairedDevice: PairedDeviceInfo) -> Bool {
         switch descriptor {
         case let .name(substring, isSubstring):
             return isSubstring
@@ -26,7 +26,7 @@ public struct DeviceAsset {
         }
     }
 
-    func matches(device: some GenericDevice) -> Bool {
+    func matches(for device: some GenericDevice) -> Bool {
         switch descriptor {
         case let .name(substring, isSubstring):
             return isSubstring
@@ -40,5 +40,20 @@ public struct DeviceAsset {
 extension DeviceAsset {
     public static func name(_ name: String, _ asset: ImageReference) -> DeviceAsset {
         DeviceAsset(descriptor: .name(name, isSubstring: false), asset: asset)
+    }
+}
+
+
+extension Array where Element == DeviceAsset {
+    public func firstAsset(for pairedDevice: PairedDeviceInfo) -> ImageReference? {
+        first { asset in
+            asset.matches(for: pairedDevice)
+        }?.asset
+    }
+
+    public func firstAsset(for device: some GenericDevice) -> ImageReference? {
+        first { asset in
+            asset.matches(for: device)
+        }?.asset
     }
 }

@@ -37,7 +37,7 @@ struct AccessoryImageView: View {
 
 extension GenericDevice {
     fileprivate var anyIcon: ImageReference? {
-        nil // TODO: restore functionality! Self.icon
+        Self.assets.firstAsset(for: self)
     }
 }
 

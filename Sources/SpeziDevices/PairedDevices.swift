@@ -223,7 +223,10 @@ public final class PairedDevices: @unchecked Sendable {
         }
 
         // update name to the latest value
-        _pairedDevices[device.id]?.peripheralName = device.name
+        if let info = _pairedDevices[device.id] {
+            info.peripheralName = device.name
+            info.icon = Device.assets.firstAsset(for: info) // the asset might have changed
+        }
 
         state.onChange { [weak self, weak device] oldValue, newValue in
             if let device {
@@ -456,7 +459,7 @@ extension PairedDevices {
             deviceType: Device.deviceTypeIdentifier,
             name: device.label,
             model: device.deviceInformation.modelNumber,
-            icon: nil, // TODO: how to pass the icon?
+            icon: Device.assets.firstAsset(for: device),
             batteryPercentage: batteryLevel
         )
 
@@ -563,7 +566,7 @@ extension PairedDevices {
                 continue
             }
 
-            // TODO: deviceInfo.icon = deviceType.icon
+            deviceInfo.icon = deviceType.assets.firstAsset(for: deviceInfo)
         }
     }
 
