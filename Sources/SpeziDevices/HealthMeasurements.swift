@@ -84,6 +84,14 @@ import SwiftUI
 /// - ``discardMeasurement(_:)``
 @Observable
 public final class HealthMeasurements: @unchecked Sendable {
+#if compiler(<6)
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService>
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService>
+#else
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService> & Sendable
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService> & Sendable
+#endif
+
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
     /// Determine if UI components displaying pending measurements should be displayed.
@@ -134,14 +142,6 @@ public final class HealthMeasurements: @unchecked Sendable {
             self.fetchMeasurements()
         }
     }
-
-#if compiler(<6)
-    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService>
-    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService>
-#else
-    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService> & Sendable
-    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService> & Sendable
-#endif
 
     /// Configure receiving and processing weight measurements from the provided service.
     ///
