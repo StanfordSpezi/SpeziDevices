@@ -37,8 +37,8 @@ class ExampleAppDelegate: SpeziAppDelegate {
     override var configuration: Configuration {
         Configuration {
             Bluetooth {
-                Discover(OmronBloodPressureCuff.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: BloodPressureService.self))
-                Discover(OmronWeightScale.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: WeightScaleService.self))
+                Discover(OmronBloodPressureCuff.self, by: .advertisedService(BloodPressureService.self))
+                Discover(OmronWeightScale.self, by: .advertisedService(WeightScaleService.self))
             }
 
             // If required, configure the PairedDevices and HealthMeasurements modules
