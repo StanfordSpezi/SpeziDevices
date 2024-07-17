@@ -108,7 +108,6 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
-            icon: .asset("Omron-BP5250"), // TODO: update all previews with no assets
             batteryPercentage: 100
         ))
     }
@@ -124,7 +123,6 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Weight Scale",
             model: "SC-150",
-            icon: .asset("Omron-SC-150"),
             lastSeen: .now.addingTimeInterval(-60 * 60 * 24),
             batteryPercentage: 85
         ))

@@ -21,7 +21,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         [
             .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
             .name("EVOLVE", .asset("Omron-EVOLVE", bundle: .module)),
-            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
+            .name("BP7000", .asset("Omron-BP7000", bundle: .module)) // TODO: update docs to specify all bps!
         ]
     }
     public static var icon: ImageReference? {

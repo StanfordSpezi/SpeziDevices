@@ -20,7 +20,7 @@ public final class PairedDeviceInfo {
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
     public var deviceType: String
     /// The last known peripheral name.
-    public var peripheralName: String? // TODO: populate!
+    public var peripheralName: String?
     /// A model string of the device.
     public var model: String?
 
@@ -36,9 +36,9 @@ public final class PairedDeviceInfo {
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
-    /// Visual representation of the device.
     @Transient private var _icon: ImageReference?
 
+    /// Visual representation of the device.
     public var icon: ImageReference? {
         get {
             _$observationRegistrar.access(self, keyPath: \.icon)
