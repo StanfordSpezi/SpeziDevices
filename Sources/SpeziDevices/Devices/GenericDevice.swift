@@ -16,7 +16,7 @@ import SpeziBluetoothServices
 /// A generic Bluetooth device that provides access to basic device information.
 public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable, Sendable {
     /// An icon that is used to visually present the device to the user.
-    static var icon: ImageReference? { get }
+    static var assets: [DeviceAsset] { get } // TODO: update docs comment!
 
     /// The device identifier.
     ///
@@ -60,8 +60,8 @@ extension GenericDevice {
     /// Default icon implementation.
     ///
     /// Returns `nil` by default. Results in a generic icon to be presented.
-    public static var icon: ImageReference? {
-        nil
+    public static var assets: [DeviceAsset] {
+        [] // TODO: update docs
     }
 
     /// Default label implementation.

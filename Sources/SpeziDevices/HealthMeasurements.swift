@@ -141,8 +141,11 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - device: The device on which the service is present.
-    ///   - service: The Weight Scale service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on keyPath: KeyPath<Device, WeightScaleService> & Sendable) {
+    ///   - keyPath: A KeyPath to the Weight Scale service to register.
+    public func configureReceivingMeasurements<Device: HealthDevice>(
+        for device: Device,
+        on keyPath: KeyPath<Device, WeightScaleService> & Sendable
+    ) {
         device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
             guard let self, let device else {
                 return
@@ -159,8 +162,11 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - device: The device on which the service is present.
-    ///   - service: The Blood Pressure service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on keyPath: KeyPath<Device, BloodPressureService> & Sendable) {
+    ///   - keyPath: A KeyPath to the Blood Pressure service to register.
+    public func configureReceivingMeasurements<Device: HealthDevice>(
+        for device: Device,
+        on keyPath: KeyPath<Device, BloodPressureService> & Sendable
+    ) {
         // make sure to not capture the device
         device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
             guard let self, let device else {

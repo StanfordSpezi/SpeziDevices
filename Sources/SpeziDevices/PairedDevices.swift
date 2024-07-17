@@ -208,6 +208,7 @@ public final class PairedDevices: @unchecked Sendable {
     ///   - state: The `@DeviceState` accessor for the `PeripheralState`.
     ///   - advertisements: The `@DeviceState` accessor for the current `AdvertisementData`.
     ///   - nearby: The `@DeviceState` accessor for the `nearby` flag.
+    @MainActor
     public func configure<Device: PairableDevice>(
         device: Device,
         accessing state: DeviceStateAccessor<PeripheralState>,
@@ -220,6 +221,9 @@ public final class PairedDevices: @unchecked Sendable {
                            The device won't be able to be retrieved on a fresh app start. Please make sure the device is configured with Bluetooth.
                            """)
         }
+
+        // update name to the latest value
+        _pairedDevices[device.id]?.peripheralName = device.name
 
         state.onChange { [weak self, weak device] oldValue, newValue in
             if let device {
@@ -452,7 +456,7 @@ extension PairedDevices {
             deviceType: Device.deviceTypeIdentifier,
             name: device.label,
             model: device.deviceInformation.modelNumber,
-            icon: Device.icon,
+            icon: nil, // TODO: how to pass the icon?
             batteryPercentage: batteryLevel
         )
 
@@ -559,7 +563,7 @@ extension PairedDevices {
                 continue
             }
 
-            deviceInfo.icon = deviceType.icon
+            // TODO: deviceInfo.icon = deviceType.icon
         }
     }
 

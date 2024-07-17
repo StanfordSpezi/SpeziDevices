@@ -83,6 +83,8 @@ public struct DeviceDetailsView: View {
             image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
+                .foregroundStyle(Color.accentColor) // set accent color if one uses sf symbols
+                .symbolRenderingMode(.hierarchical) // set symbol rendering mode if one uses sf symbols
                 .frame(maxWidth: 180, maxHeight: 120)
                 .accessibilityHidden(true)
         }
@@ -106,7 +108,7 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
-            icon: .asset("Omron-BP5250"),
+            icon: .asset("Omron-BP5250"), // TODO: update all previews with no assets
             batteryPercentage: 100
         ))
     }

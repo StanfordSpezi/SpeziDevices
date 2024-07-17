@@ -19,6 +19,8 @@ public final class PairedDeviceInfo {
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
     public var deviceType: String
+    /// The last known peripheral name.
+    public var peripheralName: String? // TODO: populate!
     /// A model string of the device.
     public var model: String?
 
@@ -35,7 +37,19 @@ public final class PairedDeviceInfo {
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
     /// Visual representation of the device.
-    @Transient public var icon: ImageReference?
+    @Transient private var _icon: ImageReference?
+
+    public var icon: ImageReference? {
+        get {
+            _$observationRegistrar.access(self, keyPath: \.icon)
+            return _icon
+        }
+        set {
+            _$observationRegistrar.withMutation(of: self, keyPath: \.icon) {
+                _icon = newValue
+            }
+        }
+    }
 
     /// Create new paired device information.
     /// - Parameters:
@@ -58,8 +72,9 @@ public final class PairedDeviceInfo {
         self.id = id
         self.deviceType = deviceType
         self.name = name
+        self.peripheralName = name
         self.model = model
-        self.icon = icon
+        self._icon = icon
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
 

@@ -17,6 +17,13 @@ import SpeziNumerics
 
 /// Implementation of Omron BP5250 Blood Pressure Cuff.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
+    public static var assets: [DeviceAsset] {
+        [
+            .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
+            .name("EVOLVE", .asset("Omron-EVOLVE", bundle: .module)),
+            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
+        ]
+    }
     public static var icon: ImageReference? {
         .asset("Omron-BP5250", bundle: .module)
     }
