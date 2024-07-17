@@ -15,17 +15,22 @@ import SpeziDevices
 import SpeziNumerics
 
 
-/// Implementation of Omron BP5250 Blood Pressure Cuff.
+/// Implementation of a Omron Blood Pressure Cuff.
+///
+/// This device class currently supports the following models:
+/// * `BP5250`
+/// * `BP7000`
+/// * `EVOLV`
+///
+/// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
+///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
     public static var assets: [DeviceAsset] {
         [
             .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
-            .name("EVOLVE", .asset("Omron-EVOLVE", bundle: .module)),
-            .name("BP7000", .asset("Omron-BP7000", bundle: .module)) // TODO: update docs to specify all bps!
+            .name("EVOLV", .asset("Omron-EVOLV", bundle: .module)),
+            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
         ]
-    }
-    public static var icon: ImageReference? {
-        .asset("Omron-BP5250", bundle: .module)
     }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")

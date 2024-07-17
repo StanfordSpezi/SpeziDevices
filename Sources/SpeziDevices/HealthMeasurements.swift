@@ -75,8 +75,8 @@ import SwiftUI
 /// - ``init()``
 ///
 /// ### Register Devices
-/// - ``configureReceivingMeasurements(for:on:)-8cbd0``
-/// - ``configureReceivingMeasurements(for:on:)-87sgc``
+/// - ``configureReceivingMeasurements(for:on:)-5e7b7``
+/// - ``configureReceivingMeasurements(for:on:)-2iu4v``
 ///
 /// ### Processing Measurements
 /// - ``shouldPresentMeasurements``

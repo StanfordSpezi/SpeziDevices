@@ -25,6 +25,10 @@ extension OmronModel {
     public static let sc150 = OmronModel(rawValue: "SC-150")
     /// The Omron BP5250 blood pressure monitor.
     public static let bp5250 = OmronModel(rawValue: "BP5250")
+    /// The Omron EVOLV blood pressure monitor.
+    public static let evolv = OmronModel(rawValue: "EVOLV")
+    /// The Omron BP7000 blood pressure monitor.
+    public static let bp7000 = OmronModel(rawValue: "BP7000")
 }
 
 
