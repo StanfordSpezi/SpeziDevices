@@ -179,10 +179,25 @@ final class SpeziOmronTests: XCTestCase {
 
 
     func testOmronLocalNames() throws {
-        let sc150 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_00010112F974C431DBE2"))
-        XCTAssertEqual(sc150.prefix, "BLEsmart_")
+        let sc150 = try XCTUnwrap(OmronLocalName(rawValue: "BLESmart_00010112F974C431DBE2"))
+        XCTAssertEqual(sc150.pairingMode, .transferMode)
         XCTAssertEqual(sc150.model.rawValue, "00010112")
         XCTAssertEqual(sc150.macAddress.rawValue, "F974C431DBE2")
+
+        let bp7000 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_0000011F005FBFBE315B"))
+        XCTAssertEqual(bp7000.pairingMode, .pairingMode)
+        XCTAssertEqual(bp7000.model.rawValue, "0000011F")
+        XCTAssertEqual(bp7000.macAddress.rawValue, "005FBFBE315B")
+
+        let evolv = try XCTUnwrap(OmronLocalName(rawValue: "BLESmart_0000021F005FBF88C25B"))
+        XCTAssertEqual(evolv.pairingMode, .transferMode)
+        XCTAssertEqual(evolv.model.rawValue, "0000021F")
+        XCTAssertEqual(evolv.macAddress.rawValue, "005FBF88C25B")
+
+        let bp5250 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_00000160005FBF0CD044"))
+        XCTAssertEqual(bp5250.pairingMode, .pairingMode)
+        XCTAssertEqual(bp5250.model.rawValue, "00000160")
+        XCTAssertEqual(bp5250.macAddress.rawValue, "005FBF0CD044")
     }
 }
 

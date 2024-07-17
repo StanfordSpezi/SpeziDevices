@@ -15,11 +15,31 @@ import RegexBuilder
 /// It includes additional information about the device.
 public struct OmronLocalName {
     /// The pairing mode derived from the local name.
-    public enum PairingMode: String {
+    public enum PairingMode {
         /// The device is in transfer mode.
-        case transferMode = "BLESmart_"
+        case transferMode
         /// The device is in pairing mode.
-        case pairingMode = "BLEsmart_" // yeah, that's funny
+        case pairingMode
+
+        var prefix: String {
+            switch self {
+            case .transferMode:
+                "BLESmart_"
+            case .pairingMode:
+                "BLEsmart_"
+            }
+        }
+
+        init?(fromPrefix prefix: String) {
+            switch prefix {
+            case "BLESmart_":
+                self = .transferMode
+            case "BLEsmart_": // yeah, that's funny
+                self = .pairingMode
+            default:
+                return nil
+            }
+        }
     }
 
     /// The model identifier derived from the local name.
@@ -55,7 +75,7 @@ public struct OmronLocalName {
 
     /// The local name raw value.
     public var rawValue: String {
-        pairingMode.rawValue + model.rawValue + macAddress.rawValue
+        pairingMode.prefix + model.rawValue + macAddress.rawValue
     }
 
 
@@ -70,7 +90,7 @@ public struct OmronLocalName {
                     "BLEsmart_"
                 }
             } transform: { output in
-                PairingMode(rawValue: String(output))
+                PairingMode(fromPrefix: String(output))
             }
             TryCapture {
                 Repeat(.hexDigit, count: 2 * 4)
