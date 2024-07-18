@@ -3,4 +3,6 @@ This source file is part of the Stanford SpeziDevices open source project
 
 SPDX-FileCopyrightText: 2024 Omron Healthcare
 
-Source: https://omronhealthcare.com/wp-content/uploads/19-276APRDBP7000Right800x800-1.png
+SPDX-License-Identifier: Custom-License
+License-Text: Refer to https://www.omron-healthcare.com/terms-of-use.
+Attribution-Text: From https://omronhealthcare.com/wp-content/uploads/19-276APRDBP7000Right800x800-1.png
