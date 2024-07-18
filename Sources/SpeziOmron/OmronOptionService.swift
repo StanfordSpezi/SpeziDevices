@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import CoreBluetooth.CBUUID
 import SpeziBluetooth
 import SpeziBluetoothServices
 
@@ -14,13 +13,11 @@ import SpeziBluetoothServices
 /// The Omron Option Service.
 ///
 /// Please refer to the respective Developer Guide for more information.
-public final class OmronOptionService: BluetoothService, @unchecked Sendable {
-    public static var id: CBUUID {
-        CBUUID(string: "5DF5E817-A945-4F81-89C0-3D4E9759C07C")
-    }
+public struct OmronOptionService: BluetoothService, Sendable {
+    public static let id: BTUUID = "5DF5E817-A945-4F81-89C0-3D4E9759C07C"
 
 
-    @Characteristic(id: "2A52", notify: true) var recordAccessControlPoint: RecordAccessControlPoint<OmronRecordAccessOperand>?
+    @Characteristic(id: "2A52", notify: true, autoRead: false) var recordAccessControlPoint: RecordAccessControlPoint<OmronRecordAccessOperand>?
 
     public init() {}
 

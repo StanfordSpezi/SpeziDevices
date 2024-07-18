@@ -45,7 +45,7 @@ struct DevicesTestView: View {
                     ToolbarItemGroup(placement: .secondaryAction) {
                         Button("Discover Device", systemImage: "plus.rectangle.fill.on.rectangle.fill") {
                             device.isInPairingMode = true
-                            device.$advertisementData.inject(AdvertisementData([:])) // trigger onChange advertisement
+                            device.$advertisementData.inject(AdvertisementData()) // trigger onChange advertisement
                         }
                         AsyncButton {
                             await device.connect()
@@ -64,14 +64,14 @@ struct DevicesTestView: View {
 
                         Menu("Omron Devices", systemImage: "heart.text.square") {
                             Button("Discover Weight Scale", systemImage: "scalemass.fill") {
-                                weightScale.$advertisementData.inject(AdvertisementData([
-                                    CBAdvertisementDataManufacturerDataKey: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                ]))
+                                weightScale.$advertisementData.inject(AdvertisementData(
+                                    manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                                ))
                             }
                             Button("Discovery Blood Pressure Cuff", systemImage: "heart.fill") {
-                                bloodPressureCuff.$advertisementData.inject(AdvertisementData([
-                                    CBAdvertisementDataManufacturerDataKey: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                ]))
+                                bloodPressureCuff.$advertisementData.inject(AdvertisementData(
+                                    manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                                ))
                             }
                         }
                     }

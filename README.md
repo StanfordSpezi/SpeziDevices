@@ -217,8 +217,8 @@ device support.
 
 The [`OmronBloodPressureCuff`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/speziomron/omronbloodpressurecuff)
 and [`OmronWeightScale`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/speziomron/omronweightscale)
-devices provide reusable device implementations for the Omron `BP5250` blood pressure cuff
-and the Omron `SC-150` weight scale.
+devices provide reusable device implementations for Omron blood pressure cuffs
+and the Omron weight scales respectively.
 Both devices automatically integrate with the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
 and [`PairedDevices`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/paireddevices) modules of SpeziDevices.
 You just need to configure them for use with the [`Bluetooth`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetooth#Configure-the-Bluetooth-Module)
@@ -234,8 +234,8 @@ class ExampleAppDelegate: SpeziAppDelegate {
     override var configuration: Configuration {
         Configuration {
             Bluetooth {
-                Discover(OmronBloodPressureCuff.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: BloodPressureService.self))
-                Discover(OmronWeightScale.self, by: .accessory(manufacturer: .omronHealthcareCoLtd, advertising: WeightScaleService.self))
+                Discover(OmronBloodPressureCuff.self, by: .advertisedService(BloodPressureService.self))
+                Discover(OmronWeightScale.self, by: .advertisedService(WeightScaleService.self))
             }
 
             // If required, configure the PairedDevices and HealthMeasurements modules

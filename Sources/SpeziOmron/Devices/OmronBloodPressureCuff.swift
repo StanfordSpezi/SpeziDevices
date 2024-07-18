@@ -15,10 +15,22 @@ import SpeziDevices
 import SpeziNumerics
 
 
-/// Implementation of Omron BP5250 Blood Pressure Cuff.
+/// Implementation of a Omron Blood Pressure Cuff.
+///
+/// This device class currently supports the following models:
+/// * `BP5250`
+/// * `BP7000`
+/// * `EVOLV`
+///
+/// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
+///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    public static var icon: ImageReference? {
-        .asset("Omron-BP5250", bundle: .module)
+    public static var assets: [DeviceAsset] {
+        [
+            .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
+            .name("EVOLV", .asset("Omron-EVOLV", bundle: .module)),
+            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
+        ]
     }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
@@ -60,7 +72,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
-            measurements.configureReceivingMeasurements(for: self, on: bloodPressure)
+            measurements.configureReceivingMeasurements(for: self, on: \.bloodPressure)
         }
     }
 
@@ -142,9 +154,7 @@ extension OmronBloodPressureCuff {
         device.bloodPressure.$features.inject(features)
         device.bloodPressure.$bloodPressureMeasurement.inject(measurement)
 
-        let advertisementData = AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ])
+        let advertisementData = AdvertisementData(manufacturerData: manufacturerData.encode())
         device.$advertisementData.inject(advertisementData)
 
         device.$connect.inject { @MainActor [weak device] in

@@ -77,16 +77,12 @@ final class SpeziOmronTests: XCTestCase {
         let manufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
 
         let device = MockDevice.createMockDevice()
-        device.$advertisementData.inject(AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ]))
+        device.$advertisementData.inject(AdvertisementData(manufacturerData: manufacturerData.encode()))
 
         XCTAssertEqual(device.manufacturerData?.pairingMode, .pairingMode)
 
         let manufacturerData0 = OmronManufacturerData(pairingMode: .transferMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
-        device.$advertisementData.inject(AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData0.encode()
-        ]))
+        device.$advertisementData.inject(AdvertisementData(manufacturerData: manufacturerData0.encode()))
 
         XCTAssertEqual(device.manufacturerData?.pairingMode, .transferMode)
 
@@ -179,6 +175,29 @@ final class SpeziOmronTests: XCTestCase {
         try await XCTAssertThrowsErrorAsync(await service.reportSequenceNumberOfLatestRecords()) { error in
             try XCTAssertEqual(XCTUnwrap(error as? RecordAccessResponseFormatError).reason, .unexpectedOperand)
         }
+    }
+
+
+    func testOmronLocalNames() throws {
+        let sc150 = try XCTUnwrap(OmronLocalName(rawValue: "BLESmart_00010112F974C431DBE2"))
+        XCTAssertEqual(sc150.pairingMode, .transferMode)
+        XCTAssertEqual(sc150.model.rawValue, "00010112")
+        XCTAssertEqual(sc150.macAddress.rawValue, "F974C431DBE2")
+
+        let bp7000 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_0000011F005FBFBE315B"))
+        XCTAssertEqual(bp7000.pairingMode, .pairingMode)
+        XCTAssertEqual(bp7000.model.rawValue, "0000011F")
+        XCTAssertEqual(bp7000.macAddress.rawValue, "005FBFBE315B")
+
+        let evolv = try XCTUnwrap(OmronLocalName(rawValue: "BLESmart_0000021F005FBF88C25B"))
+        XCTAssertEqual(evolv.pairingMode, .transferMode)
+        XCTAssertEqual(evolv.model.rawValue, "0000021F")
+        XCTAssertEqual(evolv.macAddress.rawValue, "005FBF88C25B")
+
+        let bp5250 = try XCTUnwrap(OmronLocalName(rawValue: "BLEsmart_00000160005FBF0CD044"))
+        XCTAssertEqual(bp5250.pairingMode, .pairingMode)
+        XCTAssertEqual(bp5250.model.rawValue, "00000160")
+        XCTAssertEqual(bp5250.macAddress.rawValue, "005FBF0CD044")
     }
 }
 

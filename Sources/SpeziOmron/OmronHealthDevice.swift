@@ -40,6 +40,9 @@ extension OmronHealthDevice {
     public var isInPairingMode: Bool {
         if case .pairingMode = manufacturerData?.pairingMode {
             return true
+        } else if let localName = advertisementData.localName.map({ OmronLocalName(rawValue: $0) }),
+                  case .pairingMode = localName?.pairingMode {
+            return true
         }
         return false
     }

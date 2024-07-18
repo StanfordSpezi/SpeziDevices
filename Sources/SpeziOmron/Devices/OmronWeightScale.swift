@@ -16,8 +16,10 @@ import SpeziDevices
 
 /// Implementation of Omron SC150 Weight Scale.
 public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice, @unchecked Sendable {
-    public static var icon: ImageReference? {
-        .asset("Omron-SC-150", bundle: .module)
+    public static var assets: [DeviceAsset] {
+        [
+            .name("SC-150", .asset("Omron-SC-150", bundle: .module))
+        ]
     }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
@@ -57,7 +59,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
             pairedDevices.configure(device: self, accessing: $state, $advertisementData, $nearby)
         }
         if let measurements {
-            measurements.configureReceivingMeasurements(for: self, on: weightScale)
+            measurements.configureReceivingMeasurements(for: self, on: \.weightScale)
         }
     }
 
@@ -134,9 +136,7 @@ extension OmronWeightScale {
         device.weightScale.$features.inject(features)
         device.weightScale.$weightMeasurement.inject(measurement)
 
-        let advertisementData = AdvertisementData([
-            CBAdvertisementDataManufacturerDataKey: manufacturerData.encode()
-        ])
+        let advertisementData = AdvertisementData(manufacturerData: manufacturerData.encode())
         device.$advertisementData.inject(advertisementData)
 
         device.$connect.inject { @MainActor [weak device] in

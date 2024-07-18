@@ -17,7 +17,6 @@ class PairedDevicesTests: XCTestCase {
         continueAfterFailure = false
     }
 
-
     @MainActor
     func testTipsView() async throws {
         let app = XCUIApplication()

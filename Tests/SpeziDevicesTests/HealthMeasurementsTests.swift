@@ -19,7 +19,7 @@ final class HealthMeasurementsTests: XCTestCase {
         let device = MockDevice.createMockDevice(weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
-        measurements.configureReceivingMeasurements(for: device, on: device.weightScale)
+        measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
         // just inject the same value again to trigger on change!
         let measurement = try XCTUnwrap(device.weightScale.weightMeasurement)
@@ -67,7 +67,7 @@ final class HealthMeasurementsTests: XCTestCase {
         let device = MockDevice.createMockDevice()
         let measurements = HealthMeasurements()
 
-        measurements.configureReceivingMeasurements(for: device, on: device.bloodPressure)
+        measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
 
         // just inject the same value again to trigger on change!
         let measurement = try XCTUnwrap(device.bloodPressure.bloodPressureMeasurement)
@@ -144,8 +144,8 @@ final class HealthMeasurementsTests: XCTestCase {
         let device = MockDevice.createMockDevice()
         let measurements = HealthMeasurements()
 
-        measurements.configureReceivingMeasurements(for: device, on: device.bloodPressure)
-        measurements.configureReceivingMeasurements(for: device, on: device.weightScale)
+        measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
+        measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
         let measurement1 = try XCTUnwrap(device.weightScale.weightMeasurement)
         device.weightScale.$weightMeasurement.inject(measurement1)

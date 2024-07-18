@@ -75,8 +75,8 @@ import SwiftUI
 /// - ``init()``
 ///
 /// ### Register Devices
-/// - ``configureReceivingMeasurements(for:on:)-8cbd0``
-/// - ``configureReceivingMeasurements(for:on:)-87sgc``
+/// - ``configureReceivingMeasurements(for:on:)-5e7b7``
+/// - ``configureReceivingMeasurements(for:on:)-2iu4v``
 ///
 /// ### Processing Measurements
 /// - ``shouldPresentMeasurements``
@@ -84,6 +84,14 @@ import SwiftUI
 /// - ``discardMeasurement(_:)``
 @Observable
 public final class HealthMeasurements: @unchecked Sendable {
+#if compiler(<6)
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService>
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService>
+#else
+    public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService> & Sendable
+    public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService> & Sendable
+#endif
+
     private let logger = Logger(subsystem: "ENGAGEHF", category: "HealthMeasurements")
 
     /// Determine if UI components displaying pending measurements should be displayed.
@@ -141,17 +149,18 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - device: The device on which the service is present.
-    ///   - service: The Weight Scale service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: WeightScaleService) {
-        let hkDevice = device.hkDevice
-
-        // make sure to not capture the device
-        service.$weightMeasurement.onChange { @MainActor [weak self, weak service] measurement in
-            guard let self, let service else {
+    ///   - keyPath: A KeyPath to the Weight Scale service to register.
+    public func configureReceivingMeasurements<Device: HealthDevice>(
+        for device: Device,
+        on keyPath: WeightScaleKeyPath<Device>
+    ) {
+        device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
+            guard let self, let device else {
                 return
             }
+            let service = device[keyPath: keyPath]
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.weight(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)
         }
     }
 
@@ -161,17 +170,19 @@ public final class HealthMeasurements: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - device: The device on which the service is present.
-    ///   - service: The Blood Pressure service to register.
-    public func configureReceivingMeasurements<Device: HealthDevice>(for device: Device, on service: BloodPressureService) {
-        let hkDevice = device.hkDevice
-
+    ///   - keyPath: A KeyPath to the Blood Pressure service to register.
+    public func configureReceivingMeasurements<Device: HealthDevice>(
+        for device: Device,
+        on keyPath: BloodPressureKeyPath<Device>
+    ) {
         // make sure to not capture the device
-        service.$bloodPressureMeasurement.onChange { @MainActor [weak self, weak service] measurement in
-            guard let self, let service else {
+        device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
+            guard let self, let device else {
                 return
             }
+            let service = device[keyPath: keyPath]
             logger.debug("Received new blood pressure measurement: \(String(describing: measurement))")
-            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: hkDevice)
+            handleNewMeasurement(.bloodPressure(measurement, service.features ?? []), from: device.hkDevice)
         }
 
         logger.debug("Registered device \(device.label), \(device.id) with HealthMeasurements")

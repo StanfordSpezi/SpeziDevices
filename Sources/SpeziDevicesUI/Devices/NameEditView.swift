@@ -65,7 +65,6 @@ extension ValidationRule {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
-            icon: .asset("Omron-BP5250"),
             batteryPercentage: 100
         )) { name in
             print("New Name is \(name)")
