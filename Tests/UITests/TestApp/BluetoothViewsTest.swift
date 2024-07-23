@@ -41,7 +41,7 @@ struct BluetoothViewsTest: View {
         Task {
             switch device.state {
             case .disconnected, .disconnecting:
-                await device.connect()
+                try await device.connect()
             case .connecting, .connected:
                 await device.disconnect()
             }

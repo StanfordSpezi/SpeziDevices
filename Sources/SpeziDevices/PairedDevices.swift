@@ -336,7 +336,15 @@ public final class PairedDevices: @unchecked Sendable {
 
         pendingConnectionAttempts[device.id] = Task {
             await previousTask?.value // make sure its ordered
-            await device.connect()
+            do {
+                try await device.connect()
+            } catch {
+                guard !Task.isCancelled else {
+                    return
+                }
+                logger.warning("Failed connection attempt for device \(device.label). Retrying ...")
+                connectionAttempt(for: device)
+            }
         }
     }
 
@@ -394,27 +402,49 @@ extension PairedDevices {
             throw DevicePairingError.invalidState
         }
 
-        await device.connect()
-
         let id = device.id
-        let timeoutHandler = { @Sendable @MainActor in
-            _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+
+        try await withThrowingDiscardingTaskGroup { group in
+            // timeout task
+            group.addTask {
+                await withTimeout(of: timeout) { @MainActor in
+                    _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+                }
+            }
+
+            // connect task
+            group.addTask { @MainActor in
+                do {
+                    try await device.connect()
+                } catch {
+                    if error is CancellationError {
+                        self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                    }
+
+                    throw error
+                }
+            }
+
+            // pairing task
+            group.addTask { @MainActor in
+                try await withTaskCancellationHandler {
+                    try await withCheckedThrowingContinuation { continuation in
+                        self.ongoingPairings[id] = PairingContinuation(continuation)
+                    }
+                } onCancel: {
+                    Task { @MainActor [weak device] in
+                        self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                        await device?.disconnect()
+                    }
+                }
+            }
         }
 
-        async let _ = withTimeout(of: timeout, perform: timeoutHandler)
-
-        try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { continuation in
-                ongoingPairings[id] = PairingContinuation(continuation)
-            }
-        } onCancel: {
-            Task { @MainActor [weak device] in
-                ongoingPairings.removeValue(forKey: id)?.signalCancellation()
-                await device?.disconnect()
-            }
+        // the task group above should exit with a CancellationError anyways, but safe to double check here
+        guard !Task.isCancelled else {
+            throw CancellationError()
         }
 
-        // if cancelled the continuation throws an CancellationError
         await registerPairedDevice(device)
     }
 

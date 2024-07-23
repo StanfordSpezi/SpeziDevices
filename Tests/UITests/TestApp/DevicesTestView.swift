@@ -48,9 +48,9 @@ struct DevicesTestView: View {
                             device.$advertisementData.inject(AdvertisementData()) // trigger onChange advertisement
                         }
                         AsyncButton {
-                            await device.connect()
-                            await weightScale.connect()
-                            await bloodPressureCuff.connect()
+                            try await device.connect()
+                            try await weightScale.connect()
+                            try await bloodPressureCuff.connect()
                         } label: {
                             Label("Connect", systemImage: "cable.connector")
                         }
