@@ -38,6 +38,8 @@ struct DevicesTestView: View {
     @State private var weightScale = OmronWeightScale.createMockDevice(manufacturerData: .omronManufacturerData(mode: .transferMode))
     @State private var bloodPressureCuff = OmronBloodPressureCuff.createMockDevice(manufacturerData: .omronManufacturerData(mode: .transferMode))
 
+    @State private var viewState: ViewState = .idle
+
     var body: some View {
         NavigationStack {
             DevicesView(appName: "Example", pairingHint: "Enable pairing mode on the device.")
@@ -47,7 +49,7 @@ struct DevicesTestView: View {
                             device.isInPairingMode = true
                             device.$advertisementData.inject(AdvertisementData()) // trigger onChange advertisement
                         }
-                        AsyncButton {
+                        AsyncButton(state: $viewState) {
                             try await device.connect()
                             try await weightScale.connect()
                             try await bloodPressureCuff.connect()
@@ -97,6 +99,7 @@ struct DevicesTestView: View {
                 )
                 didRegister = true
             }
+            .viewStateAlert(state: $viewState)
     }
 }
 
