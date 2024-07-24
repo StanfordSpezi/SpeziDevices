@@ -404,14 +404,12 @@ extension PairedDevices {
 
         let id = device.id
 
-        try await withThrowingDiscardingTaskGroup { group in
-            // timeout task
-            group.addTask {
-                await withTimeout(of: timeout) { @MainActor in
-                    _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
-                }
-            }
+        // race timeout against the tasks below
+        async let _ = await withTimeout(of: timeout) { @MainActor in
+            _ = self.ongoingPairings.removeValue(forKey: id)?.signalTimeout()
+        }
 
+        try await withThrowingDiscardingTaskGroup { group in
             // connect task
             group.addTask { @MainActor in
                 do {
