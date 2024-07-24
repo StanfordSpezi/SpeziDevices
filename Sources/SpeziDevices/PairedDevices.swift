@@ -438,6 +438,7 @@ extension PairedDevices {
             }
         }
 
+
         // the task group above should exit with a CancellationError anyways, but safe to double check here
         guard !Task.isCancelled else {
             throw CancellationError()
