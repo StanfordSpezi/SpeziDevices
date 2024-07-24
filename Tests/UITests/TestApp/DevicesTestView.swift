@@ -79,6 +79,7 @@ struct DevicesTestView: View {
                     }
                 }
         }
+            .viewStateAlert(state: $viewState)
             .onAppear {
                 guard !didRegister else {
                     return
@@ -99,7 +100,6 @@ struct DevicesTestView: View {
                 )
                 didRegister = true
             }
-            .viewStateAlert(state: $viewState)
     }
 }
 
