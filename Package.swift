@@ -52,7 +52,8 @@ let package = Package(
                 .product(name: "Spezi", package: "Spezi")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -68,7 +69,8 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -83,7 +85,8 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -98,7 +101,8 @@ let package = Package(
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -111,7 +115,8 @@ let package = Package(
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         )
