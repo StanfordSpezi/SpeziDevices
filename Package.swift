@@ -36,7 +36,7 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
         .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.4.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", exact: "3.0.0-beta.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", exact: "3.0.0-beta.2"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
         .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.12"))
     ] + swiftLintPackage(),
@@ -52,7 +52,8 @@ let package = Package(
                 .product(name: "Spezi", package: "Spezi")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -68,7 +69,8 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -83,7 +85,8 @@ let package = Package(
                 .process("Resources")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -98,7 +101,8 @@ let package = Package(
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -111,7 +115,8 @@ let package = Package(
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
             swiftSettings: [
-                swiftConcurrency
+                swiftConcurrency,
+                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         )

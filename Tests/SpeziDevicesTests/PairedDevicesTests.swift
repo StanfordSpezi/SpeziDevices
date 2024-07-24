@@ -83,7 +83,7 @@ final class PairedDevicesTests: XCTestCase {
         }()
 
 
-        await device.connect()
+        try await device.connect()
         try await Task.sleep(for: .seconds(1.1))
         XCTAssertEqual(device.state, .connected)
 
@@ -113,7 +113,7 @@ final class PairedDevicesTests: XCTestCase {
         }
         device.$nearby.inject(true)
 
-        await device.connect()
+        try await device.connect()
         try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
             XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .invalidState)
         }
