@@ -38,10 +38,10 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
     @DeviceAction(\.connect) public var connect
     @DeviceAction(\.disconnect) public var disconnect
 
-    @Dependency private var measurements: HealthMeasurements?
-    @Dependency private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
 
-    private var dateOfConnection: Date?
+    private var didReceiveFirstTimeNotification = false
 
     /// Initialize the device.
     public required init() {}
@@ -65,28 +65,28 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
 
     private func handleStateChange(_ state: PeripheralState) async {
         switch state {
-        case .connected:
-            switch manufacturerData?.pairingMode {
-            case .pairingMode:
-                dateOfConnection = .now
-            case .transferMode:
-                time.synchronizeDeviceTime()
-            case nil:
-                break
-            }
-        default:
+        case .connecting, .connected:
             break
+        case .disconnected, .disconnecting:
+            didReceiveFirstTimeNotification = false
         }
     }
 
     @MainActor
     private func handleCurrentTimeChange(_ time: CurrentTime) {
+        // TODO: only update the first time, do we have that web page still open???
         logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
-        let paired = pairedDevices?.signalDevicePaired(self) == true
-        if paired {
-            dateOfConnection = nil
+
+        // TODO: filter for notifications happening while being in disconnected state?
+
+        // for Omron we take that as a signal that device is paired // TODO: does this work now for all weight scales?
+        let didPair = pairedDevices?.signalDevicePaired(self) == true // TODO: do we need to result still?
+
+        if !didReceiveFirstTimeNotification {
+            didReceiveFirstTimeNotification = true
             self.time.synchronizeDeviceTime()
         }
+        // TODO: apply this changes for the blood pressure cuff as well!
     }
 }
 

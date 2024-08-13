@@ -102,7 +102,7 @@ public final class HealthMeasurements: @unchecked Sendable {
     /// To clear pending measurements call ``discardMeasurement(_:)``.
     @MainActor public private(set) var pendingMeasurements: [HealthKitMeasurement] = []
 
-    @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
+    @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
 
     private var modelContainer: ModelContainer?
 
@@ -138,8 +138,8 @@ public final class HealthMeasurements: @unchecked Sendable {
         }
 
 
-        Task.detached { @MainActor in
-            self.fetchMeasurements()
+        Task.detached {
+            await self.fetchMeasurements()
         }
     }
 
@@ -155,7 +155,8 @@ public final class HealthMeasurements: @unchecked Sendable {
         on keyPath: WeightScaleKeyPath<Device>
     ) {
         device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
-            guard let self, let device else {
+            guard let self, let device, case .connected = device.state else {
+                // TODO: we now just assume connected for all devices?
                 return
             }
             let service = device[keyPath: keyPath]
