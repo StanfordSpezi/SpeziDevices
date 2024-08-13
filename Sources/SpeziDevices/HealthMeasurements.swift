@@ -155,9 +155,14 @@ public final class HealthMeasurements: @unchecked Sendable {
         on keyPath: WeightScaleKeyPath<Device>
     ) {
         device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
-            guard let self, let device, case .connected = device.state else {
+            guard let self, let device else {
                 return
             }
+            guard case .connected = device.state else {
+                logger.debug("Ignored weight measurement that was received while connecting: \(String(describing: measurement))")
+                return
+            }
+            
             let service = device[keyPath: keyPath]
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
             handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)
@@ -178,7 +183,11 @@ public final class HealthMeasurements: @unchecked Sendable {
     ) {
         // make sure to not capture the device
         device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
-            guard let self, let device, case .connected = device.state else {
+            guard let self, let device else {
+                return
+            }
+            guard case .connected = device.state else {
+                logger.debug("Ignored blood pressure measurement that was received while connecting: \(String(describing: measurement))")
                 return
             }
             let service = device[keyPath: keyPath]

@@ -123,11 +123,11 @@ public struct MeasurementsRecordedSheet: View {
                 return
             }
 
+            discardSelectedMeasurement(selectedMeasurement)
+
             if measurements.pendingMeasurements.isEmpty {
                 dismiss()
             }
-
-            discardSelectedMeasurement(selectedMeasurement)
         }
     }
 
