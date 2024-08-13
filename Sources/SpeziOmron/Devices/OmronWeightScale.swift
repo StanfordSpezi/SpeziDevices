@@ -41,7 +41,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
     @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
     @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
 
-    @MainActor private var didReceiveFirstTimeNotification = false
+    @SpeziBluetooth private var didReceiveFirstTimeNotification = false
 
     /// Initialize the device.
     public required init() {}
@@ -63,7 +63,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         }
     }
 
-    @MainActor
+    @SpeziBluetooth
     private func handleStateChange(_ state: PeripheralState) {
         logger.debug("\(Self.self) changed state to \(state).")
         switch state {
@@ -74,8 +74,12 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         }
     }
 
-    @MainActor
-    private func handleCurrentTimeChange(_ time: CurrentTime) {
+    @SpeziBluetooth
+    private func handleCurrentTimeChange(_ time: CurrentTime) async {
+        guard case .connected = state else {
+            logger.debug("Ignoring updated device time for \(self.label) that was received while connecting: \(String(describing: time))")
+            return
+        }
         // TODO: only update the first time, do we have that web page still open???
         logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
 
@@ -84,7 +88,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         //  - if already paired in Bluetooth menu, only one notification while still connecting!
 
         // for Omron we take that as a signal that device is paired
-        pairedDevices?.signalDevicePaired(self)
+        await pairedDevices?.signalDevicePaired(self)
 
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true

@@ -96,6 +96,10 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
 
     @SpeziBluetooth
     private func handleCurrentTimeChange(_ time: CurrentTime) async {
+        guard case .connected = state else {
+            logger.debug("Ignoring updated device time for \(self.label) that was received while connecting: \(String(describing: time))")
+            return
+        }
         logger.debug("Received updated device time for \(self.label) is \(String(describing: time))")
 
         // for Omron we take that as a signal that device is paired
