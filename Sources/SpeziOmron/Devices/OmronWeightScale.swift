@@ -74,25 +74,27 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         }
     }
 
+    // TODO: what happens with unhandeled responses in Omron state machine while subscribing to characteristics?
+
     @SpeziBluetooth
     private func handleCurrentTimeChange(_ time: CurrentTime) async {
-        guard case .connected = state else {
-            logger.debug("Ignoring updated device time for \(self.label) that was received while connecting: \(String(describing: time))")
-            return
-        }
-        // TODO: only update the first time, do we have that web page still open???
         logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
 
         // TODO: pairing issue is still there
         //  - if Bluetooth entry is removed: two notifications while one is always delivered instantly!
         //  - if already paired in Bluetooth menu, only one notification while still connecting!
 
-        // for Omron we take that as a signal that device is paired
-        await pairedDevices?.signalDevicePaired(self)
-
+        // We always update time on the first current time notification. That's how it is expected for Omron devices.
+        // First time notification might come before we are considered fully connected (from SpeziBluetooth point of view).
+        // However, this will trigger another notification anyways, which will then arrive once we are connected.
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true
             self.time.synchronizeDeviceTime()
+        }
+
+        if case .connected = state {
+            // for Omron we take that as a signal that device is paired
+            await pairedDevices?.signalDevicePaired(self)
         }
         // TODO: apply this changes for the blood pressure cuff as well!
     }
