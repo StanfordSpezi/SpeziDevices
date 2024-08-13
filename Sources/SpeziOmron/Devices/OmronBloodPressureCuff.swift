@@ -53,6 +53,8 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
     @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
 
+    @SpeziBluetooth private var didReceiveFirstTimeNotification = false
+
     /// Initialize the device.
     public required init() {}
 
@@ -76,11 +78,14 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         }
     }
 
-    private func handleStateChange(_ state: PeripheralState) async {
+    @SpeziBluetooth
+    private func handleStateChange(_ state: PeripheralState) {
         logger.debug("\(Self.self) changed state to \(state).")
-        if case .connected = state,
-           case .transferMode = manufacturerData?.pairingMode {
-            time.synchronizeDeviceTime()
+        switch state {
+        case .connecting, .connected:
+            break
+        case .disconnected, .disconnecting:
+            didReceiveFirstTimeNotification = false
         }
     }
 
@@ -89,12 +94,15 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         pairedDevices?.signalDevicePaired(self)
     }
 
-    @MainActor
-    private func handleCurrentTimeChange(_ time: CurrentTime) {
+    @SpeziBluetooth
+    private func handleCurrentTimeChange(_ time: CurrentTime) async {
         logger.debug("Received updated device time for \(self.label) is \(String(describing: time))")
-        let paired = pairedDevices?.signalDevicePaired(self)
 
-        if paired == true {
+        // for Omron we take that as a signal that device is paired
+        await pairedDevices?.signalDevicePaired(self)
+
+        if !didReceiveFirstTimeNotification {
+            didReceiveFirstTimeNotification = true
             self.time.synchronizeDeviceTime()
         }
     }

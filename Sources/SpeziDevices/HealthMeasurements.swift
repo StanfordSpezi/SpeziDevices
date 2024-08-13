@@ -156,7 +156,6 @@ public final class HealthMeasurements: @unchecked Sendable {
     ) {
         device[keyPath: keyPath].$weightMeasurement.onChange { @MainActor [weak self, weak device] measurement in
             guard let self, let device, case .connected = device.state else {
-                // TODO: we now just assume connected for all devices?
                 return
             }
             let service = device[keyPath: keyPath]
@@ -180,7 +179,6 @@ public final class HealthMeasurements: @unchecked Sendable {
         // make sure to not capture the device
         device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
             guard let self, let device, case .connected = device.state else {
-                // TODO: we now just assume connected for all devices?
                 return
             }
             let service = device[keyPath: keyPath]
