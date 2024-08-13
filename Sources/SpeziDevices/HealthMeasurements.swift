@@ -163,6 +163,7 @@ public final class HealthMeasurements: @unchecked Sendable {
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
             handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)
         }
+        // TODO: PLSS. support showing time in the sheet!
     }
 
     /// Configure receiving and processing blood pressure measurements form the provided service.
@@ -178,7 +179,8 @@ public final class HealthMeasurements: @unchecked Sendable {
     ) {
         // make sure to not capture the device
         device[keyPath: keyPath].$bloodPressureMeasurement.onChange { @MainActor [weak self, weak device] measurement in
-            guard let self, let device else {
+            guard let self, let device, case .connected = device.state else {
+                // TODO: we now just assume connected for all devices?
                 return
             }
             let service = device[keyPath: keyPath]

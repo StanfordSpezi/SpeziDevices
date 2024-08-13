@@ -294,6 +294,7 @@ public final class PairedDevices: @unchecked Sendable {
         }
 
         self.logger.info(
+            // TODO: it just shows "7 bytes", improve debugging!
             "Detected nearby \(Device.self) accessory\(device.advertisementData.manufacturerData.map { " with manufacturer data \($0)" } ?? "")"
         )
 

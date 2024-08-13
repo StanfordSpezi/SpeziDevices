@@ -50,8 +50,8 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     @DeviceAction(\.connect) public var connect
     @DeviceAction(\.disconnect) public var disconnect
 
-    @Dependency private var measurements: HealthMeasurements?
-    @Dependency private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
 
     /// Initialize the device.
     public required init() {}
@@ -77,6 +77,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     }
 
     private func handleStateChange(_ state: PeripheralState) async {
+        logger.debug("\(Self.self) changed state to \(state).")
         if case .connected = state,
            case .transferMode = manufacturerData?.pairingMode {
             time.synchronizeDeviceTime()

@@ -64,6 +64,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
     }
 
     private func handleStateChange(_ state: PeripheralState) async {
+        logger.debug("\(Self.self) changed state to \(state).")
         switch state {
         case .connecting, .connected:
             break
