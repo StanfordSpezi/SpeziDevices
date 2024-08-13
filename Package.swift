@@ -32,13 +32,13 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.4.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", exact: "3.0.0-beta.2"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.1.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "2.0.0-beta.1"),
+        .package(url: "https://github.com/StanfordSpezi/Spezi", branch: "feature/upgrade-spezi"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews", from: "1.5.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/concurrency-improvements"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.12"))
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions", .upToNextMinor(from: "0.4.12"))
     ] + swiftLintPackage(),
     targets: [
         .target(
