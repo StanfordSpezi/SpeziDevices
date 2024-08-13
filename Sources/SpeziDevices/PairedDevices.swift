@@ -117,8 +117,8 @@ public final class PairedDevices: @unchecked Sendable {
 
     @Application(\.logger) @ObservationIgnored private var logger
 
-    @Dependency @ObservationIgnored private var bluetooth: Bluetooth?
-    @Dependency @ObservationIgnored private var tipKit: ConfigureTipKit
+    @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
+    @Dependency(ConfigureTipKit.self) @ObservationIgnored private var tipKit
 
     private var modelContainer: ModelContainer?
 

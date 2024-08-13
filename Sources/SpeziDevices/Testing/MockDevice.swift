@@ -31,7 +31,7 @@ public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevic
     @Service public var bloodPressure = BloodPressureService()
     @Service public var weightScale = WeightScaleService()
 
-    @Dependency private var pairedDevices: PairedDevices?
+    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
 
     public var isInPairingMode: Bool = false
 
