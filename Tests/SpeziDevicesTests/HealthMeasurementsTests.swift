@@ -14,18 +14,17 @@ import XCTest
 
 
 final class HealthMeasurementsTests: XCTestCase {
-    // TODO: add regression tests: discard measurements while connecting
-    // TODO: add Omron tests for the time notifications/time synchronization!
-
     @MainActor
     func testReceivingWeightMeasurements() async throws {
-        let device = MockDevice.createMockDevice(state: .connected, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
+        let device = MockDevice.createMockDevice(state: .connecting, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
         // just inject the same value again to trigger on change!
         let measurement = try XCTUnwrap(device.weightScale.weightMeasurement)
+        device.weightScale.$weightMeasurement.inject(measurement) // first measurement should be ignored in connecting state!
+        device.$state.inject(.connected)
         device.weightScale.$weightMeasurement.inject(measurement)
 
         try await Task.sleep(for: .milliseconds(50))
