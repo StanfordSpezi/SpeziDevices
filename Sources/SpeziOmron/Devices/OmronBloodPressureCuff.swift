@@ -104,7 +104,11 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         // and the iOS Bluetooth Pairing dialog was dismissed.
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true
-            self.time.synchronizeDeviceTime()
+            do {
+                try await self.time.synchronizeDeviceTime()
+            } catch {
+                logger.warning("Failed to update current time: \(error)")
+            }
         }
 
         if case .connected = state {

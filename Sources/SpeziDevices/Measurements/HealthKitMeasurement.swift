@@ -15,6 +15,16 @@ public enum HealthKitMeasurement {
     case weight(HKQuantitySample, bmi: HKQuantitySample? = nil, height: HKQuantitySample? = nil)
     /// A blood pressure correlation with an optional heart rate sample.
     case bloodPressure(HKCorrelation, heartRate: HKQuantitySample? = nil)
+
+    /// The start date of the primary sample
+    public var startDate: Date {
+        switch self {
+        case let .weight(sample, _, _):
+            sample.startDate
+        case let .bloodPressure(correlation, _):
+            correlation.startDate
+        }
+    }
 }
 
 

@@ -163,7 +163,7 @@ public final class PairedDevices: @unchecked Sendable {
         }
 
         // We need to detach to not copy task local values
-        Task.detached { @MainActor in
+        Task.detached { @Sendable @MainActor in
             self.fetchAllPairedInfos()
 
             self.syncDeviceIcons() // make sure assets are up to date
@@ -294,8 +294,7 @@ public final class PairedDevices: @unchecked Sendable {
         }
 
         self.logger.info(
-            // TODO: it just shows "7 bytes", improve debugging!
-            "Detected nearby \(Device.self) accessory\(device.advertisementData.manufacturerData.map { " with manufacturer data \($0)" } ?? "")"
+            "Detected nearby \(Device.self) accessory\(device.advertisementData.manufacturerData.map { " with manufacturer data \($0.debugDescription)" } ?? "")"
         )
 
         discoveredDevices[device.id] = device
@@ -412,7 +411,7 @@ extension PairedDevices {
 
         try await withThrowingDiscardingTaskGroup { group in
             // connect task
-            group.addTask { @MainActor in
+            group.addTask { @Sendable @MainActor in
                 do {
                     try await device.connect()
                 } catch {
@@ -425,7 +424,7 @@ extension PairedDevices {
             }
 
             // pairing task
-            group.addTask { @MainActor in
+            group.addTask { @Sendable @MainActor in
                 try await withTaskCancellationHandler {
                     try await withCheckedThrowingContinuation { continuation in
                         self.ongoingPairings[id] = PairingContinuation(continuation)
@@ -665,7 +664,7 @@ extension PairedDevices {
 
         await withDiscardingTaskGroup { group in
             for deviceInfo in self._pairedDevices.values {
-                group.addTask { @MainActor in
+                group.addTask { @Sendable @MainActor in
                     guard self.peripherals[deviceInfo.id] == nil else {
                         return
                     }

@@ -55,6 +55,7 @@ class ExampleAppDelegate: SpeziAppDelegate {
 
 - ``OmronBloodPressureCuff``
 - ``OmronWeightScale``
+- <doc:OmronReverseEngineering>
 
 ### Omron Device
 

@@ -167,7 +167,6 @@ public final class HealthMeasurements: @unchecked Sendable {
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
             handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)
         }
-        // TODO: PLSS. support showing time in the sheet!
     }
 
     /// Configure receiving and processing blood pressure measurements form the provided service.

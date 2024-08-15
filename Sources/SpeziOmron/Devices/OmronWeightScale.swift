@@ -74,8 +74,6 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         }
     }
 
-    // TODO: what happens with unhandeled responses in Omron state machine while subscribing to characteristics?
-
     @SpeziBluetooth
     private func handleCurrentTimeChange(_ time: CurrentTime) async {
         logger.debug("Received updated device time for \(self.label): \(String(describing: time))")
@@ -86,7 +84,11 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         // and the iOS Bluetooth Pairing dialog was dismissed.
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true
-            self.time.synchronizeDeviceTime()
+            do {
+                try await self.time.synchronizeDeviceTime()
+            } catch {
+                logger.warning("Failed to update current time: \(error)")
+            }
         }
 
         if case .connected = state {
