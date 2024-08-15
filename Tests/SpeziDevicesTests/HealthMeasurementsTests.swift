@@ -16,7 +16,7 @@ import XCTest
 final class HealthMeasurementsTests: XCTestCase {
     @MainActor
     func testReceivingWeightMeasurements() async throws {
-        let device = MockDevice.createMockDevice(weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
+        let device = MockDevice.createMockDevice(state: .connected, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
@@ -64,7 +64,7 @@ final class HealthMeasurementsTests: XCTestCase {
 
     @MainActor
     func testReceivingBloodPressureMeasurements() async throws {
-        let device = MockDevice.createMockDevice()
+        let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
@@ -141,7 +141,7 @@ final class HealthMeasurementsTests: XCTestCase {
 
     @MainActor
     func testDiscardingMeasurements() async throws {
-        let device = MockDevice.createMockDevice()
+        let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
