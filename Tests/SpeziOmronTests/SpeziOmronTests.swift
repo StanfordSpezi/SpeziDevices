@@ -11,7 +11,7 @@ import CoreBluetooth
 @_spi(TestingSupport) import SpeziBluetooth
 import SpeziBluetoothServices
 @_spi(TestingSupport) import SpeziDevices
-@testable import SpeziOmron
+@_spi(TestingSupport) @testable import SpeziOmron
 import XCTByteCoding
 import XCTest
 import XCTestExtensions
@@ -90,6 +90,50 @@ final class SpeziOmronTests: XCTestCase {
         device.deviceInformation.$modelNumber.inject(OmronModel.bp5250.rawValue)
 
         XCTAssertEqual(device.model, .bp5250)
+    }
+
+    func testTimeUpdateOnFirstNotificationBP() async throws {
+        let device = OmronBloodPressureCuff.createMockDevice(state: .connecting, simulateRealDevice: true)
+
+        let expectation = XCTestExpectation(description: "onWrite")
+        expectation.assertForOverFulfill = true
+        var currentTime: CurrentTime?
+
+        device.time.$currentTime.onWrite { time, _ in
+            currentTime = time
+            expectation.fulfill()
+        }
+
+        device.time.$currentTime.inject(CurrentTime(time: ExactTime256(from: .now), adjustReason: .manualTimeUpdate))
+
+        await fulfillment(of: [expectation])
+
+        let writtenTime = try XCTUnwrap(currentTime)
+        device.time.$currentTime.inject(writtenTime) // make sure we only notify once
+
+        try await Task.sleep(for: .seconds(1))
+    }
+
+    func testTimeUpdateOnFirstNotificationScale() async throws {
+        let device = OmronWeightScale.createMockDevice(state: .connecting, simulateRealDevice: true)
+
+        let expectation = XCTestExpectation(description: "onWrite")
+        expectation.assertForOverFulfill = true
+        var currentTime: CurrentTime?
+
+        device.time.$currentTime.onWrite { time, _ in
+            currentTime = time
+            expectation.fulfill()
+        }
+
+        device.time.$currentTime.inject(CurrentTime(time: ExactTime256(from: .now), adjustReason: .manualTimeUpdate))
+
+        await fulfillment(of: [expectation])
+
+        let writtenTime = try XCTUnwrap(currentTime)
+        device.time.$currentTime.inject(writtenTime) // make sure we only notify once
+
+        try await Task.sleep(for: .seconds(1))
     }
 
     func testRACPReportStoredRecords() throws {

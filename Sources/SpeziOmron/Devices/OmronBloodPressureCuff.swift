@@ -105,7 +105,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true
             do {
-                try await self.time.synchronizeDeviceTime()
+                try await self.time.synchronizeDeviceTime(threshold: .zero)
             } catch {
                 logger.warning("Failed to update current time: \(error)")
             }
@@ -129,6 +129,7 @@ extension OmronBloodPressureCuff {
     ///   - state: The initial state.
     ///   - nearby: The nearby state.
     ///   - manufacturerData: The initial manufacturer data.
+    ///   - simulateRealDevice: If `true`, the real onChange handlers with be set up with the mock device.
     /// - Returns: Returns the mock device instance.
     public static func createMockDevice( // swiftlint:disable:this function_body_length
         systolic: MedFloat16 = 103,
@@ -138,7 +139,8 @@ extension OmronBloodPressureCuff {
         nearby: Bool = true,
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
             .init(id: 1, sequenceNumber: 2, recordsNumber: 1)
-        ])
+        ]),
+        simulateRealDevice: Bool = false
     ) -> OmronBloodPressureCuff {
         let device = OmronBloodPressureCuff()
 
@@ -211,6 +213,19 @@ extension OmronBloodPressureCuff {
 
         device.bloodPressure.$bloodPressureMeasurement.enableSubscriptions()
         device.bloodPressure.$bloodPressureMeasurement.enablePeripheralSimulation()
+
+        if simulateRealDevice {
+            device.$state.onChange { [weak device] state in
+                await device?.handleStateChange(state)
+            }
+
+            device.time.$currentTime.onChange { [weak device] value in
+                await device?.handleCurrentTimeChange(value)
+            }
+            device.battery.$batteryLevel.onChange { [weak device] value in
+                await device?.handleBatteryChange(value)
+            }
+        }
 
         return device
     }

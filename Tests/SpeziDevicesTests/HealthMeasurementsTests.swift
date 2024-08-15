@@ -14,6 +14,9 @@ import XCTest
 
 
 final class HealthMeasurementsTests: XCTestCase {
+    // TODO: add regression tests: discard measurements while connecting
+    // TODO: add Omron tests for the time notifications/time synchronization!
+
     @MainActor
     func testReceivingWeightMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connected, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))

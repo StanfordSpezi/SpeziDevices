@@ -85,7 +85,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
         if !didReceiveFirstTimeNotification {
             didReceiveFirstTimeNotification = true
             do {
-                try await self.time.synchronizeDeviceTime()
+                try await self.time.synchronizeDeviceTime(threshold: .zero)
             } catch {
                 logger.warning("Failed to update current time: \(error)")
             }
@@ -107,15 +107,17 @@ extension OmronWeightScale {
     ///   - state: The initial state.
     ///   - nearby: The nearby state.
     ///   - manufacturerData: The initial manufacturer data.
+    ///   - simulateRealDevice: If `true`, the real onChange handlers with be set up with the mock device.
     /// - Returns: Returns the mock device instance.
-    public static func createMockDevice(
+    public static func createMockDevice( // swiftlint:disable:this function_body_length
         weight: UInt16 = 8400,
         resolution: WeightScaleFeature.WeightResolution = .resolution5g,
         state: PeripheralState = .disconnected,
         nearby: Bool = true,
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
             .init(id: 1, sequenceNumber: 2, recordsNumber: 1)
-        ])
+        ]),
+        simulateRealDevice: Bool = false
     ) -> OmronWeightScale {
         let device = OmronWeightScale()
 
@@ -179,6 +181,16 @@ extension OmronWeightScale {
 
         device.weightScale.$weightMeasurement.enableSubscriptions()
         device.weightScale.$weightMeasurement.enablePeripheralSimulation()
+
+        if simulateRealDevice {
+            device.$state.onChange { [weak device] state in
+                await device?.handleStateChange(state)
+            }
+
+            device.time.$currentTime.onChange { [weak device] value in
+                await device?.handleCurrentTimeChange(value)
+            }
+        }
 
         return device
     }
