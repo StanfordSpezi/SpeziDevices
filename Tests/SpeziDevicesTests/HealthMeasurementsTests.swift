@@ -24,6 +24,8 @@ final class HealthMeasurementsTests: XCTestCase {
         // just inject the same value again to trigger on change!
         let measurement = try XCTUnwrap(device.weightScale.weightMeasurement)
         device.weightScale.$weightMeasurement.inject(measurement) // first measurement should be ignored in connecting state!
+
+        try await Task.sleep(for: .milliseconds(50))
         device.$state.inject(.connected)
         device.weightScale.$weightMeasurement.inject(measurement)
 
