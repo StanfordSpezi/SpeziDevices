@@ -26,8 +26,8 @@ A Omron device is either advertising in pairing mode (if you press the Bluetooth
 
 > Note: If a Omron device wasn't paired you cannot enter transfer mode. Meaning pressing the Bluetooth/Connection button once doesn't do anything.
 
-How the Omron devices advertisings pairing mode vs. transfer mode depends on the the model. But it is one of these two methods:
-* Using the ``OmronManufacturerData/pairingMode-swift.property`` bit field of the ``OmronManufacturerData`` that is part of the advertisement.
+If the Omron device advertising pairing mode vs. transfer mode, depends on the the device model. It uses one of these two methods:
+* Using the ``OmronManufacturerData/pairingMode-swift.property`` bit field of the ``OmronManufacturerData`` which is part of the advertisement data.
     Not all Omron devices include [`manufacturerData`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/advertisementdata/manufacturerdata)
     in their advertisement. In this cases use the other approach. 
 * Deriving the pairing mode from the [`localName`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/advertisementdata/localname).
