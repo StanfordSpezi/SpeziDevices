@@ -36,7 +36,7 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "2.0.0-beta.1"),
         .package(url: "https://github.com/StanfordSpezi/Spezi", from: "1.7.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", branch: "feature/concurrency-improvements"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "3.0.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
         .package(url: "https://github.com/StanfordBDHG/XCTestExtensions", .upToNextMinor(from: "0.4.12"))
     ] + swiftLintPackage(),
