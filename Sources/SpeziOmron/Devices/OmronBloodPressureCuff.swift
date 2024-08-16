@@ -50,8 +50,10 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     @DeviceAction(\.connect) public var connect
     @DeviceAction(\.disconnect) public var disconnect
 
-    @Dependency private var measurements: HealthMeasurements?
-    @Dependency private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
+
+    @SpeziBluetooth private var didReceiveFirstTimeNotification = false
 
     /// Initialize the device.
     public required init() {}
@@ -76,10 +78,14 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         }
     }
 
-    private func handleStateChange(_ state: PeripheralState) async {
-        if case .connected = state,
-           case .transferMode = manufacturerData?.pairingMode {
-            time.synchronizeDeviceTime()
+    @SpeziBluetooth
+    private func handleStateChange(_ state: PeripheralState) {
+        logger.debug("\(Self.self) changed state to \(state).")
+        switch state {
+        case .connecting, .connected:
+            break
+        case .disconnected, .disconnecting:
+            didReceiveFirstTimeNotification = false
         }
     }
 
@@ -88,13 +94,26 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         pairedDevices?.signalDevicePaired(self)
     }
 
-    @MainActor
-    private func handleCurrentTimeChange(_ time: CurrentTime) {
+    @SpeziBluetooth
+    private func handleCurrentTimeChange(_ time: CurrentTime) async {
         logger.debug("Received updated device time for \(self.label) is \(String(describing: time))")
-        let paired = pairedDevices?.signalDevicePaired(self)
 
-        if paired == true {
-            self.time.synchronizeDeviceTime()
+        // We always update time on the first current time notification. That's how it is expected for Omron devices.
+        // First time notification might come before we are considered fully connected (from SpeziBluetooth point of view).
+        // However, this will trigger another notification anyways, which will then arrive once we are connected
+        // and the iOS Bluetooth Pairing dialog was dismissed.
+        if !didReceiveFirstTimeNotification {
+            didReceiveFirstTimeNotification = true
+            do {
+                try await self.time.synchronizeDeviceTime(threshold: .zero)
+            } catch {
+                logger.warning("Failed to update current time: \(error)")
+            }
+        }
+
+        if case .connected = state {
+            // for Omron we take that as a signal that device is paired
+            await pairedDevices?.signalDevicePaired(self)
         }
     }
 }
@@ -110,6 +129,7 @@ extension OmronBloodPressureCuff {
     ///   - state: The initial state.
     ///   - nearby: The nearby state.
     ///   - manufacturerData: The initial manufacturer data.
+    ///   - simulateRealDevice: If `true`, the real onChange handlers with be set up with the mock device.
     /// - Returns: Returns the mock device instance.
     public static func createMockDevice( // swiftlint:disable:this function_body_length
         systolic: MedFloat16 = 103,
@@ -119,7 +139,8 @@ extension OmronBloodPressureCuff {
         nearby: Bool = true,
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
             .init(id: 1, sequenceNumber: 2, recordsNumber: 1)
-        ])
+        ]),
+        simulateRealDevice: Bool = false
     ) -> OmronBloodPressureCuff {
         let device = OmronBloodPressureCuff()
 
@@ -192,6 +213,19 @@ extension OmronBloodPressureCuff {
 
         device.bloodPressure.$bloodPressureMeasurement.enableSubscriptions()
         device.bloodPressure.$bloodPressureMeasurement.enablePeripheralSimulation()
+
+        if simulateRealDevice {
+            device.$state.onChange { [weak device] state in
+                await device?.handleStateChange(state)
+            }
+
+            device.time.$currentTime.onChange { [weak device] value in
+                await device?.handleCurrentTimeChange(value)
+            }
+            device.battery.$batteryLevel.onChange { [weak device] value in
+                await device?.handleBatteryChange(value)
+            }
+        }
 
         return device
     }

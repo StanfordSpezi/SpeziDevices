@@ -32,13 +32,13 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.4.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", exact: "3.0.0-beta.2"),
+        .package(url: "https://github.com/apple/swift-collections", from: "1.1.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "2.0.0-beta.1"),
+        .package(url: "https://github.com/StanfordSpezi/Spezi", from: "1.7.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews", from: "1.5.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "3.0.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", .upToNextMinor(from: "0.4.12"))
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions", .upToNextMinor(from: "0.4.12"))
     ] + swiftLintPackage(),
     targets: [
         .target(
@@ -135,7 +135,7 @@ func swiftLintPlugin() -> [Target.PluginUsage] {
 
 func swiftLintPackage() -> [PackageDescription.Package.Dependency] {
     if ProcessInfo.processInfo.environment["SPEZI_DEVELOPMENT_SWIFTLINT"] != nil {
-        [.package(url: "https://github.com/realm/SwiftLint.git", .upToNextMinor(from: "0.55.1"))]
+        [.package(url: "https://github.com/realm/SwiftLint.git", from: "0.55.1")]
     } else {
         []
     }

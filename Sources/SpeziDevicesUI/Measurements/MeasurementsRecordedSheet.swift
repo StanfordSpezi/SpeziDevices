@@ -13,6 +13,28 @@ import SpeziViews
 import SwiftUI
 
 
+struct TimeSubheadline: View {
+    private let measurement: HealthKitMeasurement
+
+    var body: some View {
+        Group {
+            if Calendar.current.isDateInToday(measurement.startDate) {
+                Text("Today, \(Text(measurement.startDate, style: .time))")
+            } else {
+                Text(.now, style: .date) + Text(verbatim: ", ") + Text(.now, style: .time)
+            }
+        }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+    }
+
+    init(measurement: HealthKitMeasurement) {
+        self.measurement = measurement
+    }
+}
+
+
 /// A sheet view displaying one or many newly recorded measurements.
 ///
 /// This view retrieves the pending measurements from the [`HealthMeasurements`](https://swiftpackageindex.com/stanfordspezi/spezidevices/documentation/spezidevices/healthmeasurements)
@@ -54,6 +76,9 @@ public struct MeasurementsRecordedSheet: View {
                         Text("Measurement Recorded")
                             .font(.title)
                             .fixedSize(horizontal: false, vertical: true)
+                        if let selectedMeasurement {
+                            TimeSubheadline(measurement: selectedMeasurement)
+                        }
                     } subtitle: {
                         EmptyView()
                     } content: {
@@ -123,11 +148,11 @@ public struct MeasurementsRecordedSheet: View {
                 return
             }
 
+            discardSelectedMeasurement(selectedMeasurement)
+
             if measurements.pendingMeasurements.isEmpty {
                 dismiss()
             }
-
-            discardSelectedMeasurement(selectedMeasurement)
         }
     }
 

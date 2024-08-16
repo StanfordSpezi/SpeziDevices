@@ -16,13 +16,17 @@ import XCTest
 final class HealthMeasurementsTests: XCTestCase {
     @MainActor
     func testReceivingWeightMeasurements() async throws {
-        let device = MockDevice.createMockDevice(weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
+        let device = MockDevice.createMockDevice(state: .connecting, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
         // just inject the same value again to trigger on change!
         let measurement = try XCTUnwrap(device.weightScale.weightMeasurement)
+        device.weightScale.$weightMeasurement.inject(measurement) // first measurement should be ignored in connecting state!
+
+        try await Task.sleep(for: .milliseconds(50))
+        device.$state.inject(.connected)
         device.weightScale.$weightMeasurement.inject(measurement)
 
         try await Task.sleep(for: .milliseconds(50))
@@ -64,7 +68,7 @@ final class HealthMeasurementsTests: XCTestCase {
 
     @MainActor
     func testReceivingBloodPressureMeasurements() async throws {
-        let device = MockDevice.createMockDevice()
+        let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
@@ -141,7 +145,7 @@ final class HealthMeasurementsTests: XCTestCase {
 
     @MainActor
     func testDiscardingMeasurements() async throws {
-        let device = MockDevice.createMockDevice()
+        let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)

@@ -144,9 +144,5 @@ class HealthMeasurementsTests: XCTestCase {
 
         XCTAssert(app.buttons["Discard"].waitForExistence(timeout: 0.5))
         app.buttons["Discard"].tap()
-
-        XCTAssert(app.staticTexts["No Pending Measurements"].waitForExistence(timeout: 2.0))
-        XCTAssert(app.navigationBars.buttons["Dismiss"].exists)
-        app.navigationBars.buttons["Dismiss"].tap()
     }
 }

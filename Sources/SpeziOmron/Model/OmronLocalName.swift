@@ -13,6 +13,9 @@ import RegexBuilder
 ///
 /// The local name is part of the advertisement sent by a Omron device.
 /// It includes additional information about the device.
+///
+/// A local name typically starts with the `BLESmart_` prefix, followed by 4 bytes of model identifier and 6 bytes of the Bluetooth Mac Address.
+/// However, if the `s` is lowercase in `BLEsmart_`, the device signals that it is advertising in pairing mode.
 public struct OmronLocalName {
     /// The pairing mode derived from the local name.
     public enum PairingMode {

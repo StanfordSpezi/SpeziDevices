@@ -85,7 +85,15 @@ extension BloodPressureMeasurement {
 extension HKCorrelation {
     /// Retrieve a mock blood pressure sample.
     @_spi(TestingSupport) public static var mockBloodPressureSample: HKCorrelation {
-        let measurement = BloodPressureMeasurement(systolic: 117, diastolic: 76, meanArterialPressure: 67, unit: .mmHg, pulseRate: 68)
+        let dateTime = DateTime(from: .now)
+        let measurement = BloodPressureMeasurement(
+            systolic: 117,
+            diastolic: 76,
+            meanArterialPressure: 67,
+            unit: .mmHg,
+            timeStamp: dateTime,
+            pulseRate: 68
+        )
         guard let sample = measurement.bloodPressureSample(source: nil) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")
         }
@@ -96,7 +104,15 @@ extension HKCorrelation {
 extension HKQuantitySample {
     /// Retrieve a mock heart rate sample.
     @_spi(TestingSupport) public static var mockHeartRateSample: HKQuantitySample {
-        let measurement = BloodPressureMeasurement(systolic: 117, diastolic: 76, meanArterialPressure: 67, unit: .mmHg, pulseRate: 68)
+        let dateTime = DateTime(from: .now)
+        let measurement = BloodPressureMeasurement(
+            systolic: 117,
+            diastolic: 76,
+            meanArterialPressure: 67,
+            unit: .mmHg,
+            timeStamp: dateTime,
+            pulseRate: 68
+        )
         guard let sample = measurement.heartRateSample(source: nil) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")
         }
