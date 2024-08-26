@@ -36,7 +36,13 @@ struct DevicesTestView: View {
     @State private var didRegister = false
     @State private var device = MockDevice.createMockDevice()
     @State private var weightScale = OmronWeightScale.createMockDevice(manufacturerData: .omronManufacturerData(mode: .transferMode))
-    @State private var bloodPressureCuff = OmronBloodPressureCuff.createMockDevice(manufacturerData: .omronManufacturerData(mode: .transferMode))
+    @State private var bloodPressureCuffBP5250 = OmronBloodPressureCuff.createMockDevice(
+        manufacturerData: .omronManufacturerData(mode: .transferMode)
+    )
+    @State private var bloodPressureCuffBP7000 = OmronBloodPressureCuff.createMockDevice(
+        name: "BP7000",
+        manufacturerData: .omronManufacturerData(mode: .transferMode)
+    )
 
     @State private var viewState: ViewState = .idle
 
@@ -52,14 +58,16 @@ struct DevicesTestView: View {
                         AsyncButton(state: $viewState) {
                             try await device.connect()
                             try await weightScale.connect()
-                            try await bloodPressureCuff.connect()
+                            try await bloodPressureCuffBP5250.connect()
+                            try await bloodPressureCuffBP7000.connect()
                         } label: {
                             Label("Connect", systemImage: "cable.connector")
                         }
                         AsyncButton {
                             await device.disconnect()
                             await weightScale.disconnect()
-                            await bloodPressureCuff.disconnect()
+                            await bloodPressureCuffBP5250.disconnect()
+                            await bloodPressureCuffBP7000.disconnect()
                         } label: {
                             Label("Disconnect", systemImage: "cable.connector.slash")
                         }
@@ -70,10 +78,18 @@ struct DevicesTestView: View {
                                     manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
                                 ))
                             }
-                            Button("Discovery Blood Pressure Cuff", systemImage: "heart.fill") {
-                                bloodPressureCuff.$advertisementData.inject(AdvertisementData(
-                                    manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                ))
+                            Menu("Discover Blood Pressure Cuff", systemImage: "heart.fill") {
+                                Button("BP 5250") {
+                                    bloodPressureCuffBP5250.$advertisementData.inject(AdvertisementData(
+                                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                                    ))
+                                }
+
+                                Button("BP 7000") {
+                                    bloodPressureCuffBP7000.$advertisementData.inject(AdvertisementData(
+                                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                                    ))
+                                }
                             }
                         }
                     }
@@ -87,16 +103,23 @@ struct DevicesTestView: View {
 
                 moduleLoading.loadMockDevice(device)
                 moduleLoading.loadMockDevice(weightScale)
-                moduleLoading.loadMockDevice(bloodPressureCuff)
+                moduleLoading.loadMockDevice(bloodPressureCuffBP5250)
+                moduleLoading.loadMockDevice(bloodPressureCuffBP7000)
 
                 // simulator this being called in the configure method of the device
                 pairedDevices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
                 pairedDevices.configure(device: weightScale, accessing: weightScale.$state, weightScale.$advertisementData, weightScale.$nearby)
                 pairedDevices.configure(
-                    device: bloodPressureCuff,
-                    accessing: bloodPressureCuff.$state,
-                    bloodPressureCuff.$advertisementData,
-                    bloodPressureCuff.$nearby
+                    device: bloodPressureCuffBP5250,
+                    accessing: bloodPressureCuffBP5250.$state,
+                    bloodPressureCuffBP5250.$advertisementData,
+                    bloodPressureCuffBP5250.$nearby
+                )
+                pairedDevices.configure(
+                    device: bloodPressureCuffBP7000,
+                    accessing: bloodPressureCuffBP7000.$state,
+                    bloodPressureCuffBP7000.$advertisementData,
+                    bloodPressureCuffBP7000.$nearby
                 )
                 didRegister = true
             }
