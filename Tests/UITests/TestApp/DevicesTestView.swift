@@ -46,53 +46,61 @@ struct DevicesTestView: View {
 
     @State private var viewState: ViewState = .idle
 
+    @ToolbarContentBuilder @MainActor private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .secondaryAction) {
+            Button("Discover Device", systemImage: "plus.rectangle.fill.on.rectangle.fill") {
+                device.isInPairingMode = true
+                device.$advertisementData.inject(AdvertisementData()) // trigger onChange advertisement
+            }
+            AsyncButton(state: $viewState) {
+                try await device.connect()
+                try await weightScale.connect()
+                try await bloodPressureCuffBP5250.connect()
+                try await bloodPressureCuffBP7000.connect()
+            } label: {
+                Label("Connect", systemImage: "cable.connector")
+            }
+            AsyncButton {
+                await device.disconnect()
+                await weightScale.disconnect()
+                await bloodPressureCuffBP5250.disconnect()
+                await bloodPressureCuffBP7000.disconnect()
+            } label: {
+                Label("Disconnect", systemImage: "cable.connector.slash")
+            }
+
+            omronDevicesMenu
+        }
+    }
+
+    @MainActor private var omronDevicesMenu: some View {
+        Menu("Omron Devices", systemImage: "heart.text.square") {
+            Button("Discover Weight Scale", systemImage: "scalemass.fill") {
+                weightScale.$advertisementData.inject(AdvertisementData(
+                    manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                ))
+            }
+            Menu("Discover Blood Pressure Cuff", systemImage: "heart.fill") {
+                Button("BP 5250") {
+                    bloodPressureCuffBP5250.$advertisementData.inject(AdvertisementData(
+                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                    ))
+                }
+
+                Button("BP 7000") {
+                    bloodPressureCuffBP7000.$advertisementData.inject(AdvertisementData(
+                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
+                    ))
+                }
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             DevicesView(appName: "Example", pairingHint: "Enable pairing mode on the device.")
                 .toolbar {
-                    ToolbarItemGroup(placement: .secondaryAction) {
-                        Button("Discover Device", systemImage: "plus.rectangle.fill.on.rectangle.fill") {
-                            device.isInPairingMode = true
-                            device.$advertisementData.inject(AdvertisementData()) // trigger onChange advertisement
-                        }
-                        AsyncButton(state: $viewState) {
-                            try await device.connect()
-                            try await weightScale.connect()
-                            try await bloodPressureCuffBP5250.connect()
-                            try await bloodPressureCuffBP7000.connect()
-                        } label: {
-                            Label("Connect", systemImage: "cable.connector")
-                        }
-                        AsyncButton {
-                            await device.disconnect()
-                            await weightScale.disconnect()
-                            await bloodPressureCuffBP5250.disconnect()
-                            await bloodPressureCuffBP7000.disconnect()
-                        } label: {
-                            Label("Disconnect", systemImage: "cable.connector.slash")
-                        }
-
-                        Menu("Omron Devices", systemImage: "heart.text.square") {
-                            Button("Discover Weight Scale", systemImage: "scalemass.fill") {
-                                weightScale.$advertisementData.inject(AdvertisementData(
-                                    manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                ))
-                            }
-                            Menu("Discover Blood Pressure Cuff", systemImage: "heart.fill") {
-                                Button("BP 5250") {
-                                    bloodPressureCuffBP5250.$advertisementData.inject(AdvertisementData(
-                                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                    ))
-                                }
-
-                                Button("BP 7000") {
-                                    bloodPressureCuffBP7000.$advertisementData.inject(AdvertisementData(
-                                        manufacturerData: OmronManufacturerData.omronManufacturerData(mode: .pairingMode).encode()
-                                    ))
-                                }
-                            }
-                        }
-                    }
+                    toolbarContent
                 }
         }
             .viewStateAlert(state: $viewState)
