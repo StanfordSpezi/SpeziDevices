@@ -90,7 +90,7 @@ import SwiftUI
 /// - ``isConnected(device:)``
 /// - ``updateName(for:name:)``
 @Observable
-public final class PairedDevices: @unchecked Sendable {
+public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var shouldPresentDevicePairing = false
 
@@ -120,7 +120,7 @@ public final class PairedDevices: @unchecked Sendable {
     @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
     @Dependency(ConfigureTipKit.self) @ObservationIgnored private var tipKit
 
-    private var modelContainer: ModelContainer?
+    @MainActor private var modelContainer: ModelContainer?
 
     /// Determine if Bluetooth is scanning to discovery nearby devices.
     ///
@@ -142,6 +142,7 @@ public final class PairedDevices: @unchecked Sendable {
 
     /// Configures the Module.
     @_documentation(visibility: internal)
+    @MainActor
     public func configure() {
         if bluetooth == nil {
             self.logger.warning("PairedDevices Module initialized without Bluetooth dependency!")
@@ -363,7 +364,7 @@ public final class PairedDevices: @unchecked Sendable {
 }
 
 
-extension PairedDevices: Module, EnvironmentAccessible, DefaultInitializable {}
+extension PairedDevices: Module, EnvironmentAccessible, DefaultInitializable, @unchecked Sendable {}
 
 // MARK: - Device Pairing
 

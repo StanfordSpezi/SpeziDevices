@@ -135,6 +135,7 @@ extension OmronBloodPressureCuff {
         systolic: MedFloat16 = 103,
         diastolic: MedFloat16 = 64,
         pulseRate: MedFloat16 = 62,
+        name: String = "BP5250",
         state: PeripheralState = .disconnected,
         nearby: Bool = true,
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
@@ -145,7 +146,7 @@ extension OmronBloodPressureCuff {
         let device = OmronBloodPressureCuff()
 
         device.$id.inject(UUID())
-        device.$name.inject("BP5250")
+        device.$name.inject(name)
         device.$state.inject(state)
         device.$nearby.inject(nearby)
 
