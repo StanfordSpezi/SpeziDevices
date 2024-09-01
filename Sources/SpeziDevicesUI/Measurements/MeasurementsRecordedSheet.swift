@@ -65,7 +65,7 @@ public struct MeasurementsRecordedSheet: View {
     public var body: some View {
         NavigationStack {
             Group {
-                if measurements.pendingMeasurements.isEmpty {
+                if measurements.pendingMeasurements.isEmpty && selectedMeasurement == nil {
                     ContentUnavailableView(
                         "No Pending Measurements",
                         systemImage: "heart.text.square",
@@ -120,7 +120,7 @@ public struct MeasurementsRecordedSheet: View {
             }
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
-        } else if let measurement = measurements.pendingMeasurements.first {
+        } else if let measurement = selectedMeasurement {
             MeasurementLayer(measurement: measurement)
         }
     }
@@ -165,10 +165,13 @@ public struct MeasurementsRecordedSheet: View {
         }
 
         measurements.discardMeasurement(measurement)
-        if index >= measurements.pendingMeasurements.count {
-            selectedMeasurement = measurements.pendingMeasurements.last
-        } else {
+
+        if index < measurements.pendingMeasurements.count {
             selectedMeasurement = measurements.pendingMeasurements[index]
+        } else if let last = measurements.pendingMeasurements.last {
+            // we do not set `selectedMeasurement` to nil if we are discarding the last measurement to have the
+            // last measurement still display when the sheet is in its dismiss animation.
+            selectedMeasurement = last
         }
 
         if measurements.pendingMeasurements.isEmpty {
@@ -180,8 +183,9 @@ public struct MeasurementsRecordedSheet: View {
 
 #if DEBUG
 #Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
+    @State var isPresented = true
+    return Text(verbatim: "")
+        .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
@@ -192,8 +196,9 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
+    @State var isPresented = true
+    return Text(verbatim: "")
+        .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
@@ -204,8 +209,9 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
+    @State var isPresented = true
+    return Text(verbatim: "")
+        .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
@@ -216,8 +222,9 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
+    @State var isPresented = true
+    return Text(verbatim: "")
+        .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
@@ -232,8 +239,9 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    Text(verbatim: "")
-        .sheet(isPresented: .constant(true)) {
+    @State var isPresented = true
+    return Text(verbatim: "")
+        .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
                 print("Saving samples \(samples)")
             }
