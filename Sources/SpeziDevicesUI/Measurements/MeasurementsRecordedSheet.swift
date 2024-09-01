@@ -140,7 +140,6 @@ public struct MeasurementsRecordedSheet: View {
 
 
             logger.info("Saved measurement: \(String(describing: selectedMeasurement))")
-            dismiss()
 
             discardSelectedMeasurement(selectedMeasurement)
         } discard: {
@@ -149,10 +148,6 @@ public struct MeasurementsRecordedSheet: View {
             }
 
             discardSelectedMeasurement(selectedMeasurement)
-
-            if measurements.pendingMeasurements.isEmpty {
-                dismiss()
-            }
         }
     }
 
@@ -174,6 +169,10 @@ public struct MeasurementsRecordedSheet: View {
             selectedMeasurement = measurements.pendingMeasurements.last
         } else {
             selectedMeasurement = measurements.pendingMeasurements[index]
+        }
+
+        if measurements.pendingMeasurements.isEmpty {
+            dismiss()
         }
     }
 }
