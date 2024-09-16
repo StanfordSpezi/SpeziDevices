@@ -107,6 +107,7 @@ extension OmronWeightScale {
     ///   - state: The initial state.
     ///   - nearby: The nearby state.
     ///   - manufacturerData: The initial manufacturer data.
+    ///   - timeStamp: The timestamp of the latest measurement.
     ///   - simulateRealDevice: If `true`, the real onChange handlers with be set up with the mock device.
     /// - Returns: Returns the mock device instance.
     public static func createMockDevice( // swiftlint:disable:this function_body_length
@@ -117,6 +118,7 @@ extension OmronWeightScale {
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
             .init(id: 1, sequenceNumber: 2, recordsNumber: 1)
         ]),
+        timeStamp: DateTime = DateTime(year: 2024, month: .june, day: 5, hours: 12, minutes: 33, seconds: 11),
         simulateRealDevice: Bool = false
     ) -> OmronWeightScale {
         let device = OmronWeightScale()
@@ -140,7 +142,8 @@ extension OmronWeightScale {
 
         let measurement = WeightMeasurement(
             weight: weight,
-            unit: .si
+            unit: .si,
+            timeStamp: timeStamp
         )
 
         device.weightScale.$features.inject(features)
