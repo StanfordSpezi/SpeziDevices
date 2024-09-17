@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 
 //
 // This source file is part of the Stanford SpeziDevices open source project
@@ -10,13 +10,6 @@
 
 import class Foundation.ProcessInfo
 import PackageDescription
-
-
-#if swift(<6)
-let swiftConcurrency: SwiftSetting = .enableExperimentalFeature("StrictConcurrency")
-#else
-let swiftConcurrency: SwiftSetting = .enableUpcomingFeature("StrictConcurrency")
-#endif
 
 
 let package = Package(
@@ -32,13 +25,13 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-collections", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "2.0.0-beta.1"),
-        .package(url: "https://github.com/StanfordSpezi/Spezi", from: "1.7.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "3.0.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions", from: "1.0.0")
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation.git", from: "2.0.0-beta.1"),
+        .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.7.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", from: "3.0.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking.git", from: "2.1.1"),
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", from: "1.0.0")
     ] + swiftLintPackage(),
     targets: [
         .target(
@@ -50,10 +43,6 @@ let package = Package(
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "SpeziViews", package: "SpeziViews"),
                 .product(name: "Spezi", package: "Spezi")
-            ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -68,10 +57,6 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
-            ],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
@@ -83,10 +68,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -100,10 +81,6 @@ let package = Package(
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
-            ],
             plugins: [] + swiftLintPlugin()
         ),
         .testTarget(
@@ -113,10 +90,6 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "XCTByteCoding", package: "SpeziNetworking"),
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
-            ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         )

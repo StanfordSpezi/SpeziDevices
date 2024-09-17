@@ -129,6 +129,7 @@ extension OmronBloodPressureCuff {
     ///   - state: The initial state.
     ///   - nearby: The nearby state.
     ///   - manufacturerData: The initial manufacturer data.
+    ///   - timeStamp: The timestamp of the latest measurement.
     ///   - simulateRealDevice: If `true`, the real onChange handlers with be set up with the mock device.
     /// - Returns: Returns the mock device instance.
     public static func createMockDevice( // swiftlint:disable:this function_body_length
@@ -141,6 +142,7 @@ extension OmronBloodPressureCuff {
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
             .init(id: 1, sequenceNumber: 2, recordsNumber: 1)
         ]),
+        timeStamp: DateTime = DateTime(year: 2024, month: .june, day: 5, hours: 12, minutes: 33, seconds: 11),
         simulateRealDevice: Bool = false
     ) -> OmronBloodPressureCuff {
         let device = OmronBloodPressureCuff()
@@ -167,7 +169,7 @@ extension OmronBloodPressureCuff {
             diastolic: diastolic,
             meanArterialPressure: 77,
             unit: .mmHg,
-            timeStamp: DateTime(year: 2024, month: .june, day: 5, hours: 12, minutes: 33, seconds: 11),
+            timeStamp: timeStamp,
             pulseRate: pulseRate,
             userId: 1,
             measurementStatus: []

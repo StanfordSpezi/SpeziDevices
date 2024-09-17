@@ -246,8 +246,4 @@ final class SpeziOmronTests: XCTestCase {
 }
 
 
-#if compiler(<6)
-extension SpeziDevices.MockDevice: SpeziOmron.OmronHealthDevice {}
-#else
-extension MockDevice: @retroactive OmronHealthDevice {}
-#endif
+extension MockDevice: OmronHealthDevice {}
