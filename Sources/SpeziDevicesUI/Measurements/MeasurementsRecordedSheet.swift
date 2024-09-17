@@ -183,7 +183,7 @@ public struct MeasurementsRecordedSheet: View {
 
 #if DEBUG
 #Preview {
-    @State var isPresented = true
+    @State @Previewable var isPresented = true
     return Text(verbatim: "")
         .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
@@ -196,7 +196,7 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    @State var isPresented = true
+    @State @Previewable var isPresented = true
     return Text(verbatim: "")
         .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
@@ -209,7 +209,7 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    @State var isPresented = true
+    @State @Previewable var isPresented = true
     return Text(verbatim: "")
         .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
@@ -222,7 +222,7 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    @State var isPresented = true
+    @State @Previewable var isPresented = true
     return Text(verbatim: "")
         .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in
@@ -239,7 +239,7 @@ public struct MeasurementsRecordedSheet: View {
 }
 
 #Preview {
-    @State var isPresented = true
+    @State @Previewable var isPresented = true
     return Text(verbatim: "")
         .sheet(isPresented: $isPresented) {
             MeasurementsRecordedSheet { samples in

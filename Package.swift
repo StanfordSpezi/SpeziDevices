@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 
 //
 // This source file is part of the Stanford SpeziDevices open source project
@@ -10,13 +10,6 @@
 
 import class Foundation.ProcessInfo
 import PackageDescription
-
-
-#if swift(<6)
-let swiftConcurrency: SwiftSetting = .enableExperimentalFeature("StrictConcurrency")
-#else
-let swiftConcurrency: SwiftSetting = .enableUpcomingFeature("StrictConcurrency")
-#endif
 
 
 let package = Package(
@@ -51,10 +44,6 @@ let package = Package(
                 .product(name: "SpeziViews", package: "SpeziViews"),
                 .product(name: "Spezi", package: "Spezi")
             ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
-            ],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
@@ -68,10 +57,6 @@ let package = Package(
             resources: [
                 .process("Resources")
             ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
-            ],
             plugins: [] + swiftLintPlugin()
         ),
         .target(
@@ -83,10 +68,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -100,10 +81,6 @@ let package = Package(
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
             ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
-            ],
             plugins: [] + swiftLintPlugin()
         ),
         .testTarget(
@@ -113,10 +90,6 @@ let package = Package(
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "XCTByteCoding", package: "SpeziNetworking"),
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")
-            ],
-            swiftSettings: [
-                swiftConcurrency,
-                .enableUpcomingFeature("InferSendableFromCaptures")
             ],
             plugins: [] + swiftLintPlugin()
         )
