@@ -334,10 +334,22 @@ extension HealthMeasurements {
     /// Call in preview simulator wrappers.
     ///
     /// Loads a mock measurement to display in preview.
+    /// - Parameters:
+    ///   - weightMeasurement: The weight measurement that should be loaded.
+    ///   - weightResolution: The weight resolution to use.
+    ///   - heightResolution: The height resolution to use.
     @_spi(TestingSupport)
     @MainActor
-    public func loadMockWeightMeasurement() {
-        let device = MockDevice.createMockDevice()
+    public func loadMockWeightMeasurement(
+        weightMeasurement: WeightMeasurement = .mock(),
+        weightResolution: WeightScaleFeature.WeightResolution = .resolution5g,
+        heightResolution: WeightScaleFeature.HeightResolution = .resolution1mm
+    ) {
+        let device = MockDevice.createMockDevice(
+            weightMeasurement: weightMeasurement,
+            weightResolution: weightResolution,
+            heightResolution: heightResolution
+        )
 
         guard let measurement = device.weightScale.weightMeasurement else {
             preconditionFailure("Mock Weight Measurement was never injected!")
@@ -349,10 +361,11 @@ extension HealthMeasurements {
     /// Call in preview simulator wrappers.
     ///
     /// Loads a mock measurement to display in preview.
+    /// - Parameter bloodPressureMeasurement: The blood pressure measurement that should be loaded.
     @_spi(TestingSupport)
     @MainActor
-    public func loadMockBloodPressureMeasurement() {
-        let device = MockDevice.createMockDevice()
+    public func loadMockBloodPressureMeasurement(bloodPressureMeasurement: BloodPressureMeasurement = .mock()) {
+        let device = MockDevice.createMockDevice(bloodPressureMeasurement: bloodPressureMeasurement)
 
         guard let measurement = device.bloodPressure.bloodPressureMeasurement else {
             preconditionFailure("Mock Blood Pressure Measurement was never injected!")
