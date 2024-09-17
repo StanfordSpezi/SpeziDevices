@@ -32,13 +32,13 @@ let package = Package(
         .library(name: "SpeziOmron", targets: ["SpeziOmron"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-collections", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation", from: "2.0.0-beta.1"),
-        .package(url: "https://github.com/StanfordSpezi/Spezi", from: "1.7.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziViews", from: "1.5.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth", from: "3.0.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking", from: "2.1.1"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions", from: "1.0.0")
+        .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation.git", from: "2.0.0-beta.1"),
+        .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.7.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.5.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", from: "3.0.1"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking.git", from: "2.1.1"),
+        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", from: "1.0.0")
     ] + swiftLintPackage(),
     targets: [
         .target(
