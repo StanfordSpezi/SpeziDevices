@@ -33,16 +33,6 @@ jobs:
       scheme: TestApp
       resultBundle: TestApp-iOS.xcresult
       artifactname: TestApp-iOS.xcresult
-  codeql:
-    name: CodeQL
-    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
-    with:
-      codeql: true
-      test: false
-      scheme: SpeziDevices-Package
-    permissions:
-      security-events: write
-      actions: read
   uploadcoveragereport:
     name: Upload Coverage Report
     needs: [packageios, ios]
