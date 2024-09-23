@@ -216,7 +216,7 @@ public final class PairedDevices {
     }
 
     @MainActor
-    func didEnabledDeviceDiscovery() {
+    func didEnabledDeviceDiscovery() { // TODO: move to accessory setup kit?
         if #available(iOS 18, *) {
             guard let bluetooth else {
                 return
@@ -226,6 +226,7 @@ public final class PairedDevices {
                 guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type else {
                     return
                 }
+                // TODO: we would also need to include the name in the descriptor!
                 partialResult.append(contentsOf: pairableDevice.assets.map { $0.pickerDisplayItem(for: descriptor.discoveryCriteria) })
             }
 
@@ -643,6 +644,8 @@ extension PairedDevices {
     @MainActor
     private func setupAccessoryChangeSubscription() {
         // TODO: not strictly necessary to register here? => slightly delay session activate init in the configure()?
+
+        // TODO: revert detached once possible!
         Task.detached { @Sendable @MainActor [weak self] in
             guard let changes = self?.accessorySetup.accessoryChanges else {
                 return

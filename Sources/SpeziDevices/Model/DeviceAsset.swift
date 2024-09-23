@@ -61,6 +61,7 @@ extension DeviceAsset {
         }
 
         let descriptor = discovery.discoveryDescriptor
+        descriptor.supportedOptions = .bluetoothPairingLE // TODO: does that help?
 
         return ASPickerDisplayItem(name: name, productImage: image, descriptor: descriptor)
     }

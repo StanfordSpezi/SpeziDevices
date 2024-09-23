@@ -107,7 +107,7 @@ public struct DeviceDetailsView: View {
             .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
                 AsyncButton("Forget Device", state: $viewState) {
                     try await pairedDevices.forgetDevice(id: deviceInfo.id)
-                    ForgetDeviceTip.hasRemovedPairedDevice = true
+                    ForgetDeviceTip.hasRemovedPairedDevice = true // TODO: do not show for accessory setup kit!
                     dismiss()
                 }
                 Button("Cancel", role: .cancel) {}
