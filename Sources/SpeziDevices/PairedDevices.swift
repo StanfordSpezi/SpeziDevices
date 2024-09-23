@@ -643,8 +643,15 @@ extension PairedDevices {
     @MainActor
     private func setupAccessoryChangeSubscription() {
         // TODO: not strictly necessary to register here? => slightly delay session activate init in the configure()?
-        Task { @MainActor in
-            for await change in accessorySetup.accessoryChanges {
+        Task.detached { @Sendable @MainActor [weak self] in
+            guard let changes = self?.accessorySetup.accessoryChanges else {
+                return
+            }
+
+            for await change in changes {
+                guard let self else {
+                    break
+                }
                 print("We received a change \(change)") // TODO: we need to register the change befor
 
                 switch change { // TODO: is that a good model, we could easily check for bluetoothIdentifier once?
