@@ -265,7 +265,9 @@ public final class PairedDevices {
         logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
 
-        renameAccessory(for: deviceInfo.id, name: name)
+        if #available(iOS 18, *) {
+            renameAccessory(for: deviceInfo.id, name: name)
+        }
     }
 
     /// Configure a device to be managed by this PairedDevices instance.
@@ -718,7 +720,7 @@ extension PairedDevices {
             return
         }
 
-        // TODO: how does the rename work?
+        // TODO: howfeature/accessory-setup-kit does the rename work?
         Task {
             do {
                 try await accessorySetup.renameAccessory(accessory) // TODO: what does that trigger?
