@@ -28,11 +28,13 @@ public struct DevicesView<PairingHint: View>: View {
             .navigationTitle("Devices")
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
+        /*
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
                 AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName) {
                     pairingHint
                 }
             }
+        */
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     // indicate that we are scanning in the background

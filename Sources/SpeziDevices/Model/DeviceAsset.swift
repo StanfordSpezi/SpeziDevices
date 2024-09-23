@@ -9,7 +9,7 @@
 
 /// Description of a asset for a device.
 public struct DeviceAsset {
-    enum DeviceDescriptor {
+    enum DeviceDescriptor { // TODO: share that with DiscoveryDescriptor!
         case name(_ substring: String, isSubstring: Bool)
     }
 
@@ -33,6 +33,28 @@ public struct DeviceAsset {
                 ? device.name?.hasPrefix(substring) == true
                 : device.name == substring
         }
+    }
+}
+
+
+import AccessorySetupKit
+import SpeziBluetooth
+@available(iOS 18, *)
+extension DeviceAsset {
+    func pickerDisplayItem(for discovery: DiscoveryCriteria) -> ASPickerDisplayItem {
+        let name = switch descriptor {
+        case let .name(name, _):
+            // TODO: this is used to match the name of the device and doesn't provide a name!
+            name // TODO: substring doesn't make sense!
+        }
+
+        guard let image = asset.uiImage ?? UIImage(systemName: "sensor") else {
+            preconditionFailure("Failed to retrieve 'sensor' system image.")
+        }
+
+        let descriptor = discovery.discoveryDescriptor
+
+        return ASPickerDisplayItem(name: name, productImage: image, descriptor: descriptor)
     }
 }
 

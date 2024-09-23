@@ -10,6 +10,48 @@
 import SpeziViews
 import SwiftUI
 
+@available(iOS 18, macOS 15, tvOS 18, visionOS 2, watchOS 11, *) // TODO: unecessary!
+struct TimerIntervalLabel: View {
+    private let date: Date
+
+    var body: some View {
+        if Calendar.current.isDateInToday(date) {
+            Text(
+                .currentDate,
+                format: SystemFormatStyle.DateReference(
+                    to: date,
+                    allowedFields: [.year, .month, .day, .hour, .minute, .second],
+                    maxFieldCount: 2,
+                    thresholdField: .day
+                )
+            )
+        } else if Calendar.current.isDateInYesterday(date) {
+            Text("yesterday, \(Text(date, style: .time))")
+        } else {
+            Text("\(Text(date, format: Date.FormatStyle(date: .complete))), \(Text(date, style: .time))")
+        }
+    }
+
+    init(_ date: Date) {
+        self.date = date
+    }
+}
+
+#Preview {
+    if #available(iOS 18, *) {
+        TimerIntervalLabel(Date.now.addingTimeInterval(-45)) // seconds
+        TimerIntervalLabel(Date.now.addingTimeInterval(-2 * 60)) // minutes
+        TimerIntervalLabel(Date.now.addingTimeInterval(-8 * 60 * 60)) // hours
+        TimerIntervalLabel(Date.now.addingTimeInterval(-1 * 24 * 60 * 60)) // yesterday
+        TimerIntervalLabel(Date.now.addingTimeInterval(-8 * 24 * 60 * 60)) // days
+        TimerIntervalLabel(.now.addingTimeInterval(-25 * 24 * 60 * 60)) // weeks
+        TimerIntervalLabel(.now.addingTimeInterval(-31 * 24 * 60 * 60)) // months
+
+    } else {
+        // Fallback on earlier versions
+    }
+}
+
 
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
@@ -108,6 +150,7 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
+            lastSeen: .now.addingTimeInterval(-120),
             batteryPercentage: 100
         ))
     }

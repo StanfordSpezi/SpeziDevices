@@ -15,6 +15,9 @@ import SpeziViews
 import SwiftData
 import SwiftUI
 
+// TODO: remove
+import AccessorySetupKit
+
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
 ///
@@ -92,7 +95,13 @@ import SwiftUI
 @Observable
 public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
-    @MainActor public var shouldPresentDevicePairing = false
+    @MainActor public var shouldPresentDevicePairing = false {
+        didSet {
+            if shouldPresentDevicePairing {
+                didEnabledDeviceDiscovery()
+            }
+        }
+    }
 
     /// Collection of discovered devices indexed by their Bluetooth identifier.
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
@@ -120,6 +129,15 @@ public final class PairedDevices {
     @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
     @Dependency(ConfigureTipKit.self) @ObservationIgnored private var tipKit
 
+    @Dependency @ObservationIgnored private var _accessorySetup: [any Module]
+    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit {
+        // we cannot have stored properties with @available declaration. Therefore, we add a level of indirection.
+        guard let module = _accessorySetup.first as? AccessorySetupKit else {
+            preconditionFailure("\(AccessorySetupKit.self) was not injected into dependency tree.")
+        }
+        return module
+    }
+
     @MainActor private var modelContainer: ModelContainer?
 
     /// Determine if Bluetooth is scanning to discovery nearby devices.
@@ -137,7 +155,14 @@ public final class PairedDevices {
 
 
     /// Initialize the Paired Devices Module.
-    public required init() {}
+    public required init() {
+        if #available(iOS 18, *) {
+            __accessorySetup = Dependency {
+                // TODO: make an additional module to resolve below!
+                AccessorySetupKit() // TODO: explicit module loading, not great.
+            }
+        }
+    }
 
 
     /// Configures the Module.
@@ -165,7 +190,7 @@ public final class PairedDevices {
 
         // We need to detach to not copy task local values
         Task.detached { @Sendable @MainActor in
-            self.fetchAllPairedInfos()
+            self.fetchAllPairedInfos() // TODO: do immediate need to do this in a Task!
 
             self.syncDeviceIcons() // make sure assets are up to date
 
@@ -174,6 +199,40 @@ public final class PairedDevices {
             }
 
             await self.setupBluetoothStateSubscription()
+        }
+
+        if #available(iOS 18, *) {
+            // TODO: not strictly necessary to register here? => slightly delay session init in the configure()?
+            Task { @MainActor in
+                for await change in accessorySetup.accessoryChanges {
+                    print("We received a change \(change)") // TODO: we need to register the change befor
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func didEnabledDeviceDiscovery() {
+        if #available(iOS 18, *) {
+            guard let bluetooth else {
+                return
+            }
+
+            let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
+                guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type else {
+                    return
+                }
+                partialResult.append(contentsOf: pairableDevice.assets.map { $0.pickerDisplayItem(for: descriptor.discoveryCriteria) })
+            }
+
+            Task {
+                do {
+                    try await accessorySetup.showPicker(for: displayItems)
+                    print("Completed picker!")
+                } catch {
+                    print("Picker failed: \(error)")
+                }
+            }
         }
     }
 
