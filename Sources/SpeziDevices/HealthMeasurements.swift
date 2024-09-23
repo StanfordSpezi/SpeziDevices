@@ -162,7 +162,7 @@ public final class HealthMeasurements: @unchecked Sendable {
                 logger.debug("Ignored weight measurement that was received while connecting: \(String(describing: measurement))")
                 return
             }
-            
+
             let service = device[keyPath: keyPath]
             logger.debug("Received new weight measurement: \(String(describing: measurement))")
             handleNewMeasurement(.weight(measurement, service.features ?? []), from: device.hkDevice)

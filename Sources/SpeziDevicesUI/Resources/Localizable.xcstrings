@@ -17,6 +17,16 @@
         }
       }
     },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
     "%@, Searching" : {
       "localizations" : {
         "de" : {
@@ -880,6 +890,9 @@
           }
         }
       }
+    },
+    "yesterday, %@" : {
+
     }
   },
   "version" : "1.0"

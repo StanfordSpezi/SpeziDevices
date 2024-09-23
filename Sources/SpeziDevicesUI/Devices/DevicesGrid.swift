@@ -62,6 +62,7 @@ public struct DevicesGrid: View {
                 ProgressView()
             }
         }
+            // TODO: this is a problem when this view is presented inside a
             .navigationDestination(item: $detailedDeviceInfo) { deviceInfo in
                 DeviceDetailsView(deviceInfo)
             }
