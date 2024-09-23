@@ -26,6 +26,14 @@ public struct DeviceAsset {
         }
     }
 
+    func matches(name: String) -> Bool { // TODO: not the final solution!
+        // TODO:
+        switch descriptor {
+        case .name(let name0, _):
+            name0 == name // TODO: substring!
+        }
+    }
+
     func matches(for device: some GenericDevice) -> Bool {
         switch descriptor {
         case let .name(substring, isSubstring):
@@ -78,6 +86,13 @@ extension Array where Element == DeviceAsset {
     public func firstAsset(for pairedDevice: PairedDeviceInfo) -> ImageReference? {
         first { asset in
             asset.matches(for: pairedDevice)
+        }?.asset
+    }
+
+    // TODO: not the final solution!
+    func firstAsset(name: String) -> ImageReference? {
+        first { asset in
+            asset.matches(name: name)
         }?.asset
     }
 
