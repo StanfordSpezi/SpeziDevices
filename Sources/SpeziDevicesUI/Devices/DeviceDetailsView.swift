@@ -60,6 +60,7 @@ public struct DeviceDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(PairedDevices.self) private var pairedDevices
 
+    @State private var viewState: ViewState = .idle
     @State private var presentForgetConfirmation = false
 
     private var image: Image {
@@ -104,9 +105,9 @@ public struct DeviceDetailsView: View {
             .navigationTitle("Device Details")
             .navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
-                Button("Forget Device", role: .destructive) {
+                AsyncButton("Forget Device", state: $viewState) {
+                    try await pairedDevices.forgetDevice(id: deviceInfo.id)
                     ForgetDeviceTip.hasRemovedPairedDevice = true
-                    pairedDevices.forgetDevice(id: deviceInfo.id)
                     dismiss()
                 }
                 Button("Cancel", role: .cancel) {}

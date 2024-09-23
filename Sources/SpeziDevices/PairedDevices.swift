@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import AccessorySetupKit
 import OrderedCollections
 import Spezi
 import SpeziBluetooth
@@ -15,8 +16,13 @@ import SpeziViews
 import SwiftData
 import SwiftUI
 
-// TODO: remove
-import AccessorySetupKit
+
+@available(iOS 18, *)
+private final class LoadAccessorySetupKit: Module {
+    @Dependency(AccessorySetupKit.self) var accessorySetupKit
+
+    init() {}
+}
 
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
@@ -130,12 +136,13 @@ public final class PairedDevices {
     @Dependency(ConfigureTipKit.self) @ObservationIgnored private var tipKit
 
     @Dependency @ObservationIgnored private var _accessorySetup: [any Module]
+
     @available(iOS 18, *) private var accessorySetup: AccessorySetupKit {
         // we cannot have stored properties with @available declaration. Therefore, we add a level of indirection.
-        guard let module = _accessorySetup.first as? AccessorySetupKit else {
+        guard let module = _accessorySetup.first as? LoadAccessorySetupKit else {
             preconditionFailure("\(AccessorySetupKit.self) was not injected into dependency tree.")
         }
-        return module
+        return module.accessorySetupKit
     }
 
     @MainActor private var modelContainer: ModelContainer?
@@ -144,6 +151,7 @@ public final class PairedDevices {
     ///
     /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
+        // TODO: configure if initial search should be enabled (otherwise, we cannot migrate accessory kit!)
         (pairedDevices?.isEmpty == true && !everPairedDevice) || shouldPresentDevicePairing
     }
 
@@ -158,8 +166,9 @@ public final class PairedDevices {
     public required init() {
         if #available(iOS 18, *) {
             __accessorySetup = Dependency {
-                // TODO: make an additional module to resolve below!
-                AccessorySetupKit() // TODO: explicit module loading, not great.
+                // Dynamic dependencies are always loaded independent if the module was already supplied in the environment.
+                // Therefore, we create a helper module, that loads the accessory setup kit module.
+                LoadAccessorySetupKit()
             }
         }
     }
@@ -202,12 +211,7 @@ public final class PairedDevices {
         }
 
         if #available(iOS 18, *) {
-            // TODO: not strictly necessary to register here? => slightly delay session init in the configure()?
-            Task { @MainActor in
-                for await change in accessorySetup.accessoryChanges {
-                    print("We received a change \(change)") // TODO: we need to register the change befor
-                }
-            }
+            setupAccessoryChangeSubscription()
         }
     }
 
@@ -260,6 +264,8 @@ public final class PairedDevices {
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
         logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
+
+        renameAccessory(for: deviceInfo.id, name: name)
     }
 
     /// Configure a device to be managed by this PairedDevices instance.
@@ -552,30 +558,59 @@ extension PairedDevices {
             batteryPercentage: batteryLevel
         )
 
+        assert(peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
+        peripherals[device.id] = device
+
+        persistPairedDevice(deviceInfo)
+    }
+
+    @MainActor
+    private func persistPairedDevice(_ deviceInfo: PairedDeviceInfo) {
         _pairedDevices[deviceInfo.id] = deviceInfo
         if let modelContainer {
             modelContainer.mainContext.insert(deviceInfo)
         } else {
-            logger.warning("PairedDevice \(device.label), \(device.id) could not be persisted on disk due to missing ModelContainer!")
+            logger.warning("PairedDevice \(deviceInfo.name), \(deviceInfo.id) could not be persisted on disk due to missing ModelContainer!")
         }
 
-        discoveredDevices[device.id] = nil
+        discoveredDevices[deviceInfo.id] = nil
 
-
-        assert(peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
-        peripherals[device.id] = device
-
-        self.logger.debug("Device \(device.label) with id \(device.id) is now paired!")
+        self.logger.debug("Device \(deviceInfo.name) with id \(deviceInfo.id) is now paired!")
 
         if stateSubscriptionTask == nil {
-            await setupBluetoothStateSubscription()
+            Task {
+                await setupBluetoothStateSubscription()
+            }
         }
     }
 
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
+    @available(*, deprecated, message: "Please use the async version of this method.") // TODO: really?
     public func forgetDevice(id: UUID) {
+        Task {
+            do {
+                try await forgetDevice(id: id)
+            } catch {
+                logger.error("Failed to forget device \(id): \(error)")
+            }
+        }
+    }
+
+    /// Forget a paired device.
+    /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
+    @MainActor
+    public func forgetDevice(id: UUID) async throws {
+        if #available(iOS 18, *) {
+            try await removeAccessory(for: id) // TODO: are these errors localizable?
+        }
+
+        removeDevice(id: id)
+    }
+
+    @MainActor
+    private func removeDevice(id: UUID) {
         let removed = _pairedDevices.removeValue(forKey: id)
         if let removed {
             modelContainer?.mainContext.delete(removed)
@@ -586,7 +621,7 @@ extension PairedDevices {
         let device = peripherals.removeValue(forKey: id)
 
         if let device {
-            Task {
+            Task.detached {
                 await device.disconnect()
             }
         }
@@ -594,6 +629,101 @@ extension PairedDevices {
         if _pairedDevices.isEmpty {
             Task {
                 await cancelSubscription()
+            }
+        }
+    }
+}
+
+// MARK: - Accessory Setup Kit
+
+@available(iOS 18, *)
+extension PairedDevices {
+    @MainActor
+    private func setupAccessoryChangeSubscription() {
+        // TODO: not strictly necessary to register here? => slightly delay session activate init in the configure()?
+        Task { @MainActor in
+            for await change in accessorySetup.accessoryChanges {
+                print("We received a change \(change)") // TODO: we need to register the change befor
+
+                switch change { // TODO: is that a good model, we could easily check for bluetoothIdentifier once?
+                case let .added(accessory):
+                    handledAddedAccessory(accessory)
+                case let .changed(accessory):
+                    updateAccessory(accessory)
+                case let .removed(accessory):
+                    handleRemovedAccessory(accessory)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func handledAddedAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier else {
+            return
+        }
+
+        guard let deviceType = bluetooth?.configuration.first(where: { descriptor in
+            descriptor.discoveryCriteria.discoveryDescriptor == accessory.descriptor
+        })?.deviceType as? any PairableDevice.Type else {
+            logger.error("Could not match discovery description of paired device: \(id)") // TODO: update
+            return
+        }
+        // TODO: map descriptor back to discovery criteria to retrieve the Device class!
+
+        let deviceInfo = PairedDeviceInfo(
+            id: id,
+            deviceType: deviceType.deviceTypeIdentifier,
+            name: accessory.displayName,
+            model: nil, // TODO: this needs to be queried later
+            icon: deviceType.assets.firstAsset(name: accessory.displayName) // TODO: that shouldn't be the final solution!
+            // TODO: asset should be matched by descriptor!
+        )
+
+        persistPairedDevice(deviceInfo) // TODO: we should attempt to connect first, this will connected yes, but not ideal!
+    }
+
+    @MainActor
+    private func updateAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier,
+              let pairedDevice = _pairedDevices[id] else {
+            return // unknown device or not a bluetooth device
+        }
+
+        // allow to sync back name!
+        pairedDevice.name = accessory.displayName
+    }
+
+    @MainActor
+    private func handleRemovedAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier else {
+            return
+        }
+
+        removeDevice(id: id)
+    }
+
+    @MainActor
+    private func removeAccessory(for id: UUID) async throws {
+        guard let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
+            return
+        }
+
+        try await accessorySetup.removeAccessory(accessory)
+    }
+
+    @MainActor
+    private func renameAccessory(for id: UUID, name: String) {
+        guard let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
+            return
+        }
+
+        // TODO: how does the rename work?
+        Task {
+            do {
+                try await accessorySetup.renameAccessory(accessory) // TODO: what does that trigger?
+            } catch {
+                print("Error renaming: \(error)") // TODO: update!
             }
         }
     }
@@ -663,13 +793,9 @@ extension PairedDevices {
     private func setupBluetoothStateSubscription() async {
         assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
 
-        guard let bluetooth else {
+        guard let bluetooth, stateSubscriptionTask == nil else {
             return
         }
-
-        // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
-        // such that we are notified about the bluetooth state changing.
-        await bluetooth.powerOn()
 
         self.stateSubscriptionTask = Task.detached { [weak self] in
             for await nextState in await bluetooth.stateSubscription {
@@ -679,6 +805,10 @@ extension PairedDevices {
                 await self.handleBluetoothStateChanged(nextState)
             }
         }
+
+        // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
+        // such that we are notified about the bluetooth state changing.
+        await bluetooth.powerOn()
 
         if case .poweredOn = bluetooth.state {
             await self.handleCentralPoweredOn()
