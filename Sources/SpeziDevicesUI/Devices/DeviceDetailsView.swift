@@ -106,7 +106,7 @@ public struct DeviceDetailsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
                 AsyncButton("Forget Device", state: $viewState) {
-                    try await pairedDevices.forgetDevice(id: deviceInfo.id)
+                    try await pairedDevices.forgetDevice(id: deviceInfo.id) // TODO: dismiss instantly and only show the error as a alert later on!
                     ForgetDeviceTip.hasRemovedPairedDevice = true // TODO: do not show for accessory setup kit!
                     dismiss()
                 }

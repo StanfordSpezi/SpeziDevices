@@ -24,6 +24,8 @@ private final class LoadAccessorySetupKit: Module {
     init() {}
 }
 
+// TODO: support for migration within SpeziDevices!
+
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
 ///
@@ -658,6 +660,8 @@ extension PairedDevices {
                 print("We received a change \(change)") // TODO: we need to register the change befor
 
                 switch change { // TODO: is that a good model, we could easily check for bluetoothIdentifier once?
+                case .available:
+                    break // TODO: query initial accessories?
                 case let .added(accessory):
                     handledAddedAccessory(accessory)
                 case let .changed(accessory):
