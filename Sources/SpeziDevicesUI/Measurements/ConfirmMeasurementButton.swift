@@ -55,7 +55,7 @@ struct ConfirmMeasurementButton: View {
         }
     }
 
-    init(viewState: Binding<ViewState>, confirm: @escaping @MainActor () async throws -> Void, discard: @escaping () -> Void) {
+    init(viewState: Binding<ViewState>, confirm: @MainActor @escaping () async throws -> Void, discard: @escaping () -> Void) {
         self._viewState = viewState
         self.confirm = confirm
         self.discard = discard

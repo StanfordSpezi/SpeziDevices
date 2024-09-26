@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import SpeziViews
+// TODO: remove
+/*
 
 /// Description of a asset for a device.
 public struct DeviceAsset {
@@ -27,7 +30,7 @@ public struct DeviceAsset {
     }
 
     func matches(name: String) -> Bool { // TODO: not the final solution!
-        // TODO:
+        // TODO: ??
         switch descriptor {
         case .name(let name0, _):
             name0 == name // TODO: substring!
@@ -61,7 +64,6 @@ extension DeviceAsset {
         }
 
         let descriptor = discovery.discoveryDescriptor
-        descriptor.supportedOptions = .bluetoothPairingLE // TODO: does that help?
 
         return ASPickerDisplayItem(name: name, productImage: image, descriptor: descriptor)
     }
@@ -107,3 +109,4 @@ extension Array where Element == DeviceAsset {
         }?.asset
     }
 }
+*/
