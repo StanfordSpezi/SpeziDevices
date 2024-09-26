@@ -17,14 +17,8 @@ import SwiftData
 import SwiftUI
 
 
-@available(iOS 18, *)
-private final class LoadAccessorySetupKit: Module {
-    @Dependency(AccessorySetupKit.self) var accessorySetupKit
-
-    init() {}
-}
-
-// TODO: support for migration within SpeziDevices!
+// TODO: support for migration within SpeziDevices! (maybe an alert with "Not Now"/"Migrate" buttons) if not now, have an option in settings?
+//  => is it enough to destroy any CBCentralManager instances before migration or are we never allowed to instantiate one.
 
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
@@ -103,13 +97,10 @@ private final class LoadAccessorySetupKit: Module {
 @Observable
 public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
-    @MainActor public var shouldPresentDevicePairing = false {
-        didSet {
-            if shouldPresentDevicePairing { // TODO: weird way to do that!
-                didEnabledDeviceDiscovery()
-            }
-        }
-    }
+    ///
+    /// This property is never set to true if the AccessorySetupKit is used for device discovery and pairing. In cases where the framework is not available or not configured,
+    /// this property will be set to true to present a fallback way for discovering accessories.
+    @MainActor public var shouldPresentDevicePairing = false
 
     /// Collection of discovered devices indexed by their Bluetooth identifier.
     @MainActor public private(set) var discoveredDevices: OrderedDictionary<UUID, any PairableDevice> = [:]
@@ -139,22 +130,26 @@ public final class PairedDevices {
 
     @Dependency @ObservationIgnored private var _accessorySetup: [any Module]
 
-    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit { // TODO: optional
-        // we cannot have stored properties with @available declaration. Therefore, we add a level of indirection.
-        guard let module = _accessorySetup.first as? LoadAccessorySetupKit else {
-            preconditionFailure("\(AccessorySetupKit.self) was not injected into dependency tree.")
+    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit? {
+        // we cannot have stored properties with @available. Therefore, we add a level of indirection.
+        guard let module = _accessorySetup.first else {
+            return nil
         }
-        return module.accessorySetupKit
+        guard let loadASKit = module as? LoadAccessorySetupKit else {
+            preconditionFailure("\(LoadAccessorySetupKit.self) was not injected into dependency tree.")
+        }
+        return loadASKit.accessorySetupKit
     }
 
     @MainActor private var modelContainer: ModelContainer?
+
+    // TODO: shouldStartScanningAutomatically: Bool => (pairedDevices?.isEmpty == true && !everPairedDevice) ||  (but only if no ASKit)
 
     /// Determine if Bluetooth is scanning to discovery nearby devices.
     ///
     /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
-        // TODO: configure if initial search should be enabled (otherwise, we cannot migrate accessory kit!)
-        (pairedDevices?.isEmpty == true && !everPairedDevice) || shouldPresentDevicePairing
+        shouldPresentDevicePairing
     }
 
     private var stateSubscriptionTask: Task<Void, Never>? {
@@ -167,11 +162,12 @@ public final class PairedDevices {
     /// Initialize the Paired Devices Module.
     public required init() {
         if #available(iOS 18, *) {
-            __accessorySetup = Dependency {
-                // TODO: only load if it is configured!
-                // Dynamic dependencies are always loaded independent if the module was already supplied in the environment.
-                // Therefore, we create a helper module, that loads the accessory setup kit module.
-                LoadAccessorySetupKit()
+            if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
+                __accessorySetup = Dependency {
+                    // Dynamic dependencies are always loaded independent if the module was already supplied in the environment.
+                    // Therefore, we create a helper module, that loads the accessory setup kit module.
+                    LoadAccessorySetupKit()
+                }
             }
         }
     }
@@ -202,7 +198,7 @@ public final class PairedDevices {
 
         // We need to detach to not copy task local values
         Task.detached { @Sendable @MainActor in
-            self.fetchAllPairedInfos() // TODO: do immediate need to do this in a Task!
+            self.fetchAllPairedInfos() // TODO: no immediate need to do this in a Task!?
 
             self.syncDeviceIcons() // make sure assets are up to date
 
@@ -214,17 +210,25 @@ public final class PairedDevices {
         }
 
         if #available(iOS 18, *) {
-            setupAccessoryChangeSubscription()
+            if accessorySetup != nil {
+                setupAccessoryChangeSubscription()
+            } else {
+                logger.info("AccessorySetupKit is supported by the platform but `NSAccessorySetupKitSupports` doesn't declare support for Bluetooth.")
+            }
         }
     }
-
+    
+    /// Show the accessory discovery picker.
+    ///
+    /// Depending on availability, this method presents the discovery sheet of the AccessorySetupKit. If not available, this method sets ``shouldPresentDevicePairing`` to `true`
+    /// which should be used to present the `AccessorySetupSheet` from `SpeziDevicesUI`.
     @MainActor
-    private func didEnabledDeviceDiscovery() {
-        guard #available(iOS 18, *) else {
-            return
+    public func showAccessoryDiscovery() { // TODO: support "manual" override!
+        if #available(iOS 18, *), accessorySetup != nil {
+            showAccessorySetupPicker()
+        } else {
+            shouldPresentDevicePairing = true
         }
-
-        showAccessorySetupPicker()
     }
 
     /// Determine if a device is currently connected.
@@ -251,10 +255,6 @@ public final class PairedDevices {
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
         logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
-
-        if #available(iOS 18, *) {
-            renameAccessory(for: deviceInfo.id, name: name)
-        }
     }
 
     /// Configure a device to be managed by this PairedDevices instance.
@@ -280,7 +280,7 @@ public final class PairedDevices {
         // update name to the latest value
         if let info = _pairedDevices[device.id] {
             info.peripheralName = device.name
-            info.icon = Device.deviceIcon(variantId: info.variantIdentifier) // the asset might have changed
+            info.icon = Device.appearance.deviceIcon(variantId: info.variantIdentifier) // the asset might have changed
         }
 
         state.onChange { [weak self, weak device] oldValue, newValue in
@@ -538,30 +538,16 @@ extension PairedDevices {
             }
         }
 
-        let icon: ImageReference?
-        let variantId: String?
-
-        // TODO: code duplication!
-        switch Device.appearance {
-        case let .appearance(appearance):
-            icon = appearance.icon
-            variantId = nil
-        case let .variants(defaultAppearance, variants):
-            if let variant = variants.first(where: { $0.criteria.matches(name: device.name, advertisementData: device.advertisementData) }) {
-                icon = variant.icon
-                variantId = variant.id
-            } else {
-                icon = defaultAppearance.icon
-                variantId = nil
-            }
+        let (appearance, variantId) = Device.appearance.appearance { variant in
+            variant.criteria.matches(name: device.name, advertisementData: device.advertisementData)
         }
 
         let deviceInfo = PairedDeviceInfo(
             id: device.id,
             deviceType: Device.deviceTypeIdentifier,
-            name: device.label, // TODO: use the name from the thingy! our UI should also show that!
+            name: appearance.name,
             model: device.deviceInformation.modelNumber,
-            icon: icon,
+            icon: appearance.icon,
             variantIdentifier: variantId,
             batteryPercentage: batteryLevel
         )
@@ -595,7 +581,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
-    @available(*, deprecated, message: "Please use the async version of this method.") // TODO: really?
+    @available(*, deprecated, message: "Please use the async version of this method.")
     public func forgetDevice(id: UUID) {
         Task {
             do {
@@ -611,7 +597,7 @@ extension PairedDevices {
     @MainActor
     public func forgetDevice(id: UUID) async throws {
         if #available(iOS 18, *) {
-            try await removeAccessory(for: id) // TODO: are these errors localizable?
+            try await removeAccessory(for: id) // TODO: create localized versions of the error!
         }
 
         removeDevice(id: id)
@@ -637,173 +623,6 @@ extension PairedDevices {
         if _pairedDevices.isEmpty {
             Task {
                 await cancelSubscription()
-            }
-        }
-    }
-}
-
-// MARK: - Accessory Setup Kit
-
-@available(iOS 18, *)
-extension PairedDevices {
-    @MainActor
-    private func setupAccessoryChangeSubscription() {
-        // TODO: not strictly necessary to register here? => slightly delay session activate init in the configure()?
-
-        // TODO: revert detached once possible!
-        Task.detached { @Sendable @MainActor [weak self] in
-            guard let changes = self?.accessorySetup.accessoryChanges else {
-                return
-            }
-
-            for await change in changes {
-                guard let self else {
-                    break
-                }
-
-                logger.debug("Received accessory change: \(String(describing: change))")
-
-                switch change {
-                case .available:
-                    break // TODO: query initial accessories?
-                case let .added(accessory):
-                    handledAddedAccessory(accessory)
-                case let .changed(accessory):
-                    updateAccessory(accessory)
-                case let .removed(accessory):
-                    handleRemovedAccessory(accessory)
-                }
-            }
-        }
-    }
-
-    @MainActor
-    func showAccessorySetupPicker() {
-        guard let bluetooth else {
-            return
-        }
-
-        // TODO: check if accessory setup kit is enabled for bluetooth!
-
-        let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
-            guard descriptor.deviceType is any PairableDevice.Type else {
-                return
-            }
-
-            switch descriptor.deviceType.appearance {
-            case let .appearance(appearance):
-                let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
-                let image = appearance.icon.uiImageScaledForAccessorySetupKit()
-                partialResult.append(ASPickerDisplayItem(name: appearance.name, productImage: image, descriptor: descriptor))
-            case let .variants(defaultAppearance, variants):
-                for variant in variants {
-                    let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
-                    variant.criteria.apply(to: descriptor)
-
-                    let image = variant.icon.uiImageScaledForAccessorySetupKit()
-                    partialResult.append(ASPickerDisplayItem(name: variant.name, productImage: image, descriptor: descriptor))
-                }
-                // TODO: reduce some of the code complexity here, move things into extensions!
-
-                // TODO: is that predictable?
-                let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
-                let image = defaultAppearance.icon.uiImageScaledForAccessorySetupKit()
-                partialResult.append(ASPickerDisplayItem(name: defaultAppearance.name, productImage: image, descriptor: descriptor))
-            }
-        }
-
-        Task {
-            do {
-                try await accessorySetup.showPicker(for: displayItems)
-                print("Completed picker!") // TODO: logging!
-            } catch {
-                print("Picker failed: \(error)")
-            }
-        }
-    }
-
-    @MainActor
-    private func handledAddedAccessory(_ accessory: ASAccessory) {
-        guard let id = accessory.bluetoothIdentifier else {
-            return
-        }
-
-        guard let deviceType = bluetooth?.pairableDevice(matches: accessory.descriptor) else {
-            logger.error("Could not match discovery description of paired device: \(id)") // TODO: update
-            return
-        }
-
-        let icon: ImageReference?
-        let variantId: String?
-
-        switch deviceType.appearance {
-        case let .appearance(appearance):
-            icon = appearance.icon
-            variantId = nil
-        case let .variants(defaultAppearance, variants):
-            if let variant = variants.first(where: { $0.criteria.matches(descriptor: accessory.descriptor) }) {
-                icon = variant.icon
-                variantId = variant.id
-            } else {
-                icon = defaultAppearance.icon
-                variantId = nil
-            }
-        }
-
-        let deviceInfo = PairedDeviceInfo(
-            id: id,
-            deviceType: deviceType.deviceTypeIdentifier,
-            name: accessory.displayName,
-            model: nil, // TODO: this needs to be queried later
-            icon: icon,
-            variantIdentifier: variantId
-        )
-
-        // TODO: we are not automatically connecting if we already got a pairing and active device!
-        persistPairedDevice(deviceInfo) // TODO: we should attempt to connect first, this will connected yes, but not ideal!
-    }
-
-    @MainActor
-    private func updateAccessory(_ accessory: ASAccessory) {
-        guard let id = accessory.bluetoothIdentifier,
-              let pairedDevice = _pairedDevices[id] else {
-            return // unknown device or not a bluetooth device
-        }
-
-        // allow to sync back name!
-        pairedDevice.name = accessory.displayName
-    }
-
-    @MainActor
-    private func handleRemovedAccessory(_ accessory: ASAccessory) {
-        guard let id = accessory.bluetoothIdentifier else {
-            return
-        }
-
-        removeDevice(id: id)
-    }
-
-    @MainActor
-    private func removeAccessory(for id: UUID) async throws {
-        guard let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
-            return
-        }
-
-        try await accessorySetup.removeAccessory(accessory)
-    }
-
-    @MainActor
-    private func renameAccessory(for id: UUID, name: String) {
-        guard let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
-            return
-        }
-
-        // TODO: howfeature/accessory-setup-kit does the rename work?
-        Task {
-            do {
-                try await accessorySetup.renameAccessory(accessory) // TODO: what does that trigger?
-            } catch {
-                print("Error renaming: \(error)") // TODO: update!
             }
         }
     }
@@ -861,11 +680,11 @@ extension PairedDevices {
         let configuredDevices = bluetooth.configuredPairableDevices()
 
         for deviceInfo in _pairedDevices.values {
-            guard let configuration = configuredDevices[deviceInfo.deviceType] else {
+            guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
                 continue
             }
 
-            deviceInfo.icon = configuration.deviceIcon(variantId: deviceInfo.variantIdentifier)
+            deviceInfo.icon = deviceType.appearance.deviceIcon(variantId: deviceInfo.variantIdentifier)
         }
     }
 
@@ -971,6 +790,193 @@ extension PairedDevices {
     }
 }
 
+// MARK: - Accessory Setup Kit
+
+@available(iOS 18, *)
+extension PairedDevices {
+    /// Determine if the accessory picker of the AccessorySetupKit is currently being presented.
+    @MainActor public var accessoryPickerPresented: Bool {
+        accessorySetup?.pickerPresented ?? false
+    }
+    
+    /// Retrieve the `ASAccessory` for a device identifier.
+    /// - Parameter deviceId: The identifier for a paired bluetooth device.
+    /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
+    @_spi(Internal)
+    @MainActor
+    public func accessory(for deviceId: UUID) -> ASAccessory? {
+        if let accessorySetup {
+            accessorySetup.accessories.first { accessory in
+                accessory.bluetoothIdentifier == deviceId
+            }
+        } else {
+            nil
+        }
+    }
+
+    @MainActor
+    private func setupAccessoryChangeSubscription() {
+        guard let accessorySetup else {
+            return // method is not called if this is not available
+        }
+
+        let changes = accessorySetup.accessoryChanges
+
+        // TODO: revert detached once possible!
+        Task.detached { @Sendable @MainActor [weak self] in
+            for await change in changes {
+                guard let self else {
+                    break
+                }
+
+                logger.debug("Received accessory change: \(String(describing: change))")
+
+                switch change {
+                case .available:
+                    // TODO: support migration here?
+                    break
+                case let .added(accessory):
+                    handledAddedAccessory(accessory)
+                case let .changed(accessory):
+                    updateAccessory(accessory)
+                case let .removed(accessory):
+                    handleRemovedAccessory(accessory)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func showAccessorySetupPicker() {
+        guard let bluetooth else {
+            preconditionFailure("Tried to show accessory setup picker but Bluetooth module was not configured.")
+        }
+
+        guard let accessorySetup else {
+            preconditionFailure("Tried to show accessory setup picker but AccessorySetupKit module was not configured.")
+        }
+
+        let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
+            guard descriptor.deviceType is any PairableDevice.Type else {
+                return
+            }
+
+            switch descriptor.deviceType.appearance {
+            case let .appearance(appearance):
+                let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                let image = appearance.icon.uiImageScaledForAccessorySetupKit()
+                partialResult.append(ASPickerDisplayItem(name: appearance.name, productImage: image, descriptor: descriptor))
+            case let .variants(_, variants):
+                for variant in variants {
+                    let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                    variant.criteria.apply(to: descriptor)
+
+                    let image = variant.icon.uiImageScaledForAccessorySetupKit()
+                    partialResult.append(ASPickerDisplayItem(name: variant.name, productImage: image, descriptor: descriptor))
+                }
+                // TODO: reduce some of the code complexity here, move things into extensions!
+
+                // with the AccessorySetupKit we can only pair known device variants.
+                // TODO: is that predictable? => we cannot setup any generic Omron device here!
+                // let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                // let image = defaultAppearance.icon.uiImageScaledForAccessorySetupKit()
+                // partialResult.append(ASPickerDisplayItem(name: defaultAppearance.name, productImage: image, descriptor: descriptor))
+            }
+        }
+
+        Task {
+            do {
+                try await accessorySetup.showPicker(for: displayItems)
+                print("Completed picker!") // TODO: logging!
+            } catch {
+                print("Picker failed: \(error)")
+            }
+        }
+    }
+
+    @MainActor
+    private func handledAddedAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier else {
+            return
+        }
+
+        guard let deviceType = bluetooth?.pairableDevice(matches: accessory.descriptor) else {
+            logger.error("Could not match discovery description of paired device: \(id)") // TODO: update
+            return
+        }
+
+        let (appearance, variantId) = deviceType.appearance.appearance { variant in
+            variant.criteria.matches(descriptor: accessory.descriptor)
+        }
+
+        let deviceInfo = PairedDeviceInfo(
+            id: id,
+            deviceType: deviceType.deviceTypeIdentifier,
+            name: accessory.displayName, // should be the same as appearance.name, however, user might have renamed it already
+            model: nil, // TODO: this needs to be queried later
+            icon: appearance.icon,
+            variantIdentifier: variantId
+        )
+
+        // TODO: we are not automatically connecting if we already got a pairing and active device!
+        persistPairedDevice(deviceInfo) // TODO: we should attempt to connect first, this will connected yes, but not ideal!
+    }
+
+    @MainActor
+    private func updateAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier,
+              let pairedDevice = _pairedDevices[id] else {
+            return // unknown device or not a bluetooth device
+        }
+
+        // allow to sync back name!
+        pairedDevice.name = accessory.displayName
+    }
+
+    @MainActor
+    private func handleRemovedAccessory(_ accessory: ASAccessory) {
+        guard let id = accessory.bluetoothIdentifier else {
+            return
+        }
+
+        removeDevice(id: id)
+    }
+
+    @MainActor
+    private func removeAccessory(for id: UUID) async throws {
+        guard let accessorySetup else {
+            return // we wouldn't receive the event if it the module wouldn't be configured
+        }
+
+        guard let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
+            return
+        }
+
+        try await accessorySetup.removeAccessory(accessory)
+    }
+    
+    /// Rename an accessory.
+    ///
+    /// This will present a picker from the AccessorySetupKit to rename the accessory.
+    /// - Parameter accessory: The accessory.
+    @MainActor
+    @_spi(Internal)
+    public func renameAccessory(for accessory: ASAccessory) async throws {
+        guard let accessorySetup else {
+            return // we wouldn't receive the event if it the module wouldn't be configured
+        }
+
+        do {
+            // TODO: document this in SpeziBluetooth!
+            try await accessorySetup.renameAccessory(accessory)
+        } catch {
+            // TODO: what errors would be thrown?
+            logger.error("Failed to rename accessory managed by AccessorySetupKit (\(accessory)): \(error)")
+            throw error
+        }
+    }
+}
+
 
 extension Bluetooth {
     fileprivate nonisolated func configuredPairableDevices() -> [String: any PairableDevice.Type] {
@@ -1010,60 +1016,10 @@ extension Bluetooth {
     }
 }
 
-// TODO: move some extensions to other files!
-
-extension BluetoothDevice {
-    static func deviceIcon(variantId: String?) -> ImageReference {
-        switch appearance {
-        case let .appearance(appearance):
-            appearance.icon
-        case let .variants(defaultAppearance, variants):
-            if let variantIdentifier = variantId,
-               let variant = variants.first(where: { $0.id == variantIdentifier }) {
-                variant.icon
-            } else {
-                defaultAppearance.icon
-            }
-        }
-    }
-}
-
 
 extension PairableDevice {
     fileprivate static func retrieveDevice(from bluetooth: Bluetooth, with id: UUID) async -> Self? {
         await bluetooth.retrieveDevice(for: id, as: Self.self)
-    }
-}
-
-
-import UIKit
-extension ImageReference {
-    func uiImageScaledForAccessorySetupKit() -> UIImage {
-        let image: UIImage
-        let isSymbol: Bool
-
-        if let uiImage {
-            image = uiImage
-            isSymbol = isSystemImage
-        } else {
-            guard let sensor = UIImage(systemName: "sensor") else {
-                preconditionFailure("UIImage with systemName 'sensor' is not available.")
-            }
-            isSymbol = true
-            image = sensor
-        }
-
-        if isSymbol {
-            guard let configuredImage = image
-                .applyingSymbolConfiguration(.init(font: .systemFont(ofSize: 256), scale: .large))?
-                .withTintColor(UIColor.tintColor, renderingMode: .alwaysTemplate) else {
-                preconditionFailure("Failed to apply symbol configuration to UIImage: \(image).")
-            }
-
-            return configuredImage
-        } else {
-            return image
-        }
     }
 }
 

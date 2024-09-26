@@ -17,13 +17,16 @@ struct PairedDeviceView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        PaneContent(title: "Accessory Paired", subtitle: "\"\(device.label)\" was successfully paired with the \(appName) app.") {
+        PaneContent(
+            title: .init("Accessory Paired", bundle: .module),
+            subtitle: .init("\"\(device.label)\" was successfully paired with the \(appName) app.", bundle: .module)
+        ) {
             AccessoryImageView(device)
         } action: {
             Button {
                 dismiss()
             } label: {
-                Text("Done")
+                Text("Done", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
             .buttonStyle(.borderedProminent)

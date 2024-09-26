@@ -42,7 +42,7 @@ struct ConfirmMeasurementButton: View {
     var body: some View {
         VStack {
             AsyncButton(state: $viewState, action: confirm) {
-                Text("Save")
+                Text("Save", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
                     .font(.title2)
                     .bold()

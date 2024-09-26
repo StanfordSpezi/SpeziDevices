@@ -43,6 +43,9 @@
         }
       }
     },
+    "%lld %%, is charging" : {
+
+    },
     "%lld BPM" : {
       "localizations" : {
         "de" : {
@@ -443,6 +446,9 @@
         }
       }
     },
+    "Failed to forget device" : {
+
+    },
     "Failed to pair accessory." : {
       "localizations" : {
         "de" : {
@@ -458,6 +464,9 @@
           }
         }
       }
+    },
+    "Failed to rename accessory" : {
+
     },
     "Forget Device" : {
       "localizations" : {
