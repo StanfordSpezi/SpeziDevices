@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(Internal) @_spi(TestingSupport) import SpeziDevices
 import SpeziViews
 import SwiftUI
 
-@available(iOS 18, macOS 15, tvOS 18, visionOS 2, watchOS 11, *) // TODO: unecessary!
+@available(iOS 18, macOS 15, tvOS 18, visionOS 2, watchOS 11, *) // TODO: unecessary! not used at all
 struct TimerIntervalLabel: View {
     private let date: Date
 
