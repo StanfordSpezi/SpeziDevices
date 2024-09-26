@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SpeziViews
 import SwiftData
 
 
@@ -37,6 +38,7 @@ public final class PairedDeviceInfo {
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
+    private(set) var variantIdentifier: String? // TODO: observable? create legacy data store tests!
 
     /// Visual representation of the device.
     public var icon: ImageReference? {
@@ -66,6 +68,7 @@ public final class PairedDeviceInfo {
         name: String,
         model: String?,
         icon: ImageReference? = nil,
+        variantIdentifier: String? = nil,
         lastSeen: Date = .now,
         batteryPercentage: UInt8? = nil
     ) {
@@ -75,6 +78,7 @@ public final class PairedDeviceInfo {
         self.peripheralName = name
         self.model = model
         self._icon = icon
+        self.variantIdentifier = variantIdentifier
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
 

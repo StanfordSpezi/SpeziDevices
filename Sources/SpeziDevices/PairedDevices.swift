@@ -105,7 +105,7 @@ public final class PairedDevices {
     /// Determines if the device discovery sheet should be presented.
     @MainActor public var shouldPresentDevicePairing = false {
         didSet {
-            if shouldPresentDevicePairing {
+            if shouldPresentDevicePairing { // TODO: weird way to do that!
                 didEnabledDeviceDiscovery()
             }
         }
@@ -218,29 +218,12 @@ public final class PairedDevices {
     }
 
     @MainActor
-    func didEnabledDeviceDiscovery() { // TODO: move to accessory setup kit?
-        if #available(iOS 18, *) {
-            guard let bluetooth else {
-                return
-            }
-
-            let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
-                guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type else {
-                    return
-                }
-                // TODO: we would also need to include the name in the descriptor!
-                partialResult.append(contentsOf: pairableDevice.assets.map { $0.pickerDisplayItem(for: descriptor.discoveryCriteria) })
-            }
-
-            Task {
-                do {
-                    try await accessorySetup.showPicker(for: displayItems)
-                    print("Completed picker!")
-                } catch {
-                    print("Picker failed: \(error)")
-                }
-            }
+    private func didEnabledDeviceDiscovery() {
+        guard #available(iOS 18, *) else {
+            return
         }
+
+        showAccessorySetupPicker()
     }
 
     /// Determine if a device is currently connected.
@@ -286,7 +269,7 @@ public final class PairedDevices {
         _ advertisements: DeviceStateAccessor<AdvertisementData>,
         _ nearby: DeviceStateAccessor<Bool>
     ) {
-        if bluetooth?.configuredPairableDevices[Device.deviceTypeIdentifier] == nil {
+        if bluetooth?.pairableDevice(identifier: Device.deviceTypeIdentifier) == nil {
             logger.warning("""
                            Device \(Device.self) was configured with the PairedDevices module but wasn't configured with the Bluetooth module. \
                            The device won't be able to be retrieved on a fresh app start. Please make sure the device is configured with Bluetooth.
@@ -296,7 +279,7 @@ public final class PairedDevices {
         // update name to the latest value
         if let info = _pairedDevices[device.id] {
             info.peripheralName = device.name
-            info.icon = Device.assets.firstAsset(for: info) // the asset might have changed
+            info.icon = Device.deviceIcon(variantId: info.variantIdentifier) // the asset might have changed
         }
 
         state.onChange { [weak self, weak device] oldValue, newValue in
@@ -554,12 +537,31 @@ extension PairedDevices {
             }
         }
 
+        let icon: ImageReference?
+        let variantId: String?
+
+        // TODO: code duplication!
+        switch Device.appearance {
+        case let .appearance(appearance):
+            icon = appearance.icon
+            variantId = nil
+        case let .variants(defaultAppearance, variants):
+            if let variant = variants.first(where: { $0.criteria.matches(name: device.name, advertisementData: device.advertisementData) }) {
+                icon = variant.icon
+                variantId = variant.id
+            } else {
+                icon = defaultAppearance.icon
+                variantId = nil
+            }
+        }
+
         let deviceInfo = PairedDeviceInfo(
             id: device.id,
             deviceType: Device.deviceTypeIdentifier,
-            name: device.label,
+            name: device.label, // TODO: use the name from the thingy! our UI should also show that!
             model: device.deviceInformation.modelNumber,
-            icon: Device.assets.firstAsset(for: device),
+            icon: icon,
+            variantIdentifier: variantId,
             batteryPercentage: batteryLevel
         )
 
@@ -674,28 +676,77 @@ extension PairedDevices {
     }
 
     @MainActor
+    func showAccessorySetupPicker() {
+        guard let bluetooth else {
+            return
+        }
+
+        let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
+            guard descriptor.deviceType is any PairableDevice.Type else {
+                return
+            }
+
+            switch descriptor.deviceType.appearance {
+            case let .appearance(appearance):
+                let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                partialResult.append(ASPickerDisplayItem(name: appearance.name, productImage: appearance.icon.uiImage!, descriptor: descriptor))
+            case let .variants(_, variants):
+                for variant in variants {
+                    let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                    variant.criteria.apply(to: descriptor)
+                    partialResult.append(ASPickerDisplayItem(name: variant.name, productImage: variant.icon.uiImage!, descriptor: descriptor))
+                }
+            }
+        }
+
+        Task {
+            do {
+                try await accessorySetup.showPicker(for: displayItems)
+                print("Completed picker!") // TODO: logging!
+            } catch {
+                print("Picker failed: \(error)")
+            }
+        }
+    }
+
+    @MainActor
     private func handledAddedAccessory(_ accessory: ASAccessory) {
         guard let id = accessory.bluetoothIdentifier else {
             return
         }
 
-        guard let deviceType = bluetooth?.configuration.first(where: { descriptor in
-            descriptor.discoveryCriteria.discoveryDescriptor == accessory.descriptor
-        })?.deviceType as? any PairableDevice.Type else {
+        guard let deviceType = bluetooth?.pairableDevice(matches: accessory.descriptor) else {
             logger.error("Could not match discovery description of paired device: \(id)") // TODO: update
             return
         }
-        // TODO: map descriptor back to discovery criteria to retrieve the Device class!
+
+        let icon: ImageReference?
+        let variantId: String?
+
+        switch deviceType.appearance {
+        case let .appearance(appearance):
+            icon = appearance.icon
+            variantId = nil
+        case let .variants(defaultAppearance, variants):
+            if let variant = variants.first(where: { $0.criteria.matches(descriptor: accessory.descriptor) }) {
+                icon = variant.icon
+                variantId = variant.id
+            } else {
+                icon = defaultAppearance.icon
+                variantId = nil
+            }
+        }
 
         let deviceInfo = PairedDeviceInfo(
             id: id,
             deviceType: deviceType.deviceTypeIdentifier,
             name: accessory.displayName,
             model: nil, // TODO: this needs to be queried later
-            icon: deviceType.assets.firstAsset(name: accessory.displayName) // TODO: that shouldn't be the final solution!
-            // TODO: asset should be matched by descriptor!
+            icon: icon,
+            variantIdentifier: variantId
         )
 
+        // TODO: we are not automatically connecting if we already got a pairing and active device!
         persistPairedDevice(deviceInfo) // TODO: we should attempt to connect first, this will connected yes, but not ideal!
     }
 
@@ -794,14 +845,14 @@ extension PairedDevices {
             return
         }
 
-        let configuredDevices = bluetooth.configuredPairableDevices
+        let configuredDevices = bluetooth.configuredPairableDevices()
 
         for deviceInfo in _pairedDevices.values {
-            guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
+            guard let configuration = configuredDevices[deviceInfo.deviceType] else {
                 continue
             }
 
-            deviceInfo.icon = deviceType.assets.firstAsset(for: deviceInfo)
+            deviceInfo.icon = configuration.deviceIcon(variantId: deviceInfo.variantIdentifier)
         }
     }
 
@@ -866,7 +917,7 @@ extension PairedDevices {
         }
 
         // we just reuse the configured Bluetooth devices
-        let configuredDevices = bluetooth.configuredPairableDevices
+        let configuredDevices = bluetooth.configuredPairableDevices()
 
         await withDiscardingTaskGroup { group in
             for deviceInfo in self._pairedDevices.values {
@@ -909,12 +960,56 @@ extension PairedDevices {
 
 
 extension Bluetooth {
-    fileprivate nonisolated var configuredPairableDevices: [String: any PairableDevice.Type] {
+    fileprivate nonisolated func configuredPairableDevices() -> [String: any PairableDevice.Type] {
         configuration.reduce(into: [:]) { partialResult, descriptor in
             guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type else {
                 return
             }
             partialResult[pairableDevice.deviceTypeIdentifier] = pairableDevice
+        }
+    }
+
+    fileprivate nonisolated func pairableDevice(identifier deviceTypeIdentifier: String) -> (any PairableDevice.Type)? {
+        for descriptor in self.configuration {
+            guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type,
+                  pairableDevice.deviceTypeIdentifier == deviceTypeIdentifier else {
+                continue
+            }
+
+            return pairableDevice
+        }
+
+        return nil
+    }
+
+    @available(iOS 18, *)
+    fileprivate nonisolated func pairableDevice(matches discoveryDescriptor: ASDiscoveryDescriptor) -> (any PairableDevice.Type)? {
+        for descriptor in self.configuration {
+            guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type,
+                  descriptor.discoveryCriteria.matches(descriptor: discoveryDescriptor) else {
+                continue
+            }
+
+            return pairableDevice
+        }
+
+        return nil
+    }
+}
+
+
+extension BluetoothDevice {
+    static func deviceIcon(variantId: String?) -> ImageReference {
+        switch appearance {
+        case let .appearance(appearance):
+            appearance.icon
+        case let .variants(defaultAppearance, variants):
+            if let variantIdentifier = variantId,
+               let variant = variants.first(where: { $0.id == variantIdentifier }) {
+                variant.icon
+            } else {
+                defaultAppearance.icon
+            }
         }
     }
 }

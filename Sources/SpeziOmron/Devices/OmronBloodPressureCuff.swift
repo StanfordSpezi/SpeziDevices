@@ -25,13 +25,12 @@ import SpeziNumerics
 /// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
 ///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    public static var assets: [DeviceAsset] {
-        [
-            .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
-            .name("EVOLV", .asset("Omron-EVOLV", bundle: .module)),
-            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
-        ]
-    }
+    // TODO: backwards compatibility for device variant?
+    public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Blood Pressure Cuff"), variants: [
+        Variant(id: "omron-bp5250", name: "BP5250", icon: .asset("Omron-BP5250", bundle: .module), criteria: .nameSubstring("BP5250")),
+        Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("EVOLV")),
+        Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BP7000"))
+    ])
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
 
