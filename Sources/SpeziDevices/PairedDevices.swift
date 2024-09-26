@@ -372,6 +372,9 @@ public final class PairedDevices {
         }
         logger.debug("Updated lastSeen for \(device.label): \(lastSeen) %")
         deviceInfo.lastSeen = lastSeen
+        if let model = device.deviceInformation.modelNumber {
+            deviceInfo.model = model
+        }
     }
 
     @MainActor
@@ -567,7 +570,7 @@ extension PairedDevices {
             logger.warning("PairedDevice \(deviceInfo.name), \(deviceInfo.id) could not be persisted on disk due to missing ModelContainer!")
         }
 
-        discoveredDevices[deviceInfo.id] = nil
+        discoveredDevices.removeValue(forKey: deviceInfo.id)
 
         self.logger.debug("Device \(deviceInfo.name) with id \(deviceInfo.id) is now paired!")
 
@@ -614,15 +617,16 @@ extension PairedDevices {
         discoveredDevices.removeValue(forKey: id)
         let device = peripherals.removeValue(forKey: id)
 
-        if let device {
-            Task.detached {
-                await device.disconnect()
-            }
-        }
+        if device != nil || _pairedDevices.isEmpty {
+            Task.detached { @Sendable @MainActor in
+                if let device {
+                    await device.disconnect()
+                }
 
-        if _pairedDevices.isEmpty {
-            Task {
-                await cancelSubscription()
+                // make sure this runs after the disconnect
+                if self._pairedDevices.isEmpty {
+                    await self.cancelSubscription()
+                }
             }
         }
     }
@@ -696,8 +700,9 @@ extension PairedDevices {
             return
         }
 
+        let subscriptions = await bluetooth.stateSubscription
         self.stateSubscriptionTask = Task.detached { [weak self] in
-            for await nextState in await bluetooth.stateSubscription {
+            for await nextState in subscriptions {
                 guard let self else {
                     return
                 }
@@ -877,19 +882,15 @@ extension PairedDevices {
                 // TODO: reduce some of the code complexity here, move things into extensions!
 
                 // with the AccessorySetupKit we can only pair known device variants.
-                // TODO: is that predictable? => we cannot setup any generic Omron device here!
-                // let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
-                // let image = defaultAppearance.icon.uiImageScaledForAccessorySetupKit()
-                // partialResult.append(ASPickerDisplayItem(name: defaultAppearance.name, productImage: image, descriptor: descriptor))
             }
         }
 
         Task {
             do {
                 try await accessorySetup.showPicker(for: displayItems)
-                print("Completed picker!") // TODO: logging!
+                logger.debug("Finished showing setup picker.")
             } catch {
-                print("Picker failed: \(error)")
+                logger.error("Failed to show setup picker: \(error)")
             }
         }
     }
@@ -901,7 +902,7 @@ extension PairedDevices {
         }
 
         guard let deviceType = bluetooth?.pairableDevice(matches: accessory.descriptor) else {
-            logger.error("Could not match discovery description of paired device: \(id)") // TODO: update
+            logger.error("Could not match discovery description of paired device: \(id)")
             return
         }
 
@@ -913,13 +914,21 @@ extension PairedDevices {
             id: id,
             deviceType: deviceType.deviceTypeIdentifier,
             name: accessory.displayName, // should be the same as appearance.name, however, user might have renamed it already
-            model: nil, // TODO: this needs to be queried later
+            model: nil,
             icon: appearance.icon,
             variantIdentifier: variantId
         )
 
-        // TODO: we are not automatically connecting if we already got a pairing and active device!
-        persistPairedDevice(deviceInfo) // TODO: we should attempt to connect first, this will connected yes, but not ideal!
+
+        // TODO: sometimes we do not receive the battery percentage???
+        if stateSubscriptionTask != nil { // if the task is running, bluetooth is powered on
+            Task {
+                await handleDeviceRetrieval(for: deviceInfo, deviceType: deviceType)
+            }
+        }
+
+        // otherwise device retrieval is handled once bluetooth is powered on
+        persistPairedDevice(deviceInfo)
     }
 
     @MainActor
@@ -953,6 +962,15 @@ extension PairedDevices {
         }
 
         try await accessorySetup.removeAccessory(accessory)
+        /*
+         Received accessory change: .removed(ASAccessory: ID 2C96BB01-D3BE-47F9-8EC6-91E4E870CEE1, name 'EVOLV', btID 3e1851c3-5ce3-b407-5a3c-7a7b04fdafb4, state Authorized, descriptor ASDiscoveryDescriptor: Supports 0x2 < BluetoothPairingLE >, LocalName BLEsmart_0000021F, ServiceUUID Blood Pressure)
+         BluetoothManager central state is now poweredOff
+         OmronBloodPressureCuff changed state to disconnected.
+         Disconnecting peripheral 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4 ...
+         >>>API MISUSE: <CBCentralManager: 0x302cde7e0> can only accept this command while in the powered on state<<<
+         Bluetooth Module state is now poweredOff
+         Not deallocating central. Devices are still associated: discovered: 0, retrieved: 1
+         */
     }
     
     /// Rename an accessory.

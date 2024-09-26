@@ -28,6 +28,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     // TODO: backwards compatibility for device variant?
     public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Blood Pressure Cuff"), variants: [
         // TODO: variants are now only shown if the device is in pairing mode?? maybe just allow to hide variants from
+        // TODO: the other variants are never getting discovered!
         Variant(id: "omron-bp5250", name: "BP5250", icon: .asset("Omron-BP5250", bundle: .module), criteria: .nameSubstring("BLEsmart_00000160")),
         Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("BLEsmart_0000021F")),
         Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BLEsmart_0000011F"))
