@@ -41,7 +41,10 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     }
 
     var body: some View {
-        PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
+        PaneContent(
+            title: .init("Pair Accessory", bundle: .module),
+            subtitle: .init("Do you want to pair \(selectedDeviceName) with the \(appName) app?", bundle: .module)
+        ) {
             if devices.count > 1 {
                 TabView(selection: forcedUnwrappedDeviceId) {
                     ForEach(devices, id: \.id) { device in
@@ -87,7 +90,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                     pairingState = .error(AnyLocalizedError(error: error))
                 }
             } label: {
-                Text("Pair")
+                Text("Pair", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
                 .buttonStyle(.borderedProminent)

@@ -16,11 +16,11 @@ struct ForgetDeviceTip: Tip {
     @Parameter static var hasRemovedPairedDevice: Bool = false
 
     var title: Text {
-        Text("Fully Unpair Device")
+        Text("Fully Unpair Device", bundle: .module)
     }
 
     var message: Text? {
-        Text("Make sure to to remove the device from the Bluetooth settings to fully unpair the device.")
+        Text("Make sure to to remove the device from the Bluetooth settings to fully unpair the device.", bundle: .module)
     }
 
     var actions: [Action] {
@@ -32,7 +32,7 @@ struct ForgetDeviceTip: Tip {
                 UIApplication.shared.open(url)
             }
         } _: {
-            Text("Open Settings")
+            Text("Open Settings", bundle: .module)
         }
     }
 

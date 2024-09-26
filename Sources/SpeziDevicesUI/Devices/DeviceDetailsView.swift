@@ -81,36 +81,52 @@ public struct DeviceDetailsView: View {
 
             if let percentage = deviceInfo.lastBatteryPercentage {
                 Section {
-                    ListRow("Battery") {
+                    LabeledContent {
                         BatteryIcon(percentage: Int(percentage))
                             .labelStyle(.reverse)
+                    } label: {
+                        Text("Battery", bundle: .module)
                     }
+                        .accessibilityElement(children: .combine)
                 }
             }
 
             Section {
-                Button("Forget This Device") {
+                AsyncButton(state: $viewState) {
                     presentForgetConfirmation = true
+                } label: {
+                    Text("Forget This Device", bundle: .module)
                 }
             } footer: {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
-                    Text("Synchronizing ...")
+                    Text("Synchronizing ...", bundle: .module)
                 } else if lastSeenToday {
-                    Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))", bundle: .module)
                 } else {
-                    Text("This device was last seen on \(Text(deviceInfo.lastSeen, style: .date)) at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text(
+                        "This device was last seen on \(Text(deviceInfo.lastSeen, style: .date)) at \(Text(deviceInfo.lastSeen, style: .time))",
+                        bundle: .module
+                    )
                 }
             }
         }
-            .navigationTitle("Device Details")
+            .navigationTitle(Text("Device Details", bundle: .module))
             .navigationBarTitleDisplayMode(.inline)
-            .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
-                AsyncButton("Forget Device", state: $viewState) {
-                    try await pairedDevices.forgetDevice(id: deviceInfo.id) // TODO: dismiss instantly and only show the error as a alert later on!
-                    ForgetDeviceTip.hasRemovedPairedDevice = true // TODO: do not show for accessory setup kit!
+            .viewStateAlert(state: $viewState)
+            .confirmationDialog(
+                Text("Do you really want to forget this device?", bundle: .module),
+                isPresented: $presentForgetConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button {
+                    forgetDevice()
                     dismiss()
+                } label: {
+                    Text("Forget Device", bundle: .module)
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(role: .cancel) {} label: {
+                    Text("Cancel", bundle: .module)
+                }
             }
             .toolbar {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
@@ -139,6 +155,31 @@ public struct DeviceDetailsView: View {
     /// - Parameter deviceInfo: The device info of the paired device.
     public init(_ deviceInfo: PairedDeviceInfo) {
         self.deviceInfo = deviceInfo
+    }
+
+    private func forgetDevice() {
+        viewState = .processing
+
+        // TODO: cancel previous task!
+        Task {
+            do {
+                let managedByAccessorySetupKit = if #available(iOS 18, *), pairedDevices.accessory(for: deviceInfo.id) != nil {
+                    true
+                } else {
+                    false
+                }
+                try await pairedDevices.forgetDevice(id: deviceInfo.id)
+                if !managedByAccessorySetupKit {
+                    ForgetDeviceTip.hasRemovedPairedDevice = true
+                }
+                viewState = .idle
+            } catch {
+                viewState = .error(AnyLocalizedError(
+                    error: error,
+                    defaultErrorDescription: .init("Failed to forget device", bundle: .atURL(from: .module))
+                ))
+            }
+        }
     }
 }
 

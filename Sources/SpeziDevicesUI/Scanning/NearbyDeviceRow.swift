@@ -44,9 +44,10 @@ public struct NearbyDeviceRow: View {
         let stack = HStack {
             Button(action: devicePrimaryAction) {
                 HStack {
-                    ListRow(verbatim: peripheral.label) {
+                    LabeledContent(peripheral.label) {
                         deviceSecondaryLabel
                     }
+                        .accessibilityElement(children: .combine)
                     if peripheral.state == .connecting || peripheral.state == .disconnecting {
                         ProgressView()
                             .accessibilityRemoveTraits(.updatesFrequently)

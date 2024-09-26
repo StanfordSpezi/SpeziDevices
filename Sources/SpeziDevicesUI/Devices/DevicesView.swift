@@ -24,17 +24,17 @@ public struct DevicesView<PairingHint: View>: View {
     public var body: some View {
         @Bindable var pairedDevices = pairedDevices
 
-        DevicesGrid(devices: pairedDevices.pairedDevices, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
-            .navigationTitle("Devices")
+        DevicesGrid(devices: pairedDevices.pairedDevices) {
+            pairedDevices.showAccessoryDiscovery()
+        }
+            .navigationTitle(Text("Devices", bundle: .module))
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
-        /*
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
                 AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName) {
                     pairingHint
                 }
             }
-        */
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     // indicate that we are scanning in the background
@@ -44,7 +44,7 @@ public struct DevicesView<PairingHint: View>: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add Device", systemImage: "plus") {
-                        pairedDevices.shouldPresentDevicePairing = true
+                        pairedDevices.showAccessoryDiscovery()
                     }
                 }
             }

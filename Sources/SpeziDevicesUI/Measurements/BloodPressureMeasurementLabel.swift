@@ -33,19 +33,22 @@ struct BloodPressureMeasurementLabel: View {
         if let systolic,
            let diastolic {
             VStack(spacing: 5) {
-                Text("\(Int(systolic.quantity.doubleValue(for: .millimeterOfMercury())))/\(Int(diastolic.quantity.doubleValue(for: .millimeterOfMercury()))) mmHg")
+                Text(
+                    "\(Int(systolic.quantity.doubleValue(for: .millimeterOfMercury())))/\(Int(diastolic.quantity.doubleValue(for: .millimeterOfMercury()))) mmHg",
+                    bundle: .module
+                )
                     .font(.system(size: measurementTextSize, weight: .bold, design: .rounded))
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let heartRateSample {
-                    Text("\(Int(heartRateSample.quantity.doubleValue(for: .count().unitDivided(by: .minute())))) BPM")
+                    Text("\(Int(heartRateSample.quantity.doubleValue(for: .count().unitDivided(by: .minute())))) BPM", bundle: .module)
                         .font(.title)
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                 }
             }
         } else {
-            Text("Invalid Sample")
+            Text("Invalid Sample", bundle: .module)
                 .italic()
         }
     }

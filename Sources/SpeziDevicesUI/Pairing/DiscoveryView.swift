@@ -14,7 +14,7 @@ struct DiscoveryView<Hint: View>: View {
 
     var body: some View {
         PaneContent {
-            Text("Discovering")
+            Text("Discovering", bundle: .module)
         } subtitle: {
             pairingHint
         } content: {

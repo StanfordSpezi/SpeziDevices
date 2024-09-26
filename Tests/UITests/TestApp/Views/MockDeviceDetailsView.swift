@@ -17,24 +17,22 @@ struct MockDeviceDetailsView: View {
 
     var body: some View {
         List {
-            ListRow("Name") {
-                Text(device.label)
-            }
+            LabeledContent("Name", value: device.label)
+                .accessibilityElement(children: .combine)
             if let model = device.deviceInformation.modelNumber {
-                ListRow("Model") {
-                    Text(model)
-                }
+                LabeledContent("Model", value: model)
+                    .accessibilityElement(children: .combine)
             }
             if let firmwareVersion = device.deviceInformation.firmwareRevision {
-                ListRow("Firmware Version") {
-                    Text(firmwareVersion)
-                }
+                LabeledContent("Firmware Version", value: firmwareVersion)
+                    .accessibilityElement(children: .combine)
             }
             if let battery = device.battery.batteryLevel {
-                ListRow("Battery") {
+                LabeledContent("Battery") {
                     BatteryIcon(percentage: Int(battery))
                         .labelStyle(.reverse)
                 }
+                    .accessibilityElement(children: .combine)
             }
         }
             .navigationTitle(device.label)

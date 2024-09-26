@@ -19,7 +19,7 @@ struct TimeSubheadline: View {
     var body: some View {
         Group {
             if Calendar.current.isDateInToday(measurement.startDate) {
-                Text("Today, \(Text(measurement.startDate, style: .time))")
+                Text("Today, \(Text(measurement.startDate, style: .time))", bundle: .module)
             } else {
                 Text(.now, style: .date) + Text(verbatim: ", ") + Text(.now, style: .time)
             }
@@ -63,17 +63,22 @@ public struct MeasurementsRecordedSheet: View {
     }
 
     public var body: some View {
-        NavigationStack {
+        NavigationStack { // swiftlint:disable:this closure_body_length
             Group {
                 if measurements.pendingMeasurements.isEmpty && selectedMeasurement == nil {
-                    ContentUnavailableView(
-                        "No Pending Measurements",
-                        systemImage: "heart.text.square",
-                        description: Text("There are currently no pending measurements. Conduct a measurement with a paired device while nearby.")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text("No Pending Measurements", bundle: .module)
+                        } icon: {
+                            Image(systemName: "heart.text.square")
+                                .accessibilityHidden(true)
+                        }
+                    } description: {
+                        Text("There are currently no pending measurements. Conduct a measurement with a paired device while nearby.", bundle: .module)
+                    }
                 } else {
                     PaneContent {
-                        Text("Measurement Recorded")
+                        Text("Measurement Recorded", bundle: .module)
                             .font(.title)
                             .fixedSize(horizontal: false, vertical: true)
                         if let selectedMeasurement {

@@ -26,7 +26,7 @@ public struct BatteryIcon: View {
                 if !isCharging {
                     Text(verbatim: "\(percentage) %")
                 } else {
-                    Text(verbatim: "\(percentage) %, is charging")
+                    Text("\(percentage) %, is charging", bundle: .module)
                 }
             }
     }

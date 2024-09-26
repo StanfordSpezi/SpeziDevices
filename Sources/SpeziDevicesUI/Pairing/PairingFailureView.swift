@@ -15,14 +15,14 @@ struct PairingFailureView: View {
 
     private var message: String {
         error.failureReason ?? error.errorDescription
-        ?? String(localized: "Failed to pair accessory.")
+            ?? String(localized: "Failed to pair accessory.", bundle: .module)
     }
 
     @Environment(\.dismiss) private var dismiss
 
 
     var body: some View {
-        PaneContent(title: Text("Pairing Failed"), subtitle: Text(message)) {
+        PaneContent(title: Text("Pairing Failed", bundle: .module), subtitle: Text(message)) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .symbolRenderingMode(.hierarchical)
                 .resizable()
@@ -34,7 +34,7 @@ struct PairingFailureView: View {
             Button {
                 dismiss()
             } label: {
-                Text("OK")
+                Text("OK", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
                 .buttonStyle(.borderedProminent)
