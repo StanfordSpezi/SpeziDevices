@@ -29,6 +29,8 @@ struct AccessoryRenameButton: View {
         }
     }
 
+    @State private var observedRename: Bool = false
+
     @Environment(PairedDevices.self) private var pairedDevices
 
     private var buttonBackground: (some View)? {
@@ -46,7 +48,7 @@ struct AccessoryRenameButton: View {
 
     var body: some View {
         Group { // swiftlint:disable:this closure_body_length
-            if pairedDevices.accessoryPickerPresented {
+            if pairedDevices.accessoryPickerPresented && !observedRename {
                 HStack {
                     LabeledContent("Name") {
                         Text(accessory.displayName)
@@ -56,6 +58,9 @@ struct AccessoryRenameButton: View {
                         .padding(.trailing, -10) // make sure content still right aligns
                         .accessibilityRemoveTraits(.updatesFrequently)
                 }
+                    .onChange(of: accessory.displayName) {
+                        observedRename = true
+                    }
             } else {
                 NavigationLink {
                     EmptyView()
@@ -103,6 +108,8 @@ struct AccessoryRenameButton: View {
         guard renameTask == nil else {
             return
         }
+
+        observedRename = false
 
         renameTask = Task {
             defer {

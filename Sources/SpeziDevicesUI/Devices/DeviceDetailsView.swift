@@ -160,6 +160,8 @@ public struct DeviceDetailsView: View {
     private func forgetDevice() {
         viewState = .processing
 
+        // TODO: device stays retrieved after forgetting!
+
         // TODO: cancel previous task!
         Task {
             do {
