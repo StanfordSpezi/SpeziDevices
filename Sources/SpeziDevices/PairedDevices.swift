@@ -139,7 +139,7 @@ public final class PairedDevices {
 
     @Dependency @ObservationIgnored private var _accessorySetup: [any Module]
 
-    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit {
+    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit { // TODO: optional
         // we cannot have stored properties with @available declaration. Therefore, we add a level of indirection.
         guard let module = _accessorySetup.first as? LoadAccessorySetupKit else {
             preconditionFailure("\(AccessorySetupKit.self) was not injected into dependency tree.")
@@ -168,6 +168,7 @@ public final class PairedDevices {
     public required init() {
         if #available(iOS 18, *) {
             __accessorySetup = Dependency {
+                // TODO: only load if it is configured!
                 // Dynamic dependencies are always loaded independent if the module was already supplied in the environment.
                 // Therefore, we create a helper module, that loads the accessory setup kit module.
                 LoadAccessorySetupKit()
@@ -659,9 +660,10 @@ extension PairedDevices {
                 guard let self else {
                     break
                 }
-                print("We received a change \(change)") // TODO: we need to register the change befor
 
-                switch change { // TODO: is that a good model, we could easily check for bluetoothIdentifier once?
+                logger.debug("Received accessory change: \(String(describing: change))")
+
+                switch change {
                 case .available:
                     break // TODO: query initial accessories?
                 case let .added(accessory):
@@ -681,6 +683,8 @@ extension PairedDevices {
             return
         }
 
+        // TODO: check if accessory setup kit is enabled for bluetooth!
+
         let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
             guard descriptor.deviceType is any PairableDevice.Type else {
                 return
@@ -689,13 +693,22 @@ extension PairedDevices {
             switch descriptor.deviceType.appearance {
             case let .appearance(appearance):
                 let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
-                partialResult.append(ASPickerDisplayItem(name: appearance.name, productImage: appearance.icon.uiImage!, descriptor: descriptor))
-            case let .variants(_, variants):
+                let image = appearance.icon.uiImageScaledForAccessorySetupKit()
+                partialResult.append(ASPickerDisplayItem(name: appearance.name, productImage: image, descriptor: descriptor))
+            case let .variants(defaultAppearance, variants):
                 for variant in variants {
                     let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
                     variant.criteria.apply(to: descriptor)
-                    partialResult.append(ASPickerDisplayItem(name: variant.name, productImage: variant.icon.uiImage!, descriptor: descriptor))
+
+                    let image = variant.icon.uiImageScaledForAccessorySetupKit()
+                    partialResult.append(ASPickerDisplayItem(name: variant.name, productImage: image, descriptor: descriptor))
                 }
+                // TODO: reduce some of the code complexity here, move things into extensions!
+
+                // TODO: is that predictable?
+                let descriptor = descriptor.discoveryCriteria.discoveryDescriptor
+                let image = defaultAppearance.icon.uiImageScaledForAccessorySetupKit()
+                partialResult.append(ASPickerDisplayItem(name: defaultAppearance.name, productImage: image, descriptor: descriptor))
             }
         }
 
@@ -997,6 +1010,7 @@ extension Bluetooth {
     }
 }
 
+// TODO: move some extensions to other files!
 
 extension BluetoothDevice {
     static func deviceIcon(variantId: String?) -> ImageReference {
@@ -1018,6 +1032,38 @@ extension BluetoothDevice {
 extension PairableDevice {
     fileprivate static func retrieveDevice(from bluetooth: Bluetooth, with id: UUID) async -> Self? {
         await bluetooth.retrieveDevice(for: id, as: Self.self)
+    }
+}
+
+
+import UIKit
+extension ImageReference {
+    func uiImageScaledForAccessorySetupKit() -> UIImage {
+        let image: UIImage
+        let isSymbol: Bool
+
+        if let uiImage {
+            image = uiImage
+            isSymbol = isSystemImage
+        } else {
+            guard let sensor = UIImage(systemName: "sensor") else {
+                preconditionFailure("UIImage with systemName 'sensor' is not available.")
+            }
+            isSymbol = true
+            image = sensor
+        }
+
+        if isSymbol {
+            guard let configuredImage = image
+                .applyingSymbolConfiguration(.init(font: .systemFont(ofSize: 256), scale: .large))?
+                .withTintColor(UIColor.tintColor, renderingMode: .alwaysTemplate) else {
+                preconditionFailure("Failed to apply symbol configuration to UIImage: \(image).")
+            }
+
+            return configuredImage
+        } else {
+            return image
+        }
     }
 }
 
