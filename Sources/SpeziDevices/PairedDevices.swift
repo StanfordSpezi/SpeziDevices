@@ -817,6 +817,7 @@ extension PairedDevices {
                 logger.debug("Received accessory change: \(String(describing: change))")
 
                 switch change {
+                    // TODO: all of this could race, we need "locks" for each accessory (removal and addition)?
                 case .available:
                     Task {
                         await handleSessionAvailable()
