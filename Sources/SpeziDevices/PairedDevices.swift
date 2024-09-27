@@ -574,6 +574,9 @@ extension PairedDevices {
         guard let device = _pairedDevices[id] else {
             return // this will be called twice, as the AccessorySetupKit will dispatch an event on manual removal
         }
+
+
+        logger.debug("Removing device \(device.info.name), \(device.info.id) ...")
         device.markForRemoval() // prevent the device from automatically reconnecting
 
         let externallyManaged: Bool
@@ -598,6 +601,8 @@ extension PairedDevices {
 
 
         await device.removeDevice(manualDisconnect: !externallyManaged)
+
+        logger.debug("Successfully removed device \(device.info.name), \(device.info.id)!")
 
         if _pairedDevices.isEmpty {
             await self.cancelSubscription()
@@ -721,7 +726,9 @@ extension PairedDevices {
             scheduledPowerOffTask = nil
             await handleCentralPoweredOn()
         case .poweredOff:
+            // TODO: after removal, device cannot be connected anymore??
             scheduledPowerOffTask = Task {
+                // TODO: we must discard all peripherals here!, before we retrieve again, we should make sure that the device is fully disallocated!
                 // TODO: try? await Task.sleep(for: .seconds(1)) // TODO: is that long enough. What happens if that is a manual power off?
                 guard !Task.isCancelled else {
                     return

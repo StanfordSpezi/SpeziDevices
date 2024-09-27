@@ -197,6 +197,7 @@ extension PairedDevice {
                     try? await Task.sleep(for: backOff)
                     backOff *= 2
 
+                    // TODO: this is currently getting spammed for some reason! > 100 times!
                     // TODO: if the error is a permission error, abort, device was removed by accessory setup kit or user rejected permissions!
                     //      : Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBInternalErrorDomain Code=10
                     //   => "Operation is not allowed" UserInfo={NSLocalizedDescription=Operation is not allowed}
@@ -213,6 +214,7 @@ extension PairedDevice {
             return nil
         }
         if !connectionAttemptTask.isCancelled {
+            // TODO: task might be completed!
             Self.logger.debug("Cancelling connection attempt \(self.connectionAttemptCount) for device \(self.info.name), \(self.info.id)")
         }
         connectionAttemptTask.cancel()
