@@ -598,6 +598,8 @@ extension PairedDevices {
             } catch {
                 logger.warning("Failed to persist device removal of \(removed.info.id): \(error)")
             }
+
+
             await removed.removeDevice(manualDisconnect: !externallyManaged)
         }
 
@@ -768,6 +770,10 @@ extension PairedDevices {
     }
 
     private func handleCentralPoweredOff() async {
+        guard !_newPairedDevices.isEmpty else {
+            return
+        }
+
         logger.debug("Powering off PairedDevices and cancelling connection attempts or ongoing connections ...")
 
         await withDiscardingTaskGroup { group in
