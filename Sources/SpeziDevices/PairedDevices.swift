@@ -320,10 +320,14 @@ public final class PairedDevices {
     }
 
     @MainActor
-    private func handleDeviceStateUpdated<Device: PairableDevice>(_ device: Device, old oldState: PeripheralState, new newState: PeripheralState) {
+    private func handleDeviceStateUpdated<Device: PairableDevice>(
+        _ device: Device,
+        old oldState: PeripheralState,
+        new newState: PeripheralState
+    ) async {
         switch newState {
         case .connected:
-            cancelConnectionAttempt(for: device) // just clear the entry
+            await cancelConnectionAttempt(for: device) // just clear the entry
             updateLastSeen(for: device)
         case .disconnecting:
             if case .connected = oldState {
@@ -337,7 +341,7 @@ public final class PairedDevices {
             }
 
             // long-running reconnect (if applicable)
-            connectionAttempt(for: device)
+            await connectionAttempt(for: device)
         default:
             break
         }
@@ -394,12 +398,12 @@ public final class PairedDevices {
     }
 
     @MainActor
-    private func connectionAttempt(for device: some PairableDevice) {
+    private func connectionAttempt(for device: some PairableDevice) async {
         guard case .poweredOn = bluetooth?.state, isPaired(device) else {
             return
         }
         
-        let previousTask = cancelConnectionAttempt(for: device)
+        let previousTask = await cancelConnectionAttempt(for: device)
 
         pendingConnectionAttempts[device.id] = Task { @SpeziBluetooth in
             await previousTask?.value // make sure its ordered
@@ -417,9 +421,10 @@ public final class PairedDevices {
 
     @MainActor
     @discardableResult
-    private func cancelConnectionAttempt(for device: some PairableDevice) -> Task<Void, Never>? {
+    private func cancelConnectionAttempt(for device: some PairableDevice) async -> Task<Void, Never>? {
         let task = pendingConnectionAttempts.removeValue(forKey: device.id)
         task?.cancel()
+        await task?.value
         return task
     }
 
@@ -615,7 +620,7 @@ extension PairedDevices {
         await removeDevice(id: id)
 
         // TODO: device stays retrieved after forgetting!
-        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!
+        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!?
             // TODO: see if that changes anything, make sure
             try await removeAccessory(for: id) // TODO: create localized versions of the error!
             // TODO: if this fails, the accessory might be added back on next startup!
@@ -761,8 +766,12 @@ extension PairedDevices {
         case .poweredOn:
             await handleCentralPoweredOn()
         default:
-            for device in peripherals.values {
-                cancelConnectionAttempt(for: device)
+            await withDiscardingTaskGroup { group in
+                for device in peripherals.values {
+                    group.addTask {
+                        await self.cancelConnectionAttempt(for: device)
+                    }
+                }
             }
             peripherals.removeAll()
         }
@@ -816,7 +825,7 @@ extension PairedDevices {
         assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
         self.peripherals[device.id] = device
 
-        connectionAttempt(for: device)
+        await connectionAttempt(for: device)
     }
 }
 

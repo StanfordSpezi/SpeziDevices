@@ -26,9 +26,9 @@ struct TimerIntervalLabel: View {
                 )
             )
         } else if Calendar.current.isDateInYesterday(date) {
-            Text("yesterday, \(Text(date, style: .time))")
+            Text("yesterday, \(Text(date, style: .time))", bundle: .module)
         } else {
-            Text("\(Text(date, format: Date.FormatStyle(date: .complete))), \(Text(date, style: .time))")
+            Text("\(Text(date, format: Date.FormatStyle(date: .complete))), \(Text(date, style: .time))", bundle: .module)
         }
     }
 
@@ -120,7 +120,6 @@ public struct DeviceDetailsView: View {
             ) {
                 Button {
                     forgetDevice()
-                    dismiss()
                 } label: {
                     Text("Forget Device", bundle: .module)
                 }
@@ -175,6 +174,7 @@ public struct DeviceDetailsView: View {
                 if !managedByAccessorySetupKit {
                     ForgetDeviceTip.hasRemovedPairedDevice = true
                 }
+                dismiss()
                 viewState = .idle
             } catch {
                 viewState = .error(AnyLocalizedError(
