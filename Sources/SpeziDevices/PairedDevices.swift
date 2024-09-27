@@ -401,7 +401,7 @@ public final class PairedDevices {
         
         let previousTask = cancelConnectionAttempt(for: device)
 
-        pendingConnectionAttempts[device.id] = Task {
+        pendingConnectionAttempts[device.id] = Task { @SpeziBluetooth in
             await previousTask?.value // make sure its ordered
             do {
                 try await device.connect()
@@ -410,7 +410,7 @@ public final class PairedDevices {
                     return
                 }
                 logger.warning("Failed connection attempt for device \(device.label). Retrying ...")
-                connectionAttempt(for: device)
+                await connectionAttempt(for: device)
             }
         }
     }
@@ -478,12 +478,14 @@ extension PairedDevices {
 
         try await withThrowingDiscardingTaskGroup { group in
             // connect task
-            group.addTask { @Sendable @MainActor in
+            group.addTask { @Sendable @SpeziBluetooth in
                 do {
                     try await device.connect()
                 } catch {
                     if error is CancellationError {
-                        self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                        await MainActor.run {
+                            self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                        }
                     }
 
                     throw error
@@ -497,8 +499,10 @@ extension PairedDevices {
                         self.ongoingPairings[id] = PairingContinuation(continuation)
                     }
                 } onCancel: {
-                    Task { @MainActor [weak device] in
-                        self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                    Task { @SpeziBluetooth [weak device] in
+                        await MainActor.run {
+                            self.ongoingPairings.removeValue(forKey: id)?.signalCancellation()
+                        }
                         await device?.disconnect()
                     }
                 }
@@ -631,7 +635,9 @@ extension PairedDevices {
 
         if device != nil || _pairedDevices.isEmpty {
             if let device {
-                await device.disconnect()
+                Task { @SpeziBluetooth in
+                    await device.disconnect()
+                }
             }
 
             // make sure this runs after the disconnect
