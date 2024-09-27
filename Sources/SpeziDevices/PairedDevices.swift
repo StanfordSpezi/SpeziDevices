@@ -161,7 +161,6 @@ public final class PairedDevices {
 
     /// Initialize the Paired Devices Module.
     public required init() {
-        // TODO: allow to disable ASKit!
         if #available(iOS 18, *) {
             if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 __accessorySetup = Dependency {
@@ -197,24 +196,29 @@ public final class PairedDevices {
             self.logger.error("PairedDevices failed to initialize ModelContainer: \(error)")
         }
 
-        // We need to detach to not copy task local values
-        Task.detached { @Sendable @MainActor in
-            self.fetchAllPairedInfos() // TODO: no immediate need to do this in a Task!?
+        self.fetchAllPairedInfos()
+        self.syncDeviceIcons() // make sure assets are up to date
 
-            self.syncDeviceIcons() // make sure assets are up to date
-
-            guard !self._pairedDevices.isEmpty else {
-                return // no devices paired, no need to power up central
-            }
-
-            await self.setupBluetoothStateSubscription()
-        }
+        var powerUpUsingASKit = false
 
         if #available(iOS 18, *) {
             if accessorySetup != nil {
                 setupAccessoryChangeSubscription()
+                powerUpUsingASKit = true
             } else {
                 logger.info("AccessorySetupKit is supported by the platform but `NSAccessorySetupKitSupports` doesn't declare support for Bluetooth.")
+            }
+        }
+
+        // We use the ASKit activate event to power up the central if there are paired devices as we need control over it.
+        if !powerUpUsingASKit && !self._pairedDevices.isEmpty {
+            // We need to detach to not copy task local values
+            Task.detached { @Sendable @MainActor in
+                guard !self._pairedDevices.isEmpty else {
+                    return // no devices paired, no need to power up central
+                }
+
+                await self.setupBluetoothStateSubscription()
             }
         }
     }
@@ -224,7 +228,7 @@ public final class PairedDevices {
     /// Depending on availability, this method presents the discovery sheet of the AccessorySetupKit. If not available, this method sets ``shouldPresentDevicePairing`` to `true`
     /// which should be used to present the `AccessorySetupSheet` from `SpeziDevicesUI`.
     @MainActor
-    public func showAccessoryDiscovery() { // TODO: support "manual" override!
+    public func showAccessoryDiscovery() {
         if #available(iOS 18, *), accessorySetup != nil {
             showAccessorySetupPicker()
         } else {
@@ -375,6 +379,10 @@ public final class PairedDevices {
         deviceInfo.lastSeen = lastSeen
         if let model = device.deviceInformation.modelNumber {
             deviceInfo.model = model
+        }
+        if let batteryPowered = device as? BatteryPoweredDevice,
+           let battery = batteryPowered.battery.batteryLevel {
+            deviceInfo.lastBatteryPercentage = battery
         }
     }
 
@@ -600,15 +608,18 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) async throws {
-        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!
-            try await removeAccessory(for: id) // TODO: create localized versions of the error!
-        }
+        await removeDevice(id: id)
 
-        removeDevice(id: id)
+        // TODO: device stays retrieved after forgetting!
+        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!
+            // TODO: see if that changes anything, make sure
+            try await removeAccessory(for: id) // TODO: create localized versions of the error!
+            // TODO: if this fails, the accessory might be added back on next startup!
+        }
     }
 
     @MainActor
-    private func removeDevice(id: UUID) {
+    private func removeDevice(id: UUID) async {
         let removed = _pairedDevices.removeValue(forKey: id)
         if let removed {
             modelContainer?.mainContext.delete(removed)
@@ -619,15 +630,13 @@ extension PairedDevices {
         let device = peripherals.removeValue(forKey: id)
 
         if device != nil || _pairedDevices.isEmpty {
-            Task.detached { @Sendable @MainActor in
-                if let device {
-                    await device.disconnect()
-                }
+            if let device {
+                await device.disconnect()
+            }
 
-                // make sure this runs after the disconnect
-                if self._pairedDevices.isEmpty {
-                    await self.cancelSubscription()
-                }
+            // make sure this runs after the disconnect
+            if self._pairedDevices.isEmpty {
+                await self.cancelSubscription()
             }
         }
     }
@@ -689,7 +698,16 @@ extension PairedDevices {
                 continue
             }
 
-            deviceInfo.icon = deviceType.appearance.deviceIcon(variantId: deviceInfo.variantIdentifier)
+            if let migration = deviceType as? DeviceVariantMigration.Type,
+               case .variants = deviceType.appearance,
+               deviceInfo.variantIdentifier == nil {
+                // TODO: might be called multiple times if the migration fails
+                let (appearance, variantId) = migration.selectAppearance(for: deviceInfo)
+                deviceInfo.variantIdentifier = variantId
+                deviceInfo.icon = appearance.icon
+            } else {
+                deviceInfo.icon = deviceType.appearance.deviceIcon(variantId: deviceInfo.variantIdentifier)
+            }
         }
     }
 
@@ -828,7 +846,6 @@ extension PairedDevices {
 
         let changes = accessorySetup.accessoryChanges
 
-        // TODO: revert detached once possible!
         Task.detached { @Sendable @MainActor [weak self] in
             for await change in changes {
                 guard let self else {
@@ -839,22 +856,20 @@ extension PairedDevices {
 
                 switch change {
                 case .available:
-                    // TODO: support migration here?
-                    // TODO: check for devices that got added but do not appear here!
-                    handleSessionAvailable()
+                    await handleSessionAvailable()
                 case let .added(accessory):
                     handledAddedAccessory(accessory)
                 case let .changed(accessory):
                     updateAccessory(accessory)
                 case let .removed(accessory):
-                    handleRemovedAccessory(accessory)
+                    await handleRemovedAccessory(accessory)
                 }
             }
         }
     }
 
     @MainActor
-    private func handleSessionAvailable() {
+    private func handleSessionAvailable() async {
         guard let accessorySetup else {
             return
         }
@@ -870,6 +885,12 @@ extension PairedDevices {
 
             logger.debug("Found available accessory that hasn't been paired.")
             handledAddedAccessory(accessory)
+        }
+
+        // TODO: support migration here? devices that are added but not found in accessory setup kit!
+
+        if !self._pairedDevices.isEmpty {
+            await self.setupBluetoothStateSubscription()
         }
     }
 
@@ -973,12 +994,12 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handleRemovedAccessory(_ accessory: ASAccessory) {
+    private func handleRemovedAccessory(_ accessory: ASAccessory) async {
         guard let id = accessory.bluetoothIdentifier else {
             return
         }
 
-        removeDevice(id: id)
+        await removeDevice(id: id)
     }
 
     @MainActor
@@ -1016,10 +1037,8 @@ extension PairedDevices {
         }
 
         do {
-            // TODO: document this in SpeziBluetooth!
             try await accessorySetup.renameAccessory(accessory)
         } catch {
-            // TODO: what errors would be thrown?
             logger.error("Failed to rename accessory managed by AccessorySetupKit (\(accessory)): \(error)")
             throw error
         }

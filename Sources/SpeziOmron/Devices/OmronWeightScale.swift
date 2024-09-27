@@ -11,7 +11,8 @@ import Foundation
 import OSLog
 @_spi(TestingSupport) import SpeziBluetooth
 import SpeziBluetoothServices
-import SpeziDevices
+@_spi(Migration) import SpeziDevices
+import SpeziFoundation
 
 
 /// Implementation of Omron SC150 Weight Scale.
@@ -21,10 +22,14 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
             id: "omron-sc150",
             name: "SC-150",
             icon: .asset("Omron-SC-150", bundle: .module),
-            criteria: .nameSubstring("BLEsmart_00010112"),
-            .manufacturer(.omronHealthcareCoLtd)
+            criteria: .nameSubstring("BLESmart_00010112"),
+            .manufacturer(.omronHealthcareCoLtd, manufacturerData: pairingModeDescriptor)
         )
     ])
+
+    private static var pairingModeDescriptor: DataDescriptor {
+        DataDescriptor(data: OmronManufacturerData.Flags.pairingMode.encode(), mask: OmronManufacturerData.Flags.pairingMode.encode())
+    }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
 
@@ -69,7 +74,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
 
     @SpeziBluetooth
     private func handleStateChange(_ state: PeripheralState) {
-        logger.debug("\(Self.self) \(label), \(id) changed state to \(state).")
+        logger.debug("\(Self.self) \(self.label), \(self.id) changed state to \(state).")
         switch state {
         case .connecting, .connected:
             break
@@ -200,5 +205,15 @@ extension OmronWeightScale {
         }
 
         return device
+    }
+}
+
+
+@_spi(Migration)
+extension OmronWeightScale: DeviceVariantMigration {
+    public static func selectAppearance(for deviceInfo: PairedDeviceInfo) -> (appearance: Appearance, variantId: String?) {
+        appearance.appearance { variant in
+            variant.name == deviceInfo.model
+        }
     }
 }

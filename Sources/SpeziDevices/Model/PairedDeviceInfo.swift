@@ -33,12 +33,17 @@ public final class PairedDeviceInfo {
     public internal(set) var lastBatteryPercentage: UInt8?
 
     /// The date at which the device was paired.
-    public var pairedAt: Date
+    public internal(set) var pairedAt: Date
+    
+    /// Defines the variant of the bluetooth device.
+    ///
+    /// A bluetooth device might implement the logic for multiple device variants that each have a different appearance. In these cases the device can define a appearance for each variant.
+    /// This identifier stores the variant identifier of the variant we observed upon pairing.
+    public internal(set) var variantIdentifier: String? // TODO: observable? create legacy data store tests!
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
-    private(set) var variantIdentifier: String? // TODO: observable? create legacy data store tests!
 
     /// Visual representation of the device.
     public var icon: ImageReference? {

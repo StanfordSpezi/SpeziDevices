@@ -11,7 +11,7 @@ import Foundation
 import OSLog
 @_spi(TestingSupport) import SpeziBluetooth
 import SpeziBluetoothServices
-import SpeziDevices
+@_spi(Migration) import SpeziDevices
 import SpeziNumerics
 
 
@@ -25,7 +25,6 @@ import SpeziNumerics
 /// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
 ///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    // TODO: backwards compatibility for device variant? maybe just Model to name matching! or provide a legacy matching behavior!
     public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Blood Pressure Cuff"), variants: [
         Variant(
             id: "omron-bp5250",
@@ -36,7 +35,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
         ),
         Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("BLEsmart_0000021F")),
 
-        // TOOD: look at Paul's screenshot
+        // TODO: look at Paul's screenshot
         Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BLEsmart_0000011F"))
     ])
 
@@ -238,5 +237,15 @@ extension OmronBloodPressureCuff {
         }
 
         return device
+    }
+}
+
+
+@_spi(Migration)
+extension OmronBloodPressureCuff: DeviceVariantMigration {
+    public static func selectAppearance(for deviceInfo: PairedDeviceInfo) -> (appearance: Appearance, variantId: String?) {
+        appearance.appearance { variant in
+            variant.name == deviceInfo.model
+        }
     }
 }

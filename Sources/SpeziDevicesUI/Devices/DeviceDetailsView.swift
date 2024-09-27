@@ -158,11 +158,12 @@ public struct DeviceDetailsView: View {
     }
 
     private func forgetDevice() {
+        guard case .idle = viewState else {
+            return
+        }
+
         viewState = .processing
 
-        // TODO: device stays retrieved after forgetting!
-
-        // TODO: cancel previous task!
         Task {
             do {
                 let managedByAccessorySetupKit = if #available(iOS 18, *), pairedDevices.accessory(for: deviceInfo.id) != nil {
