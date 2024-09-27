@@ -594,7 +594,7 @@ extension PairedDevices {
             await removed.removeDevice(manualDisconnect: !externallyManaged)
         }
 
-        if !_newPairedDevices.isEmpty {
+        if _newPairedDevices.isEmpty {
             await self.cancelSubscription()
         }
     }
