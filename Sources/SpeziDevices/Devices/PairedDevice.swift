@@ -10,68 +10,6 @@ import OSLog
 import SpeziBluetooth
 import SpeziFoundation
 
-@MainActor
-final class DiscoveredDevice: Sendable {
-    private static nonisolated let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "DiscoveredDevice")
-
-    let device: any PairableDevice
-    private(set) var ongoingPairing: PairingContinuation?
-
-    init(device: some PairableDevice) {
-        self.device = device
-    }
-
-    func handleDeviceStateUpdated<Device: PairableDevice>(for device: Device, _ state: PeripheralState) {
-        guard self.device === device else {
-            return
-        }
-
-        switch state {
-        case .disconnected:
-            if let ongoingPairing {
-                // TODO: log it!
-                self.ongoingPairing = nil
-                ongoingPairing.signalDisconnect()
-            }
-        default:
-            break
-        }
-    }
-
-    func signalDevicePaired(_ device: some PairableDevice) -> Bool {
-        guard self.device === device else {
-            return false
-        }
-
-        if let ongoingPairing {
-            Self.logger.debug("Device \(device.label), \(device.id) signaled it is fully paired.")
-            self.ongoingPairing = nil
-            ongoingPairing.signalPaired()
-            return true
-        }
-        return false
-    }
-
-    func assignContinuation(_ continuation: CheckedContinuation<Void, Error>) {
-        if let ongoingPairing {
-            ongoingPairing.signalCancellation()
-        }
-        self.ongoingPairing = PairingContinuation(continuation)
-    }
-
-    func clearPairingContinuationWithIntentionToResume() -> PairingContinuation? {
-        if let ongoingPairing {
-            self.ongoingPairing = nil
-            return ongoingPairing
-        }
-        return nil
-    }
-
-    deinit {
-        ongoingPairing?.signalCancellation()
-    }
-}
-
 
 @MainActor
 @Observable
@@ -107,17 +45,20 @@ final class PairedDevice: Sendable {
         cancelConnectionAttempt()
 
         if let peripheral, manualDisconnect {
-            await peripheral.disconnect() // TODO: why not sync?
+            await peripheral.disconnect()
         }
     }
 
     func handlePowerOff() async {
         let connectionAttemptTask = cancelConnectionAttempt()
         self.peripheral = nil
-        await connectionAttemptTask?.value // TODO: are we sure the connect action is fully cancellable?
+        if let connectionAttemptTask {
+            Self.logger.debug("Cancelling connection attempt for device \(self.info.name), \(self.info.id)")
+            await connectionAttemptTask.value // TODO: are we sure the connect action is fully cancellable?
+            Self.logger.debug("Successfully Cancelled connection attempt for device \(self.info.name), \(self.info.id)") // TODO: remove
+        }
     }
 
-    // TODO: mark: lifecycle
     func updateUponConfiguration<Device: PairableDevice>(of device: Device) {
         info.peripheralName = device.name
         info.icon = Device.appearance.deviceIcon(variantId: info.variantIdentifier) // the asset might have changed
@@ -222,7 +163,7 @@ extension PairedDevice {
 
         connectionAttemptTask = Task { @MainActor [weak self] in
             defer {
-                // TODO: this doesn't work, next task might already be assigned! might not be atomic?
+                // TODO: this doesn't work?, next task might already be assigned! might not be atomic?
                 if !Task.isCancelled {
                     self?.connectionAttemptTask = nil
                 }
@@ -230,7 +171,7 @@ extension PairedDevice {
 
             await previousTask?.value // make sure its ordered
 
-            var backOff: Duration = .milliseconds(500) // exponential back-off for retry!
+            var backOff: Duration = .seconds(1) // exponential back-off for retry!
 
             while !Task.isCancelled {
                 guard let device = self?.peripheral else {
@@ -239,15 +180,18 @@ extension PairedDevice {
 
                 do {
                     Self.logger.debug("Attempting to connect to device \(device.label), \(device.id)")
-                    // TODO: throw errors on API misuse! when bluetooth central is not connected!
                     try await device.connect()
+                    Self.logger.debug("Connection attempt to device \(device.label), \(device.id) completed successfully.")
                     break // connection attempt was successful
+                } catch let BluetoothError.invalidState(state) {
+                    Self.logger.warning("Failed connection attempt as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
+                    return
                 } catch {
                     // TODO: if the error is a permission error, abort, device was removed by accessory setup kit or user rejected permissions!
-                    // TODO: Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBInternalErrorDomain Code=10
+                    //      : Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBInternalErrorDomain Code=10
                     //   => "Operation is not allowed" UserInfo={NSLocalizedDescription=Operation is not allowed}
                     if !Task.isCancelled && !(error is CancellationError) {
-                        Self.logger.warning("Failed connection attempt for device \(device.label) (Retrying in \(backOff): \(error)")
+                        Self.logger.warning("Failed connection attempt for device \(device.label) (Retrying in \(backOff)): \(error)")
                         try? await Task.sleep(for: backOff)
                         backOff *= 2
                     } else {
