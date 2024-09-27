@@ -19,13 +19,15 @@ final class PairedDevice: Sendable {
     let info: PairedDeviceInfo
 
     private(set) var peripheral: (any PairableDevice)?
+
+    private var connectionAttemptCount: UInt = 0
     @ObservationIgnored private(set) var connectionAttemptTask: Task<Void, Never>? {
         willSet {
             connectionAttemptTask?.cancel()
         }
     }
 
-    @ObservationIgnored private var willBeRemoved = false
+    @ObservationIgnored private(set) var willBeRemoved = false
     private let retrieveAccess = AsyncSemaphore()
 
     init(info: PairedDeviceInfo, assigning peripheral: (any PairableDevice)? = nil) {
@@ -49,11 +51,13 @@ final class PairedDevice: Sendable {
     }
 
     func handlePowerOff() async {
-        let connectionAttemptTask = cancelConnectionAttempt()
+        let connectionAttemptTask = cancelConnectionAttemptReturningPrevious()
         self.peripheral = nil
         if let connectionAttemptTask {
             await connectionAttemptTask.value // TODO: are we sure the connect action is fully cancellable?
-            Self.logger.debug("Successfully cancelled connection attempt for device \(self.info.name), \(self.info.id)") // TODO: remove
+
+            // TODO: remove?
+            Self.logger.debug("Successfully cancelled connection attempt \(self.connectionAttemptCount) for device \(self.info.name), \(self.info.id)")
         }
     }
 
@@ -114,8 +118,8 @@ final class PairedDevice: Sendable {
 
             // TODO: this flag might not be set if the device is unpaired from settings!
             if !willBeRemoved { // long-running reconnect (if applicable)
+                Self.logger.debug("Restoring connection attempt for device \(device.label), \(device.id) after disconnect.")
                 connectionAttempt()
-                Self.logger.debug("Restored connection attempt for device \(device.label), \(device.id) after disconnect.")
             }
 
         default:
@@ -154,43 +158,42 @@ final class PairedDevice: Sendable {
 
 extension PairedDevice {
     private func connectionAttempt() {
-        let previousTask = cancelConnectionAttempt()
+        let previousTask = cancelConnectionAttemptReturningPrevious()
 
         guard peripheral != nil, !willBeRemoved else {
             return
         }
 
-        connectionAttemptTask = Task { @MainActor [weak self] in
-            defer {
-                // TODO: this doesn't work?, next task might already be assigned! might not be atomic?
-                if !Task.isCancelled {
-                    self?.connectionAttemptTask = nil
-                }
-            }
+        connectionAttemptCount &+= 1
 
+        let taskAttempt = connectionAttemptCount
+        connectionAttemptTask = Task { @MainActor [weak self] in
             await previousTask?.value // make sure its ordered
 
             var backOff: Duration = .milliseconds(500) // exponential back-off for retry!
 
+            var iteration: UInt = 0
             while !Task.isCancelled {
                 guard let device = self?.peripheral else {
                     return // device or self got deallocated
                 }
 
+                let attempt = "\(taskAttempt).\(iteration)"
+
                 do {
-                    Self.logger.debug("Attempting to connect to device \(device.label), \(device.id)")
+                    Self.logger.debug("Connection attempt \(attempt) connects to device \(device.label), \(device.id) ...")
                     try await device.connect()
-                    Self.logger.debug("Connection attempt to device \(device.label), \(device.id) completed successfully.")
+                    Self.logger.debug("Connection attempt \(attempt) to device \(device.label), \(device.id) completed successfully.")
                     break // connection attempt was successful
                 } catch let BluetoothError.invalidState(state) {
-                    Self.logger.warning("Failed connection attempt as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
+                    Self.logger.warning("Failed connection attempt \(attempt) as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
                     return
                 } catch {
                     if Task.isCancelled || error is CancellationError {
-                        Self.logger.debug("Connection attempt for device \(device.label), \(device.id) was cancelled.")
+                        Self.logger.debug("Connection attempt \(attempt) for device \(device.label), \(device.id) was cancelled.")
                         return
                     }
-                    Self.logger.warning("Failed connection attempt for device \(device.label) (Retrying in \(backOff)): \(error)")
+                    Self.logger.warning("Failed connection attempt \(attempt) for device \(device.label) (Retrying in \(backOff)): \(error)")
                     try? await Task.sleep(for: backOff)
                     backOff *= 2
 
@@ -198,16 +201,20 @@ extension PairedDevice {
                     //      : Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBInternalErrorDomain Code=10
                     //   => "Operation is not allowed" UserInfo={NSLocalizedDescription=Operation is not allowed}
                 }
+
+                iteration &+= 1
             }
         }
     }
 
     @discardableResult
-    private func cancelConnectionAttempt() -> Task<Void, Never>? {
+    private func cancelConnectionAttemptReturningPrevious() -> Task<Void, Never>? {
         guard let connectionAttemptTask else {
             return nil
         }
-        Self.logger.debug("Cancelling connection attempt for device \(self.info.name), \(self.info.id)")
+        if !connectionAttemptTask.isCancelled {
+            Self.logger.debug("Cancelling connection attempt \(self.connectionAttemptCount) for device \(self.info.name), \(self.info.id)")
+        }
         connectionAttemptTask.cancel()
         return connectionAttemptTask
     }
