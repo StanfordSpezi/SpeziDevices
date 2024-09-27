@@ -327,10 +327,10 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
         _ device: Device,
         old oldState: PeripheralState,
         new newState: PeripheralState
-    ) async {
+    ) {
         switch newState {
         case .connected:
-            await cancelConnectionAttempt(for: device) // just clear the entry
+            cancelConnectionAttempt(for: device) // just clear the entry
             updateLastSeen(for: device)
         case .disconnecting:
             if case .connected = oldState {
@@ -344,7 +344,8 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
             }
 
             // long-running reconnect (if applicable)
-            await connectionAttempt(for: device)
+            let restored = connectionAttempt(for: device)
+            logger.debug("Restored connection attempt for device \(device.label), \(device.id) after disconnect.")
         default:
             break
         }
@@ -401,15 +402,19 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
     }
 
     @MainActor
-    private func connectionAttempt(for device: some PairableDevice) async {
+    @discardableResult
+    private func connectionAttempt(for device: some PairableDevice) -> Bool {
         guard case .poweredOn = bluetooth?.state, isPaired(device) else {
-            return
+            return false
         }
         
-        let previousTask = await cancelConnectionAttempt(for: device)
+        let previousTask = cancelConnectionAttempt(for: device)
 
         pendingConnectionAttempts[device.id] = Task { @SpeziBluetooth in
             await previousTask?.value // make sure its ordered
+            guard !Task.isCancelled else {
+                return
+            }
             do {
                 try await device.connect()
             } catch {
@@ -420,14 +425,15 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
                 await connectionAttempt(for: device)
             }
         }
+
+        return true
     }
 
     @MainActor
     @discardableResult
-    private func cancelConnectionAttempt(for device: some PairableDevice) async -> Task<Void, Never>? {
+    private func cancelConnectionAttempt(for device: some PairableDevice) -> Task<Void, Never>? {
         let task = pendingConnectionAttempts.removeValue(forKey: device.id)
         task?.cancel()
-        await task?.value
         return task
     }
 
@@ -620,42 +626,49 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) async throws {
+        // TODO: device stays retrieved after forgetting!
+        try await removeDevice(id: id) {
+            if #available(iOS 18, *) {
+                try await removeAccessory(for: id)
+            }
+        }
+    }
+
+    @MainActor
+    private func removeDevice(id: UUID, additionalAction: () async throws -> Void = {}) async rethrows {
+        // we need to remove this first, the disconnect below (and the one triggered by the AccessorySetupKit) will subsequently
+        // call our stateChange handler for the device state. If we keep the entry, the connection attempt task would be restored.
+        let removed = _pairedDevices.removeValue(forKey: id)
+
         if let device = peripherals[id] {
-            await cancelConnectionAttempt(for: device)
+            await cancelConnectionAttempt(for: device)?.value
 
             if device.state != .disconnected {
                 await device.disconnect()
             }
         }
 
-        // TODO: device stays retrieved after forgetting!
-        if #available(iOS 18, *) {
-            do {
-                try await removeAccessory(for: id)
-            } catch {
-                if let device = peripherals[id] {
-                    await connectionAttempt(for: device)
-                }
-                throw error
+        do {
+            try await additionalAction()
+        } catch {
+            // restore state again
+            _pairedDevices[id] = removed
+            if let device = peripherals[id] {
+                connectionAttempt(for: device)
             }
+            throw error
         }
 
-        await removeDevice(id: id)
-    }
-
-    @MainActor
-    private func removeDevice(id: UUID) async {
-        let removed = _pairedDevices.removeValue(forKey: id)
+        // finally remove the data
         if let removed {
             modelContainer?.mainContext.delete(removed)
         }
-
 
         discoveredDevices.removeValue(forKey: id)
         let device = peripherals.removeValue(forKey: id)
 
         if let device, device.state != .disconnected {
-            await cancelConnectionAttempt(for: device)
+            await cancelConnectionAttempt(for: device)?.value
             await device.disconnect()
         }
 
@@ -837,7 +850,7 @@ extension PairedDevices {
         assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
         self.peripherals[device.id] = device
 
-        await connectionAttempt(for: device)
+        connectionAttempt(for: device)
     }
 }
 
@@ -999,7 +1012,6 @@ extension PairedDevices {
                     return
                 }
 
-                // TODO: crashes!
                 await handleDeviceRetrieval(for: deviceInfo, deviceType: deviceType)
             }
         }
@@ -1025,7 +1037,7 @@ extension PairedDevices {
             return
         }
 
-        await removeDevice(id: id)
+        await removeDevice(id: id) {}
     }
 
     @MainActor
