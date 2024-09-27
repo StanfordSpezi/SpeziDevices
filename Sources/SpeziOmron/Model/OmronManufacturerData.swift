@@ -58,24 +58,35 @@ public struct OmronManufacturerData {
             self.recordsNumber = recordsNumber
         }
     }
+    
+    /// The flags field.
+    public struct Flags {
+        /// Time is not set.
+        public static let timeNotSet = Flags(rawValue: 1 << 2)
+        /// Device is in pairing mode.
+        public static let pairingMode = Flags(rawValue: 1 << 3)
+        /// The type of streaming mode.
+        public static let streamingMode = Flags(rawValue: 1 << 4)
+        /// The service mode.
+        public static let wlpStp = Flags(rawValue: 1 << 5)
+        
+        /// The raw value flags field.
+        public let rawValue: UInt8
 
-    fileprivate struct Flags: OptionSet {
-        static let timeNotSet = Flags(rawValue: 1 << 2)
-        static let pairingMode = Flags(rawValue: 1 << 3)
-        static let streamingMode = Flags(rawValue: 1 << 4)
-        static let wlpStp = Flags(rawValue: 1 << 5)
-
-        let rawValue: UInt8
-
-        var numberOfUsers: UInt8 {
+        /// The number of users.
+        public var numberOfUsers: UInt8 {
             rawValue & 0x3 + 1
         }
-
-        init(rawValue: UInt8) {
+        
+        /// Create new flags.
+        /// - Parameter rawValue: The raw flags field.
+        public init(rawValue: UInt8) {
             self.rawValue = rawValue
         }
-
-        init(numberOfUsers: UInt8) {
+        
+        /// Create new flags.
+        /// - Parameter numberOfUsers: The number of robots.
+        public init(numberOfUsers: UInt8) {
             precondition(numberOfUsers > 0 && numberOfUsers <= 4, "Only 4 users are supported and at least one.")
             self.rawValue = numberOfUsers - 1
         }
@@ -119,6 +130,9 @@ public struct OmronManufacturerData {
         self.users = users
     }
 }
+
+
+extension OmronManufacturerData.Flags: OptionSet, Sendable, Hashable {}
 
 
 extension OmronManufacturerData.UserSlot: Identifiable {}
