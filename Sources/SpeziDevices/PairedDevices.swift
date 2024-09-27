@@ -600,7 +600,7 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) async throws {
-        if #available(iOS 18, *) {
+        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!
             try await removeAccessory(for: id) // TODO: create localized versions of the error!
         }
 
@@ -840,7 +840,8 @@ extension PairedDevices {
                 switch change {
                 case .available:
                     // TODO: support migration here?
-                    break
+                    // TODO: check for devices that got added but do not appear here!
+                    handleSessionAvailable()
                 case let .added(accessory):
                     handledAddedAccessory(accessory)
                 case let .changed(accessory):
@@ -853,7 +854,28 @@ extension PairedDevices {
     }
 
     @MainActor
+    private func handleSessionAvailable() {
+        guard let accessorySetup else {
+            return
+        }
+
+        for accessory in accessorySetup.accessories {
+            guard let uuid = accessory.bluetoothIdentifier else {
+                continue
+            }
+
+            guard _pairedDevices[uuid] == nil else {
+                continue // we are already paired
+            }
+
+            logger.debug("Found available accessory that hasn't been paired.")
+            handledAddedAccessory(accessory)
+        }
+    }
+
+    @MainActor
     func showAccessorySetupPicker() {
+        // TODO: the picker disables powers off the central. are we still connecting afterwards?
         guard let bluetooth else {
             preconditionFailure("Tried to show accessory setup picker but Bluetooth module was not configured.")
         }
@@ -924,6 +946,13 @@ extension PairedDevices {
         // TODO: sometimes we do not receive the battery percentage???
         if stateSubscriptionTask != nil { // if the task is running, bluetooth is powered on
             Task {
+                // Bluetooth module turns off and back on again when accessory kit is used. Therefore, this accessory might already be
+                // retrieved due to the state change.
+                guard self.peripherals[id] == nil else {
+                    return
+                }
+
+                // TODO: crashes!
                 await handleDeviceRetrieval(for: deviceInfo, deviceType: deviceType)
             }
         }
@@ -964,6 +993,7 @@ extension PairedDevices {
 
         try await accessorySetup.removeAccessory(accessory)
         /*
+         TODO: remove!
          Received accessory change: .removed(ASAccessory: ID 2C96BB01-D3BE-47F9-8EC6-91E4E870CEE1, name 'EVOLV', btID 3e1851c3-5ce3-b407-5a3c-7a7b04fdafb4, state Authorized, descriptor ASDiscoveryDescriptor: Supports 0x2 < BluetoothPairingLE >, LocalName BLEsmart_0000021F, ServiceUUID Blood Pressure)
          BluetoothManager central state is now poweredOff
          OmronBloodPressureCuff changed state to disconnected.
