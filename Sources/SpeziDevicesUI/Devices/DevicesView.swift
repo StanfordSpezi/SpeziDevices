@@ -31,7 +31,7 @@ public struct DevicesView<PairingHint: View>: View {
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
-                AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName) {
+                AccessorySetupSheet(pairedDevices.discoveredDevices, appName: appName) {
                     pairingHint
                 }
             }
