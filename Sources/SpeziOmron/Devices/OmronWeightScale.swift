@@ -28,7 +28,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
     ])
 
     private static var pairingModeDescriptor: DataDescriptor {
-        DataDescriptor(data: OmronManufacturerData.Flags.pairingMode.encode(), mask: OmronManufacturerData.Flags.pairingMode.encode())
+        DataDescriptor(data: OmronManufacturerDataPrefix(.pairingMode).encode(), mask: OmronManufacturerDataPrefix(bitMaskFor: .pairingMode).encode())
     }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")

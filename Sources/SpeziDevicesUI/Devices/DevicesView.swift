@@ -24,7 +24,7 @@ public struct DevicesView<PairingHint: View>: View {
     public var body: some View {
         @Bindable var pairedDevices = pairedDevices
 
-        DevicesGrid(devices: pairedDevices.pairedDevices) {
+        DevicesGrid(devices: pairedDevices.pairedDevices) { // TODO: pairing hint tip!
             pairedDevices.showAccessoryDiscovery()
         }
             .navigationTitle(Text("Devices", bundle: .module))

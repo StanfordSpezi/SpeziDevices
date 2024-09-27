@@ -11,6 +11,22 @@ import NIOCore
 import SpeziBluetooth
 
 
+struct OmronManufacturerDataPrefix {
+    private let bitMask: Bool
+    let flags: OmronManufacturerData.Flags
+
+    init(_ flags: OmronManufacturerData.Flags) {
+        self.bitMask = false
+        self.flags = flags
+    }
+
+    init(bitMaskFor flags: OmronManufacturerData.Flags) {
+        self.bitMask = true
+        self.flags = flags
+    }
+}
+
+
 /// Omron Manufacturer Data format.
 public struct OmronManufacturerData {
     /// The device's pairing mode.
@@ -91,6 +107,8 @@ public struct OmronManufacturerData {
             self.rawValue = numberOfUsers - 1
         }
     }
+
+    fileprivate static let eachUserDataTag: UInt8 = 0x01
 
     /// Indicate if the time was set on the device.
     public let timeSet: Bool
@@ -178,7 +196,7 @@ extension OmronManufacturerData: ByteCodable {
         }
 
         guard let dataType = UInt8(from: &byteBuffer),
-              dataType == 0x01 else { // 0x01 signifies start of "Each User Data"
+              dataType == Self.eachUserDataTag else { // 0x01 signifies start of "Each User Data"
             return nil
         }
 
@@ -206,7 +224,7 @@ extension OmronManufacturerData: ByteCodable {
 
     public func encode(to byteBuffer: inout ByteBuffer) {
         ManufacturerIdentifier.omronHealthcareCoLtd.encode(to: &byteBuffer)
-        UInt8(0x01).encode(to: &byteBuffer)
+        Self.eachUserDataTag.encode(to: &byteBuffer)
 
         var flags = Flags(numberOfUsers: UInt8(users.count))
 
@@ -232,5 +250,18 @@ extension OmronManufacturerData: ByteCodable {
             user.sequenceNumber.encode(to: &byteBuffer)
             user.recordsNumber.encode(to: &byteBuffer)
         }
+    }
+}
+
+
+extension OmronManufacturerDataPrefix: Hashable, Sendable, ByteEncodable {
+    func encode(to byteBuffer: inout ByteBuffer) {
+        if bitMask {
+            UInt8(0xFF).encode(to: &byteBuffer)
+        } else {
+            OmronManufacturerData.eachUserDataTag.encode(to: &byteBuffer)
+        }
+
+        flags.encode(to: &byteBuffer)
     }
 }
