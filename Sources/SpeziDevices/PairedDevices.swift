@@ -90,7 +90,6 @@ import SwiftUI
 ///
 /// ### Forget Paired Device
 /// - ``forgetDevice(id:)-1zdk2``
-/// - ``forgetDevice(id:)-4wk72``
 ///
 /// ### Manage Paired Devices
 /// - ``isPaired(_:)``
@@ -527,6 +526,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @available(*, deprecated, message: "Please use the async version of this method.")
+    @_documentation(visibility: internal)
     public func forgetDevice(id: UUID) {
         Task {
             do {
@@ -563,7 +563,7 @@ extension PairedDevices {
     }
 
     private func removeDevice(id: UUID, externalRemoval: () async throws -> Bool) async rethrows {
-        let device = _newPairedDevices.removeValue(forKey: id)
+        let device = _newPairedDevices[id]
         device?.markForRemoval() // prevent the device from automatically reconnecting
 
         let externallyManaged: Bool
@@ -574,7 +574,8 @@ extension PairedDevices {
             throw error
         }
 
-        let discoveredDevice = _discoveredDevices.removeValue(forKey: id) // just make sure to remove them
+        // just make sure to remove it from discovered devices
+        let discoveredDevice = _discoveredDevices.removeValue(forKey: id)
         discoveredDevice?.clearPairingContinuationWithIntentionToResume()?.signalDisconnect()
 
         let removed = _newPairedDevices.removeValue(forKey: id)
@@ -668,6 +669,7 @@ extension PairedDevices {
         }
 
         assert(!_newPairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+        // TODO: log?
 
         let subscriptions = bluetooth.stateSubscription
         self.stateSubscriptionTask = Task.detached { [weak self] in
@@ -691,6 +693,7 @@ extension PairedDevices {
     private func cancelSubscription() async {
         assert(_newPairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
 
+        logger.debug("Cancelling state subscription and powering off bluetooth module.")
         stateSubscriptionTask = nil
         await bluetooth?.powerOff()
     }
@@ -726,6 +729,8 @@ extension PairedDevices {
             return
         }
 
+        logger.debug("Powering on PairedDevices and retrieving device instances ...")
+
         // we just reuse the configured Bluetooth devices
         let configuredDevices = bluetooth.configuredPairableDevices()
 
@@ -749,6 +754,8 @@ extension PairedDevices {
     }
 
     private func handleCentralPoweredOff() async {
+        logger.debug("Powering off PairedDevices and cancelling connection attempts or ongoing connections ...")
+
         await withDiscardingTaskGroup { group in
             for device in _newPairedDevices.values {
                 group.addTask {
