@@ -12,7 +12,7 @@ import SpeziFoundation
 
 /// Stores pairing state information.
 final class PairingContinuation {
-    private var pairingContinuation: CheckedContinuation<Void, Error>
+    private let pairingContinuation: CheckedContinuation<Void, Error>
 
     /// Create a new pairing continuation management object.
     init(_ continuation: CheckedContinuation<Void, Error>) {
@@ -43,4 +43,4 @@ final class PairingContinuation {
 }
 
 
-extension PairingContinuation {}
+extension PairingContinuation: Sendable {}
