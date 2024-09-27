@@ -87,7 +87,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
 
     @SpeziBluetooth
     private func handleStateChange(_ state: PeripheralState) {
-        logger.debug("\(Self.self) changed state to \(state).")
+        logger.debug("\(Self.self) \(self.label), \(self.id) changed state to \(state).")
         switch state {
         case .connecting, .connected:
             break
