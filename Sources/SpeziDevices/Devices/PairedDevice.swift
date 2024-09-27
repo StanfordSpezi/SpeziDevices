@@ -216,7 +216,7 @@ extension PairedDevice {
     private func connectionAttempt() {
         let previousTask = cancelConnectionAttempt()
 
-        guard peripheral != nil else {
+        guard peripheral != nil, !willBeRemoved else {
             return
         }
 
