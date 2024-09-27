@@ -508,6 +508,11 @@ extension PairedDevices {
         _newPairedDevices[pairedDevice.info.id] = pairedDevice
         if let modelContainer {
             modelContainer.mainContext.insert(pairedDevice.info)
+            do {
+                try modelContainer.mainContext.save()
+            } catch {
+                logger.warning("Failed to persist PairedDevice \(pairedDevice.info.id) due to \(error).")
+            }
         } else {
             logger.warning("PairedDevice \(pairedDevice.info.name), \(pairedDevice.info.id) could not be persisted due to missing ModelContainer!")
         }
@@ -580,7 +585,12 @@ extension PairedDevices {
 
         let removed = _newPairedDevices.removeValue(forKey: id)
         if let removed {
-            modelContainer?.mainContext.delete(removed.info)
+            modelContainer?.mainContext.delete(removed.info) // TODO: by uncommenting this, we can test import functionality?
+            do {
+                try modelContainer?.mainContext.save()
+            } catch {
+                logger.warning("Failed to persist device removal of \(removed.info.id): \(error)")
+            }
             await removed.removeDevice(manualDisconnect: !externallyManaged)
         }
 
@@ -808,10 +818,12 @@ extension PairedDevices {
 
                 switch change {
                 case .available:
-                    await handleSessionAvailable()
+                    Task {
+                        await handleSessionAvailable()
+                    }
                 case let .added(accessory):
                     Task {
-                        await handledAddedAccessory(accessory)
+                        await handleAddedAccessory(accessory)
                     }
                 case let .changed(accessory):
                     updateAccessory(accessory)
@@ -821,6 +833,8 @@ extension PairedDevices {
                     }
                 }
             }
+
+            self?.logger.debug("Accessory Change subscription completed!")
         }
     }
 
@@ -840,7 +854,7 @@ extension PairedDevices {
             }
 
             logger.debug("Found available accessory that hasn't been paired: \(accessory)")
-            await handledAddedAccessory(accessory)
+            await handleAddedAccessory(accessory)
         }
 
         if !_newPairedDevices.isEmpty {
@@ -892,7 +906,7 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handledAddedAccessory(_ accessory: ASAccessory) async {
+    private func handleAddedAccessory(_ accessory: ASAccessory) async {
         guard let bluetooth, let id = accessory.bluetoothIdentifier else {
             return
         }
@@ -918,14 +932,9 @@ extension PairedDevices {
         let pairedDevice = PairedDevice(info: deviceInfo)
 
         // AccessorySetupKit switches of the central for a few milliseconds, so it might just be off right now.
-        if bluetooth.state != .poweredOn {
-            for await nextState in bluetooth.stateSubscription {
-                logger.debug("Waited for next central state and landed in \(nextState)")
-                break // poweredOn should be the next state
-            }
+        if case .poweredOn = bluetooth.state {
+            await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
         }
-
-        await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
 
         // otherwise device retrieval is handled once bluetooth is powered on
         persistPairedDevice(pairedDevice)
