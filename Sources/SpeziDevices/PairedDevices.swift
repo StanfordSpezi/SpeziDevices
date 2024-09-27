@@ -95,7 +95,7 @@ import SwiftUI
 /// - ``isConnected(device:)``
 /// - ``updateName(for:name:)``
 @Observable
-public final class PairedDevices {
+public final class PairedDevices { // swiftlint:disable:this type_body_length
     /// Determines if the device discovery sheet should be presented.
     ///
     /// This property is never set to true if the AccessorySetupKit is used for device discovery and pairing. In cases where the framework is not available or not configured,
@@ -143,13 +143,16 @@ public final class PairedDevices {
 
     @MainActor private var modelContainer: ModelContainer?
 
-    // TODO: shouldStartScanningAutomatically: Bool => (pairedDevices?.isEmpty == true && !everPairedDevice) ||  (but only if no ASKit)
-
     /// Determine if Bluetooth is scanning to discovery nearby devices.
     ///
     /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
-        shouldPresentDevicePairing
+        let shouldAutoStartSearching = pairedDevices?.isEmpty == true && !everPairedDevice
+        return if #available(iOS 18, *) {
+            shouldPresentDevicePairing || (accessorySetup == nil && shouldAutoStartSearching)
+        } else {
+            shouldPresentDevicePairing || shouldAutoStartSearching
+        }
     }
 
     private var stateSubscriptionTask: Task<Void, Never>? {
@@ -617,14 +620,12 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) async throws {
-        await removeDevice(id: id)
-
         // TODO: device stays retrieved after forgetting!
         if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!?
-            // TODO: see if that changes anything, make sure
             try await removeAccessory(for: id) // TODO: create localized versions of the error!
-            // TODO: if this fails, the accessory might be added back on next startup!
         }
+
+        await removeDevice(id: id)
     }
 
     @MainActor
@@ -640,9 +641,7 @@ extension PairedDevices {
 
         if device != nil || _pairedDevices.isEmpty {
             if let device {
-                Task { @SpeziBluetooth in
-                    await device.disconnect()
-                }
+                await device.disconnect()
             }
 
             // make sure this runs after the disconnect
@@ -712,7 +711,6 @@ extension PairedDevices {
             if let migration = deviceType as? DeviceVariantMigration.Type,
                case .variants = deviceType.appearance,
                deviceInfo.variantIdentifier == nil {
-                // TODO: might be called multiple times if the migration fails
                 let (appearance, variantId) = migration.selectAppearance(for: deviceInfo)
                 deviceInfo.variantIdentifier = variantId
                 deviceInfo.icon = appearance.icon
@@ -814,6 +812,7 @@ extension PairedDevices {
             return
         }
 
+        logger.debug("Retrieving device for \(deviceInfo.name), \(deviceInfo.id)")
         let device = await deviceType.retrieveDevice(from: bluetooth, with: deviceInfo.id)
 
         guard let device else {
@@ -822,7 +821,7 @@ extension PairedDevices {
             return
         }
 
-        assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
+        assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.") // TODO: logging!
         self.peripherals[device.id] = device
 
         await connectionAttempt(for: device)
