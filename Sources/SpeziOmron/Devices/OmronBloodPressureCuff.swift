@@ -25,12 +25,18 @@ import SpeziNumerics
 /// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
 ///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    // TODO: backwards compatibility for device variant?
+    // TODO: backwards compatibility for device variant? maybe just Model to name matching! or provide a legacy matching behavior!
     public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Blood Pressure Cuff"), variants: [
-        // TODO: variants are now only shown if the device is in pairing mode?? maybe just allow to hide variants from
-        // TODO: the other variants are never getting discovered!
-        Variant(id: "omron-bp5250", name: "BP5250", icon: .asset("Omron-BP5250", bundle: .module), criteria: .nameSubstring("BLEsmart_00000160")),
+        Variant(
+            id: "omron-bp5250",
+            name: "BP5250",
+            icon: .asset("Omron-BP5250", bundle: .module),
+            criteria: .nameSubstring("BLEsmart_00000160"),
+            .manufacturer(.omronHealthcareCoLtd)
+        ),
         Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("BLEsmart_0000021F")),
+
+        // TOOD: look at Paul's screenshot
         Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BLEsmart_0000011F"))
     ])
 

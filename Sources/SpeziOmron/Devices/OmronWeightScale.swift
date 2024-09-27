@@ -17,7 +17,13 @@ import SpeziDevices
 /// Implementation of Omron SC150 Weight Scale.
 public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice, @unchecked Sendable {
     public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Weight Scale"), variants: [
-        Variant(id: "omron-sc150", name: "SC-150", icon: .asset("Omron-SC-150", bundle: .module), criteria: .nameSubstring("BLEsmart_00010112"))
+        Variant(
+            id: "omron-sc150",
+            name: "SC-150",
+            icon: .asset("Omron-SC-150", bundle: .module),
+            criteria: .nameSubstring("BLEsmart_00010112"),
+            .manufacturer(.omronHealthcareCoLtd)
+        )
     ])
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
