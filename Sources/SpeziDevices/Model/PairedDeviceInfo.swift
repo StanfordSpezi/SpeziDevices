@@ -112,6 +112,31 @@ extension PairedDeviceInfo: Hashable {
 }
 
 
+extension PairedDeviceInfo: CustomStringConvertible, CustomDebugStringConvertible {
+    public var description: String {
+        """
+        PairedDeviceInfo(
+        id: \(id), \
+        deviceType: \(deviceType), \
+        peripheralName: \(peripheralName.map { $0.description } ?? "nil"), \
+        model: \(model.map { $0.description } ?? "nil"), \
+        name: \(name), \
+        lastSeen: \(lastSeen), \
+        lastBatteryPercentage: \(lastBatteryPercentage.map { $0.description } ?? "nil"), \
+        pairedAt: \(pairedAt), \
+        variantIdentifier: \(variantIdentifier.map { $0.description } ?? "nil"), \
+        notLocatable: \(notLocatable), \
+        icon: \(_icon.map { "\($0)" } ?? "nil")\
+        )
+        """
+    }
+
+    public var debugDescription: String {
+        description
+    }
+}
+
+
 #if DEBUG
 extension PairedDeviceInfo {
     /// Mock Health Device 1 Data.
