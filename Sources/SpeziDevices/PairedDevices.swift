@@ -81,11 +81,8 @@ import SwiftUI
 /// ### Register Devices
 /// - ``configure(device:accessing:_:_:)``
 ///
-/// ### Pairing Nearby Devices
-/// - ``shouldPresentDevicePairing``
-/// - ``discoveredDevices``
-/// - ``isScanningForNearbyDevices``
-/// - ``pair(with:timeout:)``
+/// ### Paired Devices
+/// - ``showAccessoryDiscovery()``
 /// - ``pairedDevices``
 ///
 /// ### Forget Paired Device
@@ -95,9 +92,17 @@ import SwiftUI
 /// - ``isPaired(_:)``
 /// - ``isConnected(device:)``
 /// - ``updateName(for:name:)``
+///
+/// ### Accessory Setup Kit Pairing
+/// - ``accessoryPickerPresented``
+///
+/// ### Manual Pairing
+/// - ``shouldPresentDevicePairing``
+/// - ``discoveredDevices``
+/// - ``isScanningForNearbyDevices``
+/// - ``pair(with:timeout:)``
 @Observable
-public final class PairedDevices { // swiftlint:disable:this type_body_length
-    // TODO: update docs!
+public final class PairedDevices { // TODO: update docs!
     @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once") @MainActor @ObservationIgnored private var everPairedDevice = false
 
 
@@ -156,13 +161,13 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
         }
     }
 
-    private var stateSubscriptionTask: Task<Void, Never>? {
+    @MainActor @ObservationIgnored private var stateSubscriptionTask: Task<Void, Never>? {
         willSet {
             stateSubscriptionTask?.cancel()
         }
     }
 
-    private var scheduledPowerOffTask: Task<Void, Never>? {
+    @MainActor @ObservationIgnored private var scheduledPowerOffTask: Task<Void, Never>? {
         willSet {
             scheduledPowerOffTask?.cancel()
         }
@@ -259,11 +264,13 @@ public final class PairedDevices { // swiftlint:disable:this type_body_length
     }
 
     /// Update the user-chosen name of a paired device.
+    ///
     /// - Parameters:
     ///   - deviceInfo: The paired device information for which to update the name.
     ///   - name: The new name.
     @MainActor
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
+        // TODO: document that askit rename works differently + accessory retrieval API!
         logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
     }
@@ -679,10 +686,10 @@ extension PairedDevices {
         }
 
         assert(!_newPairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
-        // TODO: log?
+        logger.debug("Setting up Bluetooth state subscription ...")
 
         let subscriptions = bluetooth.stateSubscription
-        self.stateSubscriptionTask = Task.detached { [weak self] in
+        self.stateSubscriptionTask = Task.detached { @MainActor @Sendable [weak self] in
             for await nextState in subscriptions {
                 guard let self else {
                     return
@@ -731,11 +738,8 @@ extension PairedDevices {
     }
 
     private func handleCentralPoweredOn() async {
-        guard let bluetooth else {
-            return
-        }
-
-        guard case .poweredOn = bluetooth.state else {
+        guard let bluetooth,
+              case .poweredOn = bluetooth.state else {
             return
         }
 
