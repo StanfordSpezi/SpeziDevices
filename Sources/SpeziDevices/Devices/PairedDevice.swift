@@ -43,7 +43,7 @@ final class PairedDevice: Sendable {
         let peripheral = self.peripheral
         await handlePowerOff()
 
-        if let peripheral { // TODO: restore manualDisconnect?
+        if let peripheral, manualDisconnect {
             await peripheral.disconnect()
         }
     }
@@ -170,7 +170,7 @@ extension PairedDevice {
 
             await previousTask?.value // make sure its ordered
 
-            var backOff: Duration = .seconds(1) // exponential back-off for retry!
+            var backOff: Duration = .milliseconds(500) // exponential back-off for retry!
 
             while !Task.isCancelled {
                 guard let device = self?.peripheral else {
@@ -186,16 +186,17 @@ extension PairedDevice {
                     Self.logger.warning("Failed connection attempt as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
                     return
                 } catch {
+                    if Task.isCancelled || error is CancellationError {
+                        Self.logger.debug("Connection attempt for device \(device.label), \(device.id) was cancelled.")
+                        return
+                    }
+                    Self.logger.warning("Failed connection attempt for device \(device.label) (Retrying in \(backOff)): \(error)")
+                    try? await Task.sleep(for: backOff)
+                    backOff *= 2
+
                     // TODO: if the error is a permission error, abort, device was removed by accessory setup kit or user rejected permissions!
                     //      : Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBInternalErrorDomain Code=10
                     //   => "Operation is not allowed" UserInfo={NSLocalizedDescription=Operation is not allowed}
-                    if !Task.isCancelled && !(error is CancellationError) {
-                        Self.logger.warning("Failed connection attempt for device \(device.label) (Retrying in \(backOff)): \(error)")
-                        try? await Task.sleep(for: backOff)
-                        backOff *= 2
-                    } else {
-                        Self.logger.warning("Failed connection attempt for device \(device.label): \(error)")
-                    }
                 }
             }
         }
