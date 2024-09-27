@@ -34,8 +34,6 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
             .manufacturer(.omronHealthcareCoLtd)
         ),
         Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("BLEsmart_0000021F")),
-
-        // TODO: look at Paul's screenshot
         Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BLEsmart_0000011F"))
     ])
 

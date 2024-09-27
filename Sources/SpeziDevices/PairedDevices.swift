@@ -620,9 +620,24 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @MainActor
     public func forgetDevice(id: UUID) async throws {
+        if let device = peripherals[id] {
+            await cancelConnectionAttempt(for: device)
+
+            if device.state != .disconnected {
+                await device.disconnect()
+            }
+        }
+
         // TODO: device stays retrieved after forgetting!
-        if #available(iOS 18, *) { // TODO: remove accessory after we disconnect!?
-            try await removeAccessory(for: id) // TODO: create localized versions of the error!
+        if #available(iOS 18, *) {
+            do {
+                try await removeAccessory(for: id)
+            } catch {
+                if let device = peripherals[id] {
+                    await connectionAttempt(for: device)
+                }
+                throw error
+            }
         }
 
         await removeDevice(id: id)
@@ -639,15 +654,13 @@ extension PairedDevices {
         discoveredDevices.removeValue(forKey: id)
         let device = peripherals.removeValue(forKey: id)
 
-        if device != nil || _pairedDevices.isEmpty {
-            if let device {
-                await device.disconnect()
-            }
+        if let device, device.state != .disconnected {
+            await cancelConnectionAttempt(for: device)
+            await device.disconnect()
+        }
 
-            // make sure this runs after the disconnect
-            if self._pairedDevices.isEmpty {
-                await self.cancelSubscription()
-            }
+        if self._pairedDevices.isEmpty {
+            await self.cancelSubscription()
         }
     }
 }
@@ -821,7 +834,7 @@ extension PairedDevices {
             return
         }
 
-        assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.") // TODO: logging!
+        assert(self.peripherals[device.id] == nil, "Cannot overwrite peripheral. Device \(deviceInfo) was paired twice.")
         self.peripherals[device.id] = device
 
         await connectionAttempt(for: device)
@@ -978,7 +991,6 @@ extension PairedDevices {
         )
 
 
-        // TODO: sometimes we do not receive the battery percentage???
         if stateSubscriptionTask != nil { // if the task is running, bluetooth is powered on
             Task {
                 // Bluetooth module turns off and back on again when accessory kit is used. Therefore, this accessory might already be
