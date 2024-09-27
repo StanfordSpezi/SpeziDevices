@@ -21,6 +21,9 @@ import SwiftUI
 //  => is it enough to destroy any CBCentralManager instances before migration or are we never allowed to instantiate one.
 // TODO: the picker disables powers off the central. are we still connecting with other devices afterwards?
 
+// TODO: forget sometimes crashes the app
+// TODO: first paired device won't reconnect after second one is paired!
+
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
 ///
@@ -139,11 +142,11 @@ public final class PairedDevices { // TODO: update docs!
     }
 
 
-    @MainActor private var _newPairedDevices: OrderedDictionary<UUID, PairedDevice> = [:]
+    @MainActor private var _pairedDevices: OrderedDictionary<UUID, PairedDevice> = [:]
     /// The collection of paired devices that are persisted on disk.
     @MainActor public var pairedDevices: [PairedDeviceInfo]? { // swiftlint:disable:this discouraged_optional_collection
         didLoadDevices
-        ? Array(_newPairedDevices.values.map { $0.info })
+        ? Array(_pairedDevices.values.map { $0.info })
         : nil
     }
 
@@ -226,7 +229,7 @@ public final class PairedDevices { // TODO: update docs!
         }
 
         // We use the ASKit activate event to power up the central if there are paired devices as we need control over it.
-        if !powerUpUsingASKit && !self._newPairedDevices.isEmpty {
+        if !powerUpUsingASKit && !self._pairedDevices.isEmpty {
             // We need to detach to not copy task local values
             Task.detached { @Sendable @MainActor in
                 await self.setupBluetoothStateSubscription()
@@ -252,7 +255,7 @@ public final class PairedDevices { // TODO: update docs!
     /// - Returns: Returns `true` if the device for the given identifier is currently connected.
     @MainActor
     public func isConnected(device: UUID) -> Bool {
-        _newPairedDevices[device]?.peripheral?.state == .connected
+        _pairedDevices[device]?.peripheral?.state == .connected
     }
 
     /// Determine if a device is paired.
@@ -260,7 +263,7 @@ public final class PairedDevices { // TODO: update docs!
     /// - Returns: Returns `true` if the given device is paired.
     @MainActor
     public func isPaired<Device: PairableDevice>(_ device: Device) -> Bool {
-        _newPairedDevices[device.id] != nil
+        _pairedDevices[device.id] != nil
     }
 
     /// Update the user-chosen name of a paired device.
@@ -297,7 +300,7 @@ public final class PairedDevices { // TODO: update docs!
                            """)
         }
 
-        if let pairedDevice = _newPairedDevices[device.id] {
+        if let pairedDevice = _pairedDevices[device.id] {
             // we retrieved the device of a paired device
             pairedDevice.updateUponConfiguration(of: device)
         }
@@ -307,7 +310,7 @@ public final class PairedDevices { // TODO: update docs!
                 return
             }
 
-            if let pairedDevice = _newPairedDevices[device.id] {
+            if let pairedDevice = _pairedDevices[device.id] {
                 pairedDevice.handleDeviceStateUpdated(for: device, old: oldValue, new: newValue)
             }
             if let discoveredDevice = _discoveredDevices[device.id] {
@@ -328,7 +331,7 @@ public final class PairedDevices { // TODO: update docs!
 
         if let batteryPowered = device as? any BatteryPoweredDevice {
             batteryPowered.battery.$batteryLevel.onChange { @MainActor [weak self, weak device] value in
-                if let self, let device, let pairedDevice = _newPairedDevices[device.id] {
+                if let self, let device, let pairedDevice = _pairedDevices[device.id] {
                     pairedDevice.updateBattery(for: device, percentage: value)
                 }
             }
@@ -512,7 +515,7 @@ extension PairedDevices {
     }
 
     private func persistPairedDevice(_ pairedDevice: PairedDevice) {
-        _newPairedDevices[pairedDevice.info.id] = pairedDevice
+        _pairedDevices[pairedDevice.info.id] = pairedDevice
         if let modelContainer {
             modelContainer.mainContext.insert(pairedDevice.info)
             do {
@@ -552,7 +555,6 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
-        // TODO: device stays retrieved after forgetting!
         try await removeDevice(id: id) {
             if #available(iOS 18, *) {
                 guard let accessorySetup,
@@ -560,7 +562,7 @@ extension PairedDevices {
                     return false
                 }
 
-                // this will trigger a disconnect // TODO: does it?
+                // this will trigger a disconnect
                 try await accessorySetup.removeAccessory(accessory)
                 return true
             }
@@ -568,21 +570,17 @@ extension PairedDevices {
         }
     }
 
-    private func removeDevice(id: UUID) async {
-        await self.removeDevice(id: id) {
-            false
-        }
-    }
-
     private func removeDevice(id: UUID, externalRemoval: () async throws -> Bool) async rethrows {
-        let device = _newPairedDevices[id]
-        device?.markForRemoval() // prevent the device from automatically reconnecting
+        guard let device = _pairedDevices[id] else {
+            return // this will be called twice, as the AccessorySetupKit will dispatch an event on manual removal
+        }
+        device.markForRemoval() // prevent the device from automatically reconnecting
 
         let externallyManaged: Bool
         do {
             externallyManaged = try await externalRemoval()
         } catch {
-            device?.markForRemoval(false) // restore state again
+            device.markForRemoval(false) // restore state again
             throw error
         }
 
@@ -590,20 +588,18 @@ extension PairedDevices {
         let discoveredDevice = _discoveredDevices.removeValue(forKey: id)
         discoveredDevice?.clearPairingContinuationWithIntentionToResume()?.signalDisconnect()
 
-        let removed = _newPairedDevices.removeValue(forKey: id)
-        if let removed {
-            modelContainer?.mainContext.delete(removed.info) // TODO: by uncommenting this, we can test import functionality?
-            do {
-                try modelContainer?.mainContext.save()
-            } catch {
-                logger.warning("Failed to persist device removal of \(removed.info.id): \(error)")
-            }
-
-
-            await removed.removeDevice(manualDisconnect: !externallyManaged)
+        _pairedDevices.removeValue(forKey: id)
+        modelContainer?.mainContext.delete(device.info)
+        do {
+            try modelContainer?.mainContext.save()
+        } catch {
+            logger.warning("Failed to persist device removal of \(device.info.id): \(error)")
         }
 
-        if _newPairedDevices.isEmpty {
+
+        await device.removeDevice(manualDisconnect: !externallyManaged)
+
+        if _pairedDevices.isEmpty {
             await self.cancelSubscription()
         }
     }
@@ -631,17 +627,17 @@ extension PairedDevices {
 
         do {
             let pairedDevices = try context.fetch(allPairedDevices)
-            self._newPairedDevices = pairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
+            self._pairedDevices = pairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
                 partialResult[deviceInfo.id] = PairedDevice(info: deviceInfo)
             }
-            logger.debug("Initialized PairedDevices with \(self._newPairedDevices.count) paired devices!")
+            logger.debug("Initialized PairedDevices with \(self._pairedDevices.count) paired devices!")
         } catch {
             logger.error("Failed to fetch paired device info from disk: \(error)")
         }
     }
 
     func refreshPairedDevices() throws {
-        _newPairedDevices.removeAll()
+        _pairedDevices.removeAll()
         didLoadDevices = false
 
         if let modelContainer, modelContainer.mainContext.hasChanges {
@@ -658,7 +654,7 @@ extension PairedDevices {
 
         let configuredDevices = bluetooth.configuredPairableDevices()
 
-        for pairedDevice in _newPairedDevices.values {
+        for pairedDevice in _pairedDevices.values {
             let deviceInfo = pairedDevice.info
             guard let deviceType = configuredDevices[deviceInfo.deviceType] else {
                 continue
@@ -687,7 +683,7 @@ extension PairedDevices {
             return
         }
 
-        assert(!_newPairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+        assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
         logger.debug("Setting up Bluetooth state subscription ...")
 
         let subscriptions = bluetooth.stateSubscription
@@ -710,10 +706,10 @@ extension PairedDevices {
     }
 
     private func cancelSubscription() async {
-        assert(_newPairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
+        assert(_pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
 
         logger.debug("Cancelling state subscription and powering off bluetooth module.")
-        stateSubscriptionTask = nil
+        stateSubscriptionTask = nil // implicitly cancels the task
         await bluetooth?.powerOff()
     }
 
@@ -726,7 +722,7 @@ extension PairedDevices {
             await handleCentralPoweredOn()
         case .poweredOff:
             scheduledPowerOffTask = Task {
-                try? await Task.sleep(for: .seconds(1)) // TODO: is that long enough. What happens if that is a manual power off?
+                // TODO: try? await Task.sleep(for: .seconds(1)) // TODO: is that long enough. What happens if that is a manual power off?
                 guard !Task.isCancelled else {
                     return
                 }
@@ -745,13 +741,16 @@ extension PairedDevices {
             return
         }
 
-        logger.debug("Powering on PairedDevices and retrieving device instances ...")
 
+        if self._pairedDevices.values.contains(where: { $0.peripheral == nil }) {
+            logger.debug("Powering on PairedDevices and retrieving device instances ...")
+        }
+        
         // we just reuse the configured Bluetooth devices
         let configuredDevices = bluetooth.configuredPairableDevices()
 
         await withDiscardingTaskGroup { group in
-            for pairedDevice in self._newPairedDevices.values {
+            for pairedDevice in self._pairedDevices.values {
                 group.addTask { @Sendable @MainActor in
                     guard pairedDevice.peripheral == nil else {
                         return // already retrieved or otherwise initialized
@@ -770,16 +769,16 @@ extension PairedDevices {
     }
 
     private func handleCentralPoweredOff() async {
-        guard !_newPairedDevices.isEmpty else {
+        guard !_pairedDevices.isEmpty else {
             return
         }
 
         logger.debug("Powering off PairedDevices and cancelling connection attempts or ongoing connections ...")
 
         await withDiscardingTaskGroup { group in
-            for device in _newPairedDevices.values {
+            for device in _pairedDevices.values {
                 group.addTask {
-                    await device.handlePowerOff()
+                    await device.handlePowerOff() // TODO: aim to not wait here!
                 }
             }
         }
@@ -860,7 +859,7 @@ extension PairedDevices {
                 continue
             }
 
-            guard _newPairedDevices[uuid] == nil else {
+            guard _pairedDevices[uuid] == nil else {
                 continue // we are already paired
             }
 
@@ -868,7 +867,7 @@ extension PairedDevices {
             await handleAddedAccessory(accessory)
         }
 
-        if !_newPairedDevices.isEmpty {
+        if !_pairedDevices.isEmpty {
             await self.setupBluetoothStateSubscription()
         }
     }
@@ -954,7 +953,7 @@ extension PairedDevices {
     @MainActor
     private func updateAccessory(_ accessory: ASAccessory) {
         guard let id = accessory.bluetoothIdentifier,
-              let pairedDevice = _newPairedDevices[id] else {
+              let pairedDevice = _pairedDevices[id] else {
             return // unknown device or not a bluetooth device
         }
 
@@ -968,7 +967,9 @@ extension PairedDevices {
             return
         }
 
-        await removeDevice(id: id)
+        await self.removeDevice(id: id) {
+            false
+        }
     }
     
     /// Rename an accessory.
