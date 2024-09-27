@@ -161,6 +161,7 @@ public final class PairedDevices {
 
     /// Initialize the Paired Devices Module.
     public required init() {
+        // TODO: allow to disable ASKit!
         if #available(iOS 18, *) {
             if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 __accessorySetup = Dependency {
