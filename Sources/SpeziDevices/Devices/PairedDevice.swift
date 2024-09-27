@@ -41,10 +41,9 @@ final class PairedDevice: Sendable {
         self.markForRemoval()
 
         let peripheral = self.peripheral
-        self.peripheral = nil
-        cancelConnectionAttempt()
+        await handlePowerOff()
 
-        if let peripheral, manualDisconnect {
+        if let peripheral { // TODO: restore manualDisconnect?
             await peripheral.disconnect()
         }
     }
@@ -53,9 +52,8 @@ final class PairedDevice: Sendable {
         let connectionAttemptTask = cancelConnectionAttempt()
         self.peripheral = nil
         if let connectionAttemptTask {
-            Self.logger.debug("Cancelling connection attempt for device \(self.info.name), \(self.info.id)")
             await connectionAttemptTask.value // TODO: are we sure the connect action is fully cancellable?
-            Self.logger.debug("Successfully Cancelled connection attempt for device \(self.info.name), \(self.info.id)") // TODO: remove
+            Self.logger.debug("Successfully cancelled connection attempt for device \(self.info.name), \(self.info.id)") // TODO: remove
         }
     }
 
@@ -114,6 +112,7 @@ final class PairedDevice: Sendable {
                 updateLastSeen(for: device)
             }
 
+            // TODO: this flag might not be set if the device is unpaired from settings!
             if !willBeRemoved { // long-running reconnect (if applicable)
                 connectionAttempt()
                 Self.logger.debug("Restored connection attempt for device \(device.label), \(device.id) after disconnect.")
@@ -207,6 +206,7 @@ extension PairedDevice {
         guard let connectionAttemptTask else {
             return nil
         }
+        Self.logger.debug("Cancelling connection attempt for device \(self.info.name), \(self.info.id)")
         connectionAttemptTask.cancel()
         return connectionAttemptTask
     }
