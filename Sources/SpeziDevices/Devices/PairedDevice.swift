@@ -50,9 +50,14 @@ final class PairedDevice: Sendable {
         }
     }
 
-    func handlePowerOff() async {
+    func handlePowerOffReturningTask() -> Task<Void, Never>? {
         let connectionAttemptTask = cancelConnectionAttemptReturningPrevious()
         self.peripheral = nil
+        return connectionAttemptTask
+    }
+
+    func handlePowerOff() async {
+        let connectionAttemptTask = handlePowerOffReturningTask()
         if let connectionAttemptTask {
             await connectionAttemptTask.value // TODO: are we sure the connect action is fully cancellable?
 
@@ -84,6 +89,7 @@ final class PairedDevice: Sendable {
         let info = info
 
         Self.logger.debug("Retrieving device for \(info.name), \(info.id)")
+        // TODO: might be poweredOff in the mean time!
         let device = await deviceType.retrieveDevice(from: bluetooth, with: info.id)
 
         guard let device else {
@@ -224,6 +230,7 @@ extension PairedDevice {
 
 
 extension PairableDevice {
+    @SpeziBluetooth
     fileprivate static func retrieveDevice(from bluetooth: Bluetooth, with id: UUID) async -> Self? {
         await bluetooth.retrieveDevice(for: id, as: Self.self)
     }
