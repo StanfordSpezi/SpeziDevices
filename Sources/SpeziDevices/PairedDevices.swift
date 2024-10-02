@@ -706,8 +706,6 @@ extension PairedDevices {
 
     @SpeziBluetooth
     private func cancelSubscription() {
-        // TODO: assert(_pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
-
         logger.debug("Cancelling state subscription and powering off bluetooth module.")
         self.stateRegistration = nil // implicitly cancels the task
         bluetooth?.powerOff()
@@ -905,7 +903,6 @@ extension PairedDevices {
         Task {
             do {
                 try await accessorySetup.showPicker(for: displayItems)
-                logger.debug("Finished showing setup picker.")
             } catch {
                 logger.error("Failed to show setup picker: \(error)")
             }
@@ -938,10 +935,14 @@ extension PairedDevices {
 
         let pairedDevice = PairedDevice(info: deviceInfo)
 
-        // AccessorySetupKit switches of the central for a few milliseconds, so it might just be off right now.
-        if case .poweredOn = bluetooth.state {
-            await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
-        }
+        // AccessorySetupKit switches of the central for a few milliseconds after this call.
+        // So we do not need to retrieve the device now. It will be retrieved later.
+        /*
+         TODO: is that call really guaranteed?
+         if case .poweredOn = bluetooth.state {
+         await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
+         }
+         */
 
         // otherwise device retrieval is handled once bluetooth is powered on
         persistPairedDevice(pairedDevice)
