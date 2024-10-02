@@ -966,7 +966,7 @@ extension PairedDevices {
         }
 
         await self.removeDevice(id: id) {
-            false
+            true // signal externally managed without doing anything!
         }
     }
 
