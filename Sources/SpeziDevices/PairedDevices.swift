@@ -330,10 +330,6 @@ public final class PairedDevices { // TODO: update docs!
 
         logger.debug("Registered device \(device.label), \(device.id) with PairedDevices")
     }
-
-    deinit {
-        // TODO: cancel any Tasks?
-    }
 }
 
 
@@ -715,8 +711,6 @@ extension PairedDevices {
         logger.debug("Cancelling state subscription and powering off bluetooth module.")
         self.stateRegistration = nil // implicitly cancels the task
         bluetooth?.powerOff()
-
-        // TODO: we also need to handle power off?
     }
 
     @SpeziBluetooth
@@ -764,7 +758,7 @@ extension PairedDevices {
                         return
                     }
 
-                    await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
+                    await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth) // TODO: do not retrieve device upon accessory added!
                 }
             }
         }
@@ -779,8 +773,14 @@ extension PairedDevices {
 
         await withDiscardingTaskGroup { group in
             for device in _pairedDevices.values {
-                group.addTask {
-                    await device.handlePowerOff() // TODO: aim to not wait here!
+                // this ensures that the `peripheral` property is cleared instantly, so if powerOn is called afterwards, we can retrieve it again.
+                let connectionAttemptTask = device.handlePowerOffReturningTask()
+
+                if let connectionAttemptTask {
+                    group.addTask {
+                        // no reason to set up cancellation handler, the task is already cancelled
+                        await connectionAttemptTask.value
+                    }
                 }
             }
         }
