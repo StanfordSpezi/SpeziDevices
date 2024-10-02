@@ -46,6 +46,8 @@ final class PairedDevice: Sendable {
         await handlePowerOff()
 
         if let peripheral, manualDisconnect {
+            // Do not call disconnect with AccessorySetupKit. We do not have the permission for that anymore.
+            // The device will be disconnected automatically.
             await peripheral.disconnect()
         }
     }
@@ -106,8 +108,7 @@ final class PairedDevice: Sendable {
 
     func handleDeviceStateUpdated<Device: PairableDevice>(for device: Device, old oldState: PeripheralState, new newState: PeripheralState) {
         guard device === peripheral else {
-            Self.logger.error("Received state update for unexpected device instance: \(device.id) vs. \(self.peripheral.map { $0.id.description } ?? "nil")")
-            return
+            return // TODO: this happens! there is no good way to unsubscribe!
         }
 
         switch newState {
@@ -135,7 +136,6 @@ final class PairedDevice: Sendable {
 
     func updateBattery<Device: PairableDevice>(for device: Device, percentage: UInt8) {
         guard device === peripheral else {
-            Self.logger.error("Received battery update for unexpected device instance: \(device.id) vs. \(self.peripheral.map { $0.id.description } ?? "nil")")
             return
         }
 
@@ -144,7 +144,10 @@ final class PairedDevice: Sendable {
     }
 
     private func updateLastSeen<Device: PairableDevice>(for device: Device, lastSeen: Date = .now) {
-        Self.logger.debug("Updated lastSeen for \(device.label): \(lastSeen) %")
+        guard device === peripheral else {
+            return
+        }
+
         info.lastSeen = lastSeen
         if let model = device.deviceInformation.modelNumber {
             info.model = model
