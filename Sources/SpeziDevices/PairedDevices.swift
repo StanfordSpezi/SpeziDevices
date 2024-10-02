@@ -164,17 +164,8 @@ public final class PairedDevices { // TODO: update docs!
         }
     }
 
-    @MainActor @ObservationIgnored private var stateSubscriptionTask: Task<Void, Never>? {
-        willSet {
-            stateSubscriptionTask?.cancel()
-        }
-    }
-
-    @MainActor @ObservationIgnored private var scheduledPowerOffTask: Task<Void, Never>? {
-        willSet {
-            scheduledPowerOffTask?.cancel()
-        }
-    }
+    @SpeziBluetooth @ObservationIgnored private var stateRegistration: StateRegistration?
+    @MainActor @ObservationIgnored private var accessoryEventRegistration: AccessoryEventRegistration?
 
 
     /// Initialize the Paired Devices Module.
@@ -236,7 +227,7 @@ public final class PairedDevices { // TODO: update docs!
             }
         }
     }
-    
+
     /// Show the accessory discovery picker.
     ///
     /// Depending on availability, this method presents the discovery sheet of the AccessorySetupKit. If not available, this method sets ``shouldPresentDevicePairing`` to `true`
@@ -341,7 +332,7 @@ public final class PairedDevices { // TODO: update docs!
     }
 
     deinit {
-        stateSubscriptionTask = nil
+        // TODO: cancel any Tasks?
     }
 }
 
@@ -412,24 +403,24 @@ extension PairedDevices {
         guard discoveredDevice.ongoingPairing == nil else {
             throw DevicePairingError.busy
         }
-        
+
         guard device.isInPairingMode else {
             throw DevicePairingError.notInPairingMode
         }
-        
+
         guard case .disconnected = device.state else {
             throw DevicePairingError.invalidState
         }
-        
+
         guard device.nearby else {
             throw DevicePairingError.invalidState
         }
-        
+
         // race timeout against the tasks below
         async let _ = await withTimeout(of: timeout) { @MainActor in
             discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalTimeout()
         }
-        
+
         try await withThrowingDiscardingTaskGroup { group in
             // connect task
             group.addTask { @Sendable @SpeziBluetooth in
@@ -441,11 +432,11 @@ extension PairedDevices {
                             discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
                         }
                     }
-                    
+
                     throw error
                 }
             }
-            
+
             // pairing task
             group.addTask { @Sendable @MainActor in
                 try await withTaskCancellationHandler {
@@ -462,13 +453,13 @@ extension PairedDevices {
                 }
             }
         }
-        
-        
+
+
         // the task group above should exit with a CancellationError anyways, but safe to double check here
         guard !Task.isCancelled else {
             throw CancellationError()
         }
-        
+
         await registerPairedDevice(device)
     }
 }
@@ -515,6 +506,8 @@ extension PairedDevices {
     }
 
     private func persistPairedDevice(_ pairedDevice: PairedDevice) {
+        let wasFirstPairing = _pairedDevices.isEmpty
+
         _pairedDevices[pairedDevice.info.id] = pairedDevice
         if let modelContainer {
             modelContainer.mainContext.insert(pairedDevice.info)
@@ -531,7 +524,7 @@ extension PairedDevices {
 
         self.logger.debug("Device \(pairedDevice.info.name) with id \(pairedDevice.info.id) is now paired!")
 
-        if stateSubscriptionTask == nil {
+        if wasFirstPairing {
             Task {
                 await setupBluetoothStateSubscription()
             }
@@ -677,72 +670,74 @@ extension PairedDevices {
         }
     }
 
+    @SpeziBluetooth
     private func setupBluetoothStateSubscription() async {
         guard let bluetooth else {
             logger.warning("Tried to setup bluetooth state subscription while Bluetooth module wasn't loaded.")
             return
         }
 
-        guard stateSubscriptionTask == nil else {
+        guard stateRegistration == nil else {
             logger.warning("Tried to setup bluetooth state subscription a second time!")
             return
         }
 
-        assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
         logger.debug("Setting up Bluetooth state subscription ...")
 
-        let subscriptions = bluetooth.stateSubscription
-        self.stateSubscriptionTask = Task.detached { @MainActor @Sendable [weak self] in
-            for await nextState in subscriptions {
-                guard let self else {
-                    return
-                }
-                await self.handleBluetoothStateChanged(nextState) // TODO: we cannot wait forever!
-            }
-        }
+        self.stateRegistration = _registerStateHandler(using: bluetooth)
 
         // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
         // such that we are notified about the bluetooth state changing.
-        await bluetooth.powerOn()
+        bluetooth.powerOn()
 
         if case .poweredOn = bluetooth.state {
             await self.handleCentralPoweredOn()
         }
     }
 
-    private func cancelSubscription() async {
-        assert(_pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
+    @SpeziBluetooth
+    private func _registerStateHandler(using bluetooth: borrowing Bluetooth) -> sending StateRegistration {
+        bluetooth.registerStateHandler { [weak self] state in
+            guard let self else {
+                return
+            }
 
-        logger.debug("Cancelling state subscription and powering off bluetooth module.")
-        stateSubscriptionTask = nil // implicitly cancels the task
-        await bluetooth?.powerOff()
+            // TODO: can we check if the registration is still the same?
+
+            handleBluetoothStateChanged(state)
+        }
     }
 
-    private func handleBluetoothStateChanged(_ state: BluetoothState) async {
+    @SpeziBluetooth
+    private func cancelSubscription() {
+        // TODO: assert(_pairedDevices.isEmpty, "Bluetooth State subscription was tried to be cancelled even though devices were still paired.")
+
+        logger.debug("Cancelling state subscription and powering off bluetooth module.")
+        self.stateRegistration = nil // implicitly cancels the task
+        bluetooth?.powerOff()
+
+        // TODO: we also need to handle power off?
+    }
+
+    @SpeziBluetooth
+    private func handleBluetoothStateChanged(_ state: BluetoothState) {
         logger.debug("Bluetooth Module state is now \(state)")
 
         switch state {
         case .poweredOn:
-            scheduledPowerOffTask = nil
-            await handleCentralPoweredOn()
-        case .poweredOff:
-            // TODO: after removal, device cannot be connected anymore??
-            scheduledPowerOffTask = Task {
-                // TODO: we must discard all peripherals here!, before we retrieve again, we should make sure that the device is fully disallocated!
-                // TODO: try? await Task.sleep(for: .seconds(1)) // TODO: is that long enough. What happens if that is a manual power off?
-                guard !Task.isCancelled else {
-                    return
-                }
-
-                await self.handleCentralPoweredOff()
+            Task { @MainActor in
+                await handleCentralPoweredOn()
             }
-        case .unauthorized, .unsupported, .unknown:
-            scheduledPowerOffTask = nil
-            await handleCentralPoweredOff()
+        case .poweredOff, .unauthorized, .unsupported, .unknown:
+            Task { @MainActor in
+                await handleCentralPoweredOff()
+            }
         }
     }
 
     private func handleCentralPoweredOn() async {
+        assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+
         guard let bluetooth,
               case .poweredOn = bluetooth.state else {
             return
@@ -752,7 +747,7 @@ extension PairedDevices {
         if self._pairedDevices.values.contains(where: { $0.peripheral == nil }) {
             logger.debug("Powering on PairedDevices and retrieving device instances ...")
         }
-        
+
         // we just reuse the configured Bluetooth devices
         let configuredDevices = bluetooth.configuredPairableDevices()
 
@@ -789,6 +784,7 @@ extension PairedDevices {
                 }
             }
         }
+        logger.debug("Successfully powered off PairedDevices and cancelled all connection attempts!")
     }
 }
 
@@ -800,7 +796,7 @@ extension PairedDevices {
     @MainActor public var accessoryPickerPresented: Bool {
         accessorySetup?.pickerPresented ?? false
     }
-    
+
     /// Retrieve the `ASAccessory` for a device identifier.
     /// - Parameter deviceId: The identifier for a paired bluetooth device.
     /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
@@ -822,36 +818,30 @@ extension PairedDevices {
             return // method is not called if this is not available
         }
 
-        let changes = accessorySetup.accessoryChanges
-
-        Task.detached { @Sendable @MainActor [weak self] in
-            for await change in changes {
-                guard let self else {
-                    break
-                }
-
-                logger.debug("Received accessory change: \(String(describing: change))")
-
-                switch change {
-                    // TODO: all of this could race, we need "locks" for each accessory (removal and addition)?
-                case .available:
-                    Task {
-                        await handleSessionAvailable()
-                    }
-                case let .added(accessory):
-                    Task {
-                        await handleAddedAccessory(accessory)
-                    }
-                case let .changed(accessory):
-                    updateAccessory(accessory)
-                case let .removed(accessory):
-                    Task {
-                        await handleRemovedAccessory(accessory)
-                    }
-                }
+        self.accessoryEventRegistration = accessorySetup.registerHandler { [weak self] event in
+            guard let self else {
+                return
             }
 
-            self?.logger.debug("Accessory Change subscription completed!")
+            logger.debug("Received accessory change: \(String(describing: event))")
+
+            switch event {
+                // TODO: all of this could race, we need "locks" for each accessory (removal and addition)?
+            case .available:
+                Task {
+                    await handleSessionAvailable()
+                }
+            case let .added(accessory):
+                Task {
+                    await handleAddedAccessory(accessory)
+                }
+            case let .changed(accessory):
+                updateAccessory(accessory)
+            case let .removed(accessory):
+                Task {
+                    await handleRemovedAccessory(accessory)
+                }
+            }
         }
     }
 
@@ -978,7 +968,7 @@ extension PairedDevices {
             false
         }
     }
-    
+
     /// Rename an accessory.
     ///
     /// This will present a picker from the AccessorySetupKit to rename the accessory.
