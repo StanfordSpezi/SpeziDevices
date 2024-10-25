@@ -46,6 +46,7 @@ public struct NearbyDeviceRow: View {
                 HStack {
                     ListRow(verbatim: peripheral.label) {
                         deviceSecondaryLabel
+                            .foregroundStyle(.secondary)
                     }
                     if peripheral.state == .connecting || peripheral.state == .disconnecting {
                         ProgressView()
@@ -53,6 +54,7 @@ public struct NearbyDeviceRow: View {
                     }
                 }
             }
+                .foregroundStyle(.primary)
 
             if showDetailsButton {
                 Button(action: deviceDetailsAction) {
