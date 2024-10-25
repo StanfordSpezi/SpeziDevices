@@ -33,7 +33,7 @@ struct DiscardButton: View {
 
 
 struct ConfirmMeasurementButton: View {
-    private let confirm: () async throws -> Void
+    private let confirm: @MainActor () async throws -> Void
     private let discard: () -> Void
 
     @ScaledMetric private var buttonHeight: CGFloat = 38
@@ -55,7 +55,7 @@ struct ConfirmMeasurementButton: View {
         }
     }
 
-    init(viewState: Binding<ViewState>, confirm: @escaping () async throws -> Void, discard: @escaping () -> Void) {
+    init(viewState: Binding<ViewState>, confirm: @escaping @MainActor () async throws -> Void, discard: @escaping () -> Void) {
         self._viewState = viewState
         self.confirm = confirm
         self.discard = discard
