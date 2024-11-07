@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+import AccessorySetupKit
 import Foundation
 import SpeziViews
 import SwiftData
@@ -15,7 +16,8 @@ import SwiftData
 @Model
 public final class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
-    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique)
+    public var id: UUID
     /// The device type.
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
@@ -44,6 +46,21 @@ public final class PairedDeviceInfo {
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
+    @Transient private var _accessory: (AnyObject & Sendable)?
+
+    @available(iOS 18.0, *)
+    public internal(set) var accessory: ASAccessory? {
+        get {
+            guard let anyAccessory = _accessory,
+                  let accessory = anyAccessory as? ASAccessory else {
+                return nil
+            }
+            return accessory
+        }
+        set {
+            _accessory = newValue
+        }
+    }
 
     /// Visual representation of the device.
     public var icon: ImageReference? {
@@ -140,7 +157,8 @@ extension PairedDeviceInfo: CustomStringConvertible, CustomDebugStringConvertibl
 #if DEBUG
 extension PairedDeviceInfo {
     /// Mock Health Device 1 Data.
-    @_spi(TestingSupport) public static var mockHealthDevice1: PairedDeviceInfo {
+    @_spi(TestingSupport)
+    public static var mockHealthDevice1: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice1",
@@ -151,7 +169,8 @@ extension PairedDeviceInfo {
     }
 
     /// Mock Health Device 2 Data.
-    @_spi(TestingSupport) public static var mockHealthDevice2: PairedDeviceInfo {
+    @_spi(TestingSupport)
+    public static var mockHealthDevice2: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice2",

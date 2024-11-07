@@ -12,7 +12,8 @@ import SpeziBluetooth
 
 @available(iOS 18, *)
 final class LoadAccessorySetupKit: Module {
-    @Dependency(AccessorySetupKit.self) var accessorySetupKit
+    @Dependency(AccessorySetupKit.self)
+    var accessorySetupKit
 
     init() {}
 }

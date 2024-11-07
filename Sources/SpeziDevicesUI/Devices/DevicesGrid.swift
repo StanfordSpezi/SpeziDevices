@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SwiftUI
 import TipKit
 
@@ -62,7 +63,7 @@ public struct DevicesGrid: View {
                 ProgressView()
             }
         }
-            // TODO: this is a problem when this view is presented inside a
+            // TODO: this is a problem when this view is presented inside a navigation destination?
             .navigationDestination(item: $detailedDeviceInfo) { deviceInfo in
                 DeviceDetailsView(deviceInfo)
             }

@@ -8,7 +8,8 @@
 
 import HealthKit
 import OSLog
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -43,9 +44,12 @@ public struct MeasurementsRecordedSheet: View {
     private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementsRecordedSheet")
     private let saveSamples: @MainActor ([HKSample]) async throws -> Void
 
-    @Environment(HealthMeasurements.self) private var measurements
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(HealthMeasurements.self)
+    private var measurements
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(\.dynamicTypeSize)
+    private var dynamicTypeSize
 
     @State private var selectedMeasurement: HealthKitMeasurement?
 

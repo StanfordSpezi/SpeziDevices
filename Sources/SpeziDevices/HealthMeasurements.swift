@@ -102,7 +102,8 @@ public final class HealthMeasurements: @unchecked Sendable {
     /// To clear pending measurements call ``discardMeasurement(_:)``.
     @MainActor public private(set) var pendingMeasurements: [HealthKitMeasurement] = []
 
-    @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
+    @Dependency(Bluetooth.self)
+    @ObservationIgnored private var bluetooth: Bluetooth?
 
     private var modelContainer: ModelContainer?
 

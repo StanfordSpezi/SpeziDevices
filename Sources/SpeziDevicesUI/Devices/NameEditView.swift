@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziValidation
 import SwiftUI
 
@@ -15,7 +16,8 @@ struct NameEditView: View {
     private let deviceInfo: PairedDeviceInfo
     private let save: (String) -> Void
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     @State private var name: String
 

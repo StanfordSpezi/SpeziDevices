@@ -7,7 +7,8 @@
 //
 
 import AccessorySetupKit
-@_spi(Internal) import SpeziDevices
+@_spi(Internal)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -31,7 +32,8 @@ struct AccessoryRenameButton: View {
 
     @State private var observedRename: Bool = false
 
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     private var buttonBackground: (some View)? {
         if buttonPressed {
