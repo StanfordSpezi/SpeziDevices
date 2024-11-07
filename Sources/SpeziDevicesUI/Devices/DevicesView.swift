@@ -18,13 +18,15 @@ public struct DevicesView<PairingHint: View>: View {
     private let appName: String
     private let pairingHint: PairingHint
 
-    @Environment(Bluetooth.self) private var bluetooth
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(Bluetooth.self)
+    private var bluetooth
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     public var body: some View {
         @Bindable var pairedDevices = pairedDevices
 
-        DevicesGrid(devices: pairedDevices.pairedDevices) { // TODO: pairing hint tip!
+        DevicesGrid(devices: pairedDevices.pairedDevices) { // TODO: pairing hint tip! what?
             pairedDevices.showAccessoryDiscovery()
         }
             .navigationTitle(Text("Devices", bundle: .module))

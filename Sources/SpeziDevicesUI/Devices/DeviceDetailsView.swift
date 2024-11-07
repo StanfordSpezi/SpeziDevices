@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(Internal) @_spi(TestingSupport) import SpeziDevices
+@_spi(Internal)
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -57,8 +59,10 @@ struct TimerIntervalLabel: View {
 public struct DeviceDetailsView: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(\.dismiss) private var dismiss
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     @State private var viewState: ViewState = .idle
     @State private var presentForgetConfirmation = false
@@ -165,7 +169,7 @@ public struct DeviceDetailsView: View {
 
         Task {
             do {
-                let managedByAccessorySetupKit = if #available(iOS 18, *), pairedDevices.accessory(for: deviceInfo.id) != nil {
+                let managedByAccessorySetupKit = if #available(iOS 18, *), deviceInfo.accessory != nil {
                     true
                 } else {
                     false

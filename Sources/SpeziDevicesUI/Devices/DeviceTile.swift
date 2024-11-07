@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SwiftUI
 
 
@@ -14,7 +15,8 @@ import SwiftUI
 public struct DeviceTile: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     private var image: Image {
         deviceInfo.icon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image

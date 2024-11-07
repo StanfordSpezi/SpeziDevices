@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SwiftUI
 
 
@@ -14,7 +15,8 @@ struct PairedDeviceView: View {
     private let device: any PairableDevice
     private let appName: String
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     var body: some View {
         PaneContent(

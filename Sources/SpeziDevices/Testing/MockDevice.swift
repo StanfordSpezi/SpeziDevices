@@ -7,21 +7,29 @@
 //
 
 import Foundation
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
 import SpeziNumerics
 
 
 @_spi(TestingSupport)
 public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    @DeviceState(\.id) public var id
-    @DeviceState(\.name) public var name
-    @DeviceState(\.state) public var state
-    @DeviceState(\.advertisementData) public var advertisementData
-    @DeviceState(\.nearby) public var nearby
+    @DeviceState(\.id)
+    public var id
+    @DeviceState(\.name)
+    public var name
+    @DeviceState(\.state)
+    public var state
+    @DeviceState(\.advertisementData)
+    public var advertisementData
+    @DeviceState(\.nearby)
+    public var nearby
 
-    @DeviceAction(\.connect) public var connect
-    @DeviceAction(\.disconnect) public var disconnect
+    @DeviceAction(\.connect)
+    public var connect
+    @DeviceAction(\.disconnect)
+    public var disconnect
 
 
     @Service public var deviceInformation = DeviceInformationService()
@@ -31,7 +39,8 @@ public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevic
     @Service public var bloodPressure = BloodPressureService()
     @Service public var weightScale = WeightScaleService()
 
-    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
+    @Dependency(PairedDevices.self)
+    private var pairedDevices: PairedDevices?
 
     public var isInPairingMode: Bool = false
 

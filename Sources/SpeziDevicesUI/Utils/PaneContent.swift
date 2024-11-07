@@ -37,6 +37,7 @@ struct SheetPreview<Content: View>: View {
 #endif
 
 
+// TODO: move to SpeziViews!
 struct PaneContent<Title: View, Subtitle: View, Content: View, Action: View>: View {
     private let title: Title
     private let subtitle: Subtitle?

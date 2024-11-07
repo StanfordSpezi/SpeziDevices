@@ -11,7 +11,8 @@ import OrderedCollections
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) import SpeziFoundation
+@_spi(TestingSupport)
+import SpeziFoundation
 import SpeziViews
 import SwiftData
 import SwiftUI
@@ -20,9 +21,6 @@ import SwiftUI
 // TODO: support for migration within SpeziDevices (just upon app launch)! (maybe an alert with "Not Now"/"Migrate" buttons) if not now, have an option in settings?
 //  => is it enough to destroy any CBCentralManager instances before migration or are we never allowed to instantiate one.
 // TODO: the picker disables powers off the central. are we still connecting with other devices afterwards?
-
-// TODO: forget sometimes crashes the app
-// TODO: first paired device won't reconnect after second one is paired!
 
 
 /// Persistently pair with Bluetooth devices and automatically manage connections.
@@ -106,17 +104,22 @@ import SwiftUI
 /// - ``pair(with:timeout:)``
 @Observable
 public final class PairedDevices { // TODO: update docs!
-    @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once") @MainActor @ObservationIgnored private var everPairedDevice = false
+    @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once")
+    @MainActor @ObservationIgnored private var everPairedDevice = false
 
 
-    @Application(\.logger) @ObservationIgnored private var logger
+    @Application(\.logger)
+    @ObservationIgnored private var logger
 
-    @Dependency(Bluetooth.self) @ObservationIgnored private var bluetooth: Bluetooth?
-    @Dependency(ConfigureTipKit.self) @ObservationIgnored private var tipKit
+    @Dependency(Bluetooth.self)
+    @ObservationIgnored private var bluetooth: Bluetooth?
+    @Dependency(ConfigureTipKit.self)
+    @ObservationIgnored private var tipKit
 
     @Dependency @ObservationIgnored private var _accessorySetup: [any Module]
 
-    @available(iOS 18, *) private var accessorySetup: AccessorySetupKit? {
+    @available(iOS 18, *)
+    private var accessorySetup: AccessorySetupKit? {
         // we cannot have stored properties with @available. Therefore, we add a level of indirection.
         guard let module = _accessorySetup.first else {
             return nil
@@ -544,7 +547,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
-        try await removeDevice(id: id) {
+        try await removeDevice(id: id) { @SpeziBluetooth in
             if #available(iOS 18, *) {
                 guard let accessorySetup,
                       let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
@@ -639,6 +642,7 @@ extension PairedDevices {
         }
 
         fetchAllPairedInfos()
+        // TODO: set accessory property if session is already available?
     }
 
     private func syncDeviceIcons() {
@@ -756,7 +760,8 @@ extension PairedDevices {
                         return
                     }
 
-                    await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth) // TODO: do not retrieve device upon accessory added!
+                    // TODO: do not retrieve device upon accessory added!
+                    await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
                 }
             }
         }
@@ -799,7 +804,7 @@ extension PairedDevices {
     /// - Parameter deviceId: The identifier for a paired bluetooth device.
     /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
     @_spi(Internal)
-    @MainActor
+    @SpeziBluetooth
     public func accessory(for deviceId: UUID) -> ASAccessory? {
         if let accessorySetup {
             accessorySetup.accessories.first { accessory in
@@ -812,11 +817,7 @@ extension PairedDevices {
 
     @MainActor
     private func setupAccessoryChangeSubscription() {
-        guard let accessorySetup else {
-            return // method is not called if this is not available
-        }
-
-        self.accessoryEventRegistration = accessorySetup.registerHandler { [weak self] event in
+        self.accessoryEventRegistration = accessorySetup?.registerHandler { [weak self] event in
             guard let self else {
                 return
             }
@@ -826,15 +827,19 @@ extension PairedDevices {
             switch event {
                 // TODO: all of this could race, we need "locks" for each accessory (removal and addition)?
             case .available:
-                Task {
-                    await handleSessionAvailable()
+                if let accessories = accessorySetup?.accessories {
+                    Task {
+                        await handleSessionAvailable(for: accessories)
+                    }
                 }
             case let .added(accessory):
                 Task {
                     await handleAddedAccessory(accessory)
                 }
             case let .changed(accessory):
-                updateAccessory(accessory)
+                Task { @MainActor in
+                    updateAccessory(accessory)
+                }
             case let .removed(accessory):
                 Task {
                     await handleRemovedAccessory(accessory)
@@ -844,22 +849,19 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handleSessionAvailable() async {
-        guard let accessorySetup else {
-            return
-        }
-
-        for accessory in accessorySetup.accessories {
+    private func handleSessionAvailable(for accessories: [ASAccessory]) async {
+        for accessory in accessories {
             guard let uuid = accessory.bluetoothIdentifier else {
                 continue
             }
 
-            guard _pairedDevices[uuid] == nil else {
-                continue // we are already paired
+            if let deviceInfo = _pairedDevices[uuid] {
+                // already paired, associate with the device info
+                deviceInfo.info.accessory = accessory // TODO: ensure this is done on all code paths?
+            } else {
+                logger.debug("Found available accessory that hasn't been paired: \(accessory)")
+                handleAddedAccessory(accessory)
             }
-
-            logger.debug("Found available accessory that hasn't been paired: \(accessory)")
-            await handleAddedAccessory(accessory)
         }
 
         if !_pairedDevices.isEmpty {
@@ -910,7 +912,7 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handleAddedAccessory(_ accessory: ASAccessory) async {
+    private func handleAddedAccessory(_ accessory: ASAccessory) {
         guard let bluetooth, let id = accessory.bluetoothIdentifier else {
             return
         }
@@ -932,8 +934,10 @@ extension PairedDevices {
             icon: appearance.icon,
             variantIdentifier: variantId
         )
+        deviceInfo.accessory = accessory
 
         let pairedDevice = PairedDevice(info: deviceInfo)
+
 
         // AccessorySetupKit switches of the central for a few milliseconds after this call.
         // So we do not need to retrieve the device now. It will be retrieved later.

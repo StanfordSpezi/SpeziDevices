@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(Internal) import SpeziDevices
+@_spi(Internal)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -14,11 +15,12 @@ import SwiftUI
 struct DeviceInfoSection: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     var body: some View {
         Section {
-            if #available(iOS 18, *), let accessory = pairedDevices.accessory(for: deviceInfo.id) {
+            if #available(iOS 18, *), let accessory = deviceInfo.accessory {
                 AccessoryRenameButton(accessory: accessory)
             } else {
                 NavigationLink {

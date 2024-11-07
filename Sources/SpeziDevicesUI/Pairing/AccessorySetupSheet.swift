@@ -8,7 +8,8 @@
 
 import OSLog
 import SpeziBluetooth
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -23,9 +24,12 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHin
     private let appName: String
     private let pairingHint: PairingHint
 
-    @Environment(Bluetooth.self) private var bluetooth
-    @Environment(PairedDevices.self) private var pairedDevices
-    @Environment(\.dismiss) private var dismiss
+    @Environment(Bluetooth.self)
+    private var bluetooth
+    @Environment(PairedDevices.self)
+    private var pairedDevices
+    @Environment(\.dismiss)
+    private var dismiss
 
     @State private var pairingState: PairingViewState = .discovery
 

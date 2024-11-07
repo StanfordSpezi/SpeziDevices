@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -16,7 +17,8 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     private let appName: String
     private let pairClosure: (any PairableDevice) async throws -> Void
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     @Binding private var pairingState: PairingViewState
     @AccessibilityFocusState private var isHeaderFocused: Bool

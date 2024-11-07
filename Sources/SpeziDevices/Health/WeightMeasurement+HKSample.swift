@@ -83,14 +83,16 @@ extension WeightMeasurement {
 
 extension HKQuantitySample {
     /// Retrieve a mock weight sample.
-    @_spi(TestingSupport) public static var mockWeighSample: HKQuantitySample {
+    @_spi(TestingSupport)
+    public static var mockWeighSample: HKQuantitySample {
         let measurement = WeightMeasurement(weight: 8400, unit: .si)
 
         return measurement.weightSample(source: nil, resolution: .resolution5g)
     }
 
     /// Retrieve a mock bmi sample.
-    @_spi(TestingSupport) public static var mockBmiSample: HKQuantitySample {
+    @_spi(TestingSupport)
+    public static var mockBmiSample: HKQuantitySample {
         let measurement = WeightMeasurement(weight: 8400, unit: .si, additionalInfo: .init(bmi: 230, height: 1750))
         guard let sample = measurement.bmiSample(source: nil) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")
@@ -99,7 +101,8 @@ extension HKQuantitySample {
     }
 
     /// Retrieve a mock height sample:
-    @_spi(TestingSupport) public static var mockHeightSample: HKQuantitySample {
+    @_spi(TestingSupport)
+    public static var mockHeightSample: HKQuantitySample {
         let measurement = WeightMeasurement(weight: 8400, unit: .si, additionalInfo: .init(bmi: 230, height: 1750))
         guard let sample = measurement.heightSample(source: nil, resolution: .resolution1mm) else {
             preconditionFailure("Mock sample was unexpectedly invalid!")

@@ -18,7 +18,8 @@ struct PairingFailureView: View {
             ?? String(localized: "Failed to pair accessory.", bundle: .module)
     }
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
 
     var body: some View {

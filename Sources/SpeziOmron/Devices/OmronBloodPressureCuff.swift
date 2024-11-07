@@ -9,9 +9,11 @@
 import CoreBluetooth
 import Foundation
 import OSLog
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(Migration) import SpeziDevices
+@_spi(Migration)
+import SpeziDevices
 import SpeziNumerics
 
 
@@ -39,11 +41,16 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
 
-    @DeviceState(\.id) public var id: UUID
-    @DeviceState(\.name) public var name: String?
-    @DeviceState(\.state) public var state: PeripheralState
-    @DeviceState(\.advertisementData) public var advertisementData: AdvertisementData
-    @DeviceState(\.nearby) public var nearby
+    @DeviceState(\.id)
+    public var id: UUID
+    @DeviceState(\.name)
+    public var name: String?
+    @DeviceState(\.state)
+    public var state: PeripheralState
+    @DeviceState(\.advertisementData)
+    public var advertisementData: AdvertisementData
+    @DeviceState(\.nearby)
+    public var nearby
 
     @Service public var deviceInformation = DeviceInformationService()
 
@@ -51,11 +58,15 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     @Service public var battery = BatteryService()
     @Service public var bloodPressure = BloodPressureService()
 
-    @DeviceAction(\.connect) public var connect
-    @DeviceAction(\.disconnect) public var disconnect
+    @DeviceAction(\.connect)
+    public var connect
+    @DeviceAction(\.disconnect)
+    public var disconnect
 
-    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
-    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self)
+    private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self)
+    private var pairedDevices: PairedDevices?
 
     @SpeziBluetooth private var didReceiveFirstTimeNotification = false
 
