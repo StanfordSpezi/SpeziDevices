@@ -55,6 +55,7 @@ public struct NearbyDeviceRow: View {
                 }
             }
                 .foregroundStyle(.primary)
+                .accessibilityElement(children: .combine)
 
             if showDetailsButton {
                 Button(action: deviceDetailsAction) {
