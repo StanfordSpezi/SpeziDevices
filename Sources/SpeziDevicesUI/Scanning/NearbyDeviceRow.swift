@@ -97,7 +97,7 @@ public struct NearbyDeviceRow<Label: View>: View {
 
 
 #if DEBUG
-#Preview {
+#Preview { // swiftlint:disable:this closure_body_length
     List {
         NearbyDeviceRow(peripheral: MockBluetoothPeripheral(label: "MyDevice 1", state: .connecting)) {
             print("Clicked")
@@ -122,7 +122,7 @@ public struct NearbyDeviceRow<Label: View>: View {
         } secondaryAction: {
         }
 
-        let peripheral =  MockBluetoothPeripheral(label: "MyDevice 2", state: .connected)
+        let peripheral = MockBluetoothPeripheral(label: "MyDevice 2", state: .connected)
         NearbyDeviceRow(peripheral: MockBluetoothPeripheral(label: "MyDevice 2", state: .connected)) {
             print("Clicked")
         } secondaryAction: {
@@ -134,9 +134,7 @@ public struct NearbyDeviceRow<Label: View>: View {
             } content: {
                 PeripheralSecondaryLabel(peripheral)
             }
-
         }
-
     }
 }
 #endif
