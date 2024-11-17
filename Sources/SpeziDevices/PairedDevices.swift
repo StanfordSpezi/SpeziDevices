@@ -262,12 +262,14 @@ public final class PairedDevices { // TODO: update docs!
 
     /// Update the user-chosen name of a paired device.
     ///
+    /// - Note: If your Accessory is managed through the AccessorySetupKit, please make sure to rename the accessory through AccessorySetupKit such that the
+    ///     name is visible in the Settings App and other applications as well.
+    ///
     /// - Parameters:
     ///   - deviceInfo: The paired device information for which to update the name.
     ///   - name: The new name.
     @MainActor
     public func updateName(for deviceInfo: PairedDeviceInfo, name: String) {
-        // TODO: document that askit rename works differently + accessory retrieval API!
         logger.debug("Updated name for paired device \(deviceInfo.id): \(name) %")
         deviceInfo.name = name
     }
@@ -825,7 +827,6 @@ extension PairedDevices {
             logger.debug("Received accessory change: \(String(describing: event))")
 
             switch event {
-                // TODO: all of this could race, we need "locks" for each accessory (removal and addition)?
             case .available:
                 if let accessories = accessorySetup?.accessories {
                     Task {
