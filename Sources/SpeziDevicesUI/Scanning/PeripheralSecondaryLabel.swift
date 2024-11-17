@@ -37,8 +37,7 @@ public struct PeripheralSecondaryLabel: View {
             } else {
                 switch peripheral.state {
                 case .connecting, .disconnecting:
-                    ProgressView()
-                        .accessibilityRemoveTraits(.updatesFrequently)
+                    EmptyView()
                 case .connected:
                     Text("Connected", bundle: .module)
                 case .disconnected:

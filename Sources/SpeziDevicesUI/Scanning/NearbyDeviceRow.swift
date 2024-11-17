@@ -26,6 +26,14 @@ public struct NearbyDeviceRow<Label: View>: View {
             }
                 .tint(.primary)
 
+            Spacer()
+
+            if peripheral.state == .connecting || peripheral.state == .disconnecting {
+                ProgressView()
+                    .accessibilityRemoveTraits(.updatesFrequently)
+                    .foregroundStyle(.secondary)
+            }
+
             if secondaryActionClosure != nil && peripheral.state == .connected {
                 ListInfoButton(Text("Device Details", bundle: .module), action: deviceDetailsAction)
             }
@@ -113,6 +121,22 @@ public struct NearbyDeviceRow<Label: View>: View {
             print("Clicked")
         } secondaryAction: {
         }
+
+        let peripheral =  MockBluetoothPeripheral(label: "MyDevice 2", state: .connected)
+        NearbyDeviceRow(peripheral: MockBluetoothPeripheral(label: "MyDevice 2", state: .connected)) {
+            print("Clicked")
+        } secondaryAction: {
+            print("Secondary Clicked!")
+        } label: {
+            ListRow {
+                PeripheralLabel(peripheral)
+                Text("RSSI: -64")
+            } content: {
+                PeripheralSecondaryLabel(peripheral)
+            }
+
+        }
+
     }
 }
 #endif
