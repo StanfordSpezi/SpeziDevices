@@ -19,7 +19,7 @@ public struct PeripheralLabel: View {
             .accessibilityLabel(Text(peripheral.accessibilityLabel))
     }
 
-    init(_ peripheral: any GenericBluetoothPeripheral) {
+    public init(_ peripheral: any GenericBluetoothPeripheral) {
         self.peripheral = peripheral
     }
 }

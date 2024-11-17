@@ -52,7 +52,7 @@ public struct PeripheralSecondaryLabel: View {
             }
     }
 
-    init(_ peripheral: any GenericBluetoothPeripheral) {
+    public init(_ peripheral: any GenericBluetoothPeripheral) {
         self.peripheral = peripheral
     }
 }
