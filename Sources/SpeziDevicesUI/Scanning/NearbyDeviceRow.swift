@@ -47,6 +47,7 @@ public struct NearbyDeviceRow: View {
                 HStack {
                     LabeledContent(peripheral.label) {
                         deviceSecondaryLabel
+                            .foregroundStyle(.secondary)
                     }
                         .accessibilityElement(children: .combine)
                     if peripheral.state == .connecting || peripheral.state == .disconnecting {
@@ -55,6 +56,7 @@ public struct NearbyDeviceRow: View {
                     }
                 }
             }
+                .foregroundStyle(.primary)
 
             if showDetailsButton {
                 Button(action: deviceDetailsAction) {
