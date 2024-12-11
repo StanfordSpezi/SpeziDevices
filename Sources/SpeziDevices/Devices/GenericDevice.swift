@@ -15,13 +15,6 @@ import SpeziBluetoothServices
 ///
 /// A generic Bluetooth device that provides access to basic device information.
 public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Identifiable, Sendable {
-    /// A catalog of assets that is used to visually present the device to the user.
-    ///
-    /// You can provide an array of ``DeviceAsset``s to visually represent the device.
-    /// Providing multiple assets can be used to support multiple different models of a device kind with a single implementation.
-    /// The first matching `DeviceAsset` will be used.
-    static var assets: [DeviceAsset] { get }
-
     /// The device identifier.
     ///
     /// Use the [`DeviceState`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/devicestate) property wrapper to
@@ -61,13 +54,6 @@ public protocol GenericDevice: BluetoothDevice, GenericBluetoothPeripheral, Iden
 
 
 extension GenericDevice {
-    /// Default `assets` implementation.
-    ///
-    /// Returns an empty asset catalog by default. Results in a generic icon to be presented.
-    public static var assets: [DeviceAsset] {
-        []
-    }
-
     /// Default label implementation.
     ///
     /// Returns `"Generic Device"` if the peripheral doesn't expose a ``name``.

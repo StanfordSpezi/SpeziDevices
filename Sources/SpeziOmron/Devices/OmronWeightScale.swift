@@ -9,37 +9,57 @@
 import CoreBluetooth
 import Foundation
 import OSLog
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
+@_spi(Migration)
 import SpeziDevices
+import SpeziFoundation
 
 
 /// Implementation of Omron SC150 Weight Scale.
 public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthDevice, @unchecked Sendable {
-    public static var assets: [DeviceAsset] {
-        [
-            .name("SC-150", .asset("Omron-SC-150", bundle: .module))
-        ]
+    public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Weight Scale"), variants: [
+        Variant(
+            id: "omron-sc150",
+            name: "SC-150",
+            icon: .asset("Omron-SC-150", bundle: .module),
+            criteria: .nameSubstring("BLESmart_00010112"),
+            .manufacturer(.omronHealthcareCoLtd, manufacturerData: pairingModeDescriptor)
+        )
+    ])
+
+    private static var pairingModeDescriptor: DataDescriptor {
+        DataDescriptor(data: OmronManufacturerDataPrefix(.pairingMode).encode(), mask: OmronManufacturerDataPrefix(bitMaskFor: .pairingMode).encode())
     }
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "WeightScale")
 
-    @DeviceState(\.id) public var id: UUID
-    @DeviceState(\.name) public var name: String?
-    @DeviceState(\.state) public var state: PeripheralState
-    @DeviceState(\.advertisementData) public var advertisementData: AdvertisementData
-    @DeviceState(\.nearby) public var nearby
+    @DeviceState(\.id)
+    public var id: UUID
+    @DeviceState(\.name)
+    public var name: String?
+    @DeviceState(\.state)
+    public var state: PeripheralState
+    @DeviceState(\.advertisementData)
+    public var advertisementData: AdvertisementData
+    @DeviceState(\.nearby)
+    public var nearby
 
     @Service public var deviceInformation = DeviceInformationService()
 
     @Service public var time = CurrentTimeService()
     @Service public var weightScale = WeightScaleService()
 
-    @DeviceAction(\.connect) public var connect
-    @DeviceAction(\.disconnect) public var disconnect
+    @DeviceAction(\.connect)
+    public var connect
+    @DeviceAction(\.disconnect)
+    public var disconnect
 
-    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
-    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self)
+    private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self)
+    private var pairedDevices: PairedDevices?
 
     @SpeziBluetooth private var didReceiveFirstTimeNotification = false
 
@@ -65,7 +85,7 @@ public final class OmronWeightScale: BluetoothDevice, Identifiable, OmronHealthD
 
     @SpeziBluetooth
     private func handleStateChange(_ state: PeripheralState) {
-        logger.debug("\(Self.self) changed state to \(state).")
+        logger.debug("\(Self.self) \(self.label), \(self.id) changed state to \(state).")
         switch state {
         case .connecting, .connected:
             break
@@ -196,5 +216,15 @@ extension OmronWeightScale {
         }
 
         return device
+    }
+}
+
+
+@_spi(Migration)
+extension OmronWeightScale: DeviceVariantMigration {
+    public static func selectAppearance(for deviceInfo: PairedDeviceInfo) -> (appearance: Appearance, variantId: String?) {
+        appearance.appearance { variant in
+            variant.name == deviceInfo.model
+        }
     }
 }

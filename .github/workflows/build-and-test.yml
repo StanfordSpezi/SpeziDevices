@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  packageios:
+  package_ios:
     name: Build and Test Swift Package iOS
     uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
     with:
@@ -24,6 +24,15 @@ jobs:
       scheme: SpeziDevices-Package
       resultBundle: SpeziDevices-iOS.xcresult
       artifactname: SpeziDevices-iOS.xcresult
+  buildandtest_visionos:
+    name: Build and Test Swift Package visionOS
+    uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
+    with:
+      runsonlabels: '["macOS", "self-hosted"]'
+      scheme: SpeziBluetooth-Package
+      destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
+      resultBundle: SpeziBluetooth-visionOS.xcresult
+      artifactname: SpeziBluetooth-visionOS.xcresult
   ios:
     name: Build and Test iOS
     uses: StanfordSpezi/.github/.github/workflows/xcodebuild-or-fastlane.yml@v2
@@ -35,9 +44,9 @@ jobs:
       artifactname: TestApp-iOS.xcresult
   uploadcoveragereport:
     name: Upload Coverage Report
-    needs: [packageios, ios]
+    needs: [package_ios, buildandtest_visionos, ios]
     uses: StanfordBDHG/.github/.github/workflows/create-and-upload-coverage-report.yml@v2
     with:
-      coveragereports: SpeziDevices-iOS.xcresult TestApp-iOS.xcresult
+      coveragereports: SpeziDevices-iOS.xcresult SpeziBluetooth-visionOS.xcresult TestApp-iOS.xcresult
     secrets:
       token: ${{ secrets.CODECOV_TOKEN }}

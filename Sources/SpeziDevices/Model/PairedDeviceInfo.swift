@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+import AccessorySetupKit
 import Foundation
+import SpeziViews
 import SwiftData
 
 
@@ -14,7 +16,8 @@ import SwiftData
 @Model
 public final class PairedDeviceInfo {
     /// The CoreBluetooth device identifier.
-    @Attribute(.unique) public var id: UUID
+    @Attribute(.unique)
+    public var id: UUID
     /// The device type.
     ///
     /// Stores the associated ``PairableDevice/deviceTypeIdentifier-9wsed`` device type used to locate the device implementation.
@@ -32,11 +35,32 @@ public final class PairedDeviceInfo {
     public internal(set) var lastBatteryPercentage: UInt8?
 
     /// The date at which the device was paired.
-    public var pairedAt: Date
+    public internal(set) var pairedAt: Date
+    
+    /// Defines the variant of the bluetooth device.
+    ///
+    /// A bluetooth device might implement the logic for multiple device variants that each have a different appearance. In these cases the device can define a appearance for each variant.
+    /// This identifier stores the variant identifier of the variant we observed upon pairing.
+    public internal(set) var variantIdentifier: String? // TODO: observable? create legacy data store tests!
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
+    @Transient private var _accessory: (AnyObject & Sendable)?
+
+    @available(iOS 18.0, *)
+    public internal(set) var accessory: ASAccessory? {
+        get {
+            guard let anyAccessory = _accessory,
+                  let accessory = anyAccessory as? ASAccessory else {
+                return nil
+            }
+            return accessory
+        }
+        set {
+            _accessory = newValue
+        }
+    }
 
     /// Visual representation of the device.
     public var icon: ImageReference? {
@@ -66,6 +90,7 @@ public final class PairedDeviceInfo {
         name: String,
         model: String?,
         icon: ImageReference? = nil,
+        variantIdentifier: String? = nil,
         lastSeen: Date = .now,
         batteryPercentage: UInt8? = nil
     ) {
@@ -75,6 +100,7 @@ public final class PairedDeviceInfo {
         self.peripheralName = name
         self.model = model
         self._icon = icon
+        self.variantIdentifier = variantIdentifier
         self.lastSeen = lastSeen
         self.lastBatteryPercentage = batteryPercentage
 
@@ -103,10 +129,36 @@ extension PairedDeviceInfo: Hashable {
 }
 
 
+extension PairedDeviceInfo: CustomStringConvertible, CustomDebugStringConvertible {
+    public var description: String {
+        """
+        PairedDeviceInfo(
+        id: \(id), \
+        deviceType: \(deviceType), \
+        peripheralName: \(peripheralName.map { $0.description } ?? "nil"), \
+        model: \(model.map { $0.description } ?? "nil"), \
+        name: \(name), \
+        lastSeen: \(lastSeen), \
+        lastBatteryPercentage: \(lastBatteryPercentage.map { $0.description } ?? "nil"), \
+        pairedAt: \(pairedAt), \
+        variantIdentifier: \(variantIdentifier.map { $0.description } ?? "nil"), \
+        notLocatable: \(notLocatable), \
+        icon: \(_icon.map { "\($0)" } ?? "nil")\
+        )
+        """
+    }
+
+    public var debugDescription: String {
+        description
+    }
+}
+
+
 #if DEBUG
 extension PairedDeviceInfo {
     /// Mock Health Device 1 Data.
-    @_spi(TestingSupport) public static var mockHealthDevice1: PairedDeviceInfo {
+    @_spi(TestingSupport)
+    public static var mockHealthDevice1: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice1",
@@ -117,7 +169,8 @@ extension PairedDeviceInfo {
     }
 
     /// Mock Health Device 2 Data.
-    @_spi(TestingSupport) public static var mockHealthDevice2: PairedDeviceInfo {
+    @_spi(TestingSupport)
+    public static var mockHealthDevice2: PairedDeviceInfo {
         PairedDeviceInfo(
             id: UUID(),
             deviceType: "HealthDevice2",

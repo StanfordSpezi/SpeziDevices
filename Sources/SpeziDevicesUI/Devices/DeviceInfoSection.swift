@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
+@_spi(Internal)
 import SpeziDevices
 import SpeziViews
 import SwiftUI
@@ -14,24 +15,35 @@ import SwiftUI
 struct DeviceInfoSection: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     var body: some View {
         Section {
-            NavigationLink {
-                NameEditView(deviceInfo) { name in
-                    pairedDevices.updateName(for: deviceInfo, name: name)
-                }
-            } label: {
-                ListRow("Name") {
-                    Text(deviceInfo.name)
+            if #available(iOS 18, *), let accessory = deviceInfo.accessory {
+                AccessoryRenameButton(accessory: accessory)
+            } else {
+                NavigationLink {
+                    NameEditView(deviceInfo) { name in
+                        pairedDevices.updateName(for: deviceInfo, name: name)
+                    }
+                } label: {
+                    LabeledContent {
+                        Text(deviceInfo.name)
+                    } label: {
+                        Text("Name", bundle: .module)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
             }
 
             if let model = deviceInfo.model, model != deviceInfo.name {
-                ListRow("Model") {
+                LabeledContent {
                     Text(model)
+                } label: {
+                    Text("Model", bundle: .module)
                 }
+                    .accessibilityElement(children: .combine)
             }
         }
     }
@@ -45,14 +57,19 @@ struct DeviceInfoSection: View {
 
 #if DEBUG
 #Preview {
-    List {
-        DeviceInfoSection(deviceInfo: PairedDeviceInfo(
-            id: UUID(),
-            deviceType: "MockDevice",
-            name: "Blood Pressure Monitor",
-            model: "BP5250",
-            batteryPercentage: 100
-        ))
+    NavigationStack {
+        List {
+            DeviceInfoSection(deviceInfo: PairedDeviceInfo(
+                id: UUID(),
+                deviceType: "MockDevice",
+                name: "Blood Pressure Monitor",
+                model: "BP5250",
+                batteryPercentage: 100
+            ))
+        }
+            .previewWith {
+                PairedDevices()
+            }
     }
 }
 #endif

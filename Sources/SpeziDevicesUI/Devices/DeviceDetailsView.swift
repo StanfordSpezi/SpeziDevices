@@ -6,18 +6,65 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(Internal)
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
+
+@available(iOS 18, macOS 15, tvOS 18, visionOS 2, watchOS 11, *) // TODO: unecessary! not used at all
+struct TimerIntervalLabel: View {
+    private let date: Date
+
+    var body: some View {
+        if Calendar.current.isDateInToday(date) {
+            Text(
+                .currentDate,
+                format: SystemFormatStyle.DateReference(
+                    to: date,
+                    allowedFields: [.year, .month, .day, .hour, .minute, .second],
+                    maxFieldCount: 2,
+                    thresholdField: .day
+                )
+            )
+        } else if Calendar.current.isDateInYesterday(date) {
+            Text("yesterday, \(Text(date, style: .time))", bundle: .module)
+        } else {
+            Text("\(Text(date, format: Date.FormatStyle(date: .complete))), \(Text(date, style: .time))", bundle: .module)
+        }
+    }
+
+    init(_ date: Date) {
+        self.date = date
+    }
+}
+
+#Preview {
+    if #available(iOS 18, *) {
+        TimerIntervalLabel(Date.now.addingTimeInterval(-45)) // seconds
+        TimerIntervalLabel(Date.now.addingTimeInterval(-2 * 60)) // minutes
+        TimerIntervalLabel(Date.now.addingTimeInterval(-8 * 60 * 60)) // hours
+        TimerIntervalLabel(Date.now.addingTimeInterval(-1 * 24 * 60 * 60)) // yesterday
+        TimerIntervalLabel(Date.now.addingTimeInterval(-8 * 24 * 60 * 60)) // days
+        TimerIntervalLabel(.now.addingTimeInterval(-25 * 24 * 60 * 60)) // weeks
+        TimerIntervalLabel(.now.addingTimeInterval(-31 * 24 * 60 * 60)) // months
+
+    } else {
+        // Fallback on earlier versions
+    }
+}
 
 
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(\.dismiss) private var dismiss
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
+    @State private var viewState: ViewState = .idle
     @State private var presentForgetConfirmation = false
 
     private var image: Image {
@@ -38,36 +85,51 @@ public struct DeviceDetailsView: View {
 
             if let percentage = deviceInfo.lastBatteryPercentage {
                 Section {
-                    ListRow("Battery") {
+                    LabeledContent {
                         BatteryIcon(percentage: Int(percentage))
                             .labelStyle(.reverse)
+                    } label: {
+                        Text("Battery", bundle: .module)
                     }
+                        .accessibilityElement(children: .combine)
                 }
             }
 
             Section {
-                Button("Forget This Device") {
+                AsyncButton(state: $viewState) {
                     presentForgetConfirmation = true
+                } label: {
+                    Text("Forget This Device", bundle: .module)
                 }
             } footer: {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
-                    Text("Synchronizing ...")
+                    Text("Synchronizing ...", bundle: .module)
                 } else if lastSeenToday {
-                    Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))", bundle: .module)
                 } else {
-                    Text("This device was last seen on \(Text(deviceInfo.lastSeen, style: .date)) at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text(
+                        "This device was last seen on \(Text(deviceInfo.lastSeen, style: .date)) at \(Text(deviceInfo.lastSeen, style: .time))",
+                        bundle: .module
+                    )
                 }
             }
         }
-            .navigationTitle("Device Details")
+            .navigationTitle(Text("Device Details", bundle: .module))
             .navigationBarTitleDisplayMode(.inline)
-            .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
-                Button("Forget Device", role: .destructive) {
-                    ForgetDeviceTip.hasRemovedPairedDevice = true
-                    pairedDevices.forgetDevice(id: deviceInfo.id)
-                    dismiss()
+            .viewStateAlert(state: $viewState)
+            .confirmationDialog(
+                Text("Do you really want to forget this device?", bundle: .module),
+                isPresented: $presentForgetConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button {
+                    forgetDevice()
+                } label: {
+                    Text("Forget Device", bundle: .module)
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(role: .cancel) {} label: {
+                    Text("Cancel", bundle: .module)
+                }
             }
             .toolbar {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
@@ -97,6 +159,35 @@ public struct DeviceDetailsView: View {
     public init(_ deviceInfo: PairedDeviceInfo) {
         self.deviceInfo = deviceInfo
     }
+
+    private func forgetDevice() {
+        guard case .idle = viewState else {
+            return
+        }
+
+        viewState = .processing
+
+        Task {
+            do {
+                let managedByAccessorySetupKit = if #available(iOS 18, *), deviceInfo.accessory != nil {
+                    true
+                } else {
+                    false
+                }
+                try await pairedDevices.forgetDevice(id: deviceInfo.id)
+                if !managedByAccessorySetupKit {
+                    ForgetDeviceTip.hasRemovedPairedDevice = true
+                }
+                dismiss()
+                viewState = .idle
+            } catch {
+                viewState = .error(AnyLocalizedError(
+                    error: error,
+                    defaultErrorDescription: .init("Failed to forget device", bundle: .atURL(from: .module))
+                ))
+            }
+        }
+    }
 }
 
 
@@ -108,6 +199,7 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
+            lastSeen: .now.addingTimeInterval(-120),
             batteryPercentage: 100
         ))
     }

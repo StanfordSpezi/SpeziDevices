@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -16,7 +17,8 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     private let appName: String
     private let pairClosure: (any PairableDevice) async throws -> Void
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     @Binding private var pairingState: PairingViewState
     @AccessibilityFocusState private var isHeaderFocused: Bool
@@ -41,7 +43,10 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
     }
 
     var body: some View {
-        PaneContent(title: "Pair Accessory", subtitle: "Do you want to pair \(selectedDeviceName) with the \(appName) app?") {
+        PaneContent(
+            title: .init("Pair Accessory", bundle: .module),
+            subtitle: .init("Do you want to pair \(selectedDeviceName) with the \(appName) app?", bundle: .module)
+        ) {
             if devices.count > 1 {
                 TabView(selection: forcedUnwrappedDeviceId) {
                     ForEach(devices, id: \.id) { device in
@@ -87,7 +92,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                     pairingState = .error(AnyLocalizedError(error: error))
                 }
             } label: {
-                Text("Pair")
+                Text("Pair", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
                 .buttonStyle(.borderedProminent)

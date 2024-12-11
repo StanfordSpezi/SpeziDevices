@@ -18,18 +18,22 @@ public struct DevicesView<PairingHint: View>: View {
     private let appName: String
     private let pairingHint: PairingHint
 
-    @Environment(Bluetooth.self) private var bluetooth
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(Bluetooth.self)
+    private var bluetooth
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     public var body: some View {
         @Bindable var pairedDevices = pairedDevices
 
-        DevicesGrid(devices: pairedDevices.pairedDevices, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
-            .navigationTitle("Devices")
+        DevicesGrid(devices: pairedDevices.pairedDevices) { // TODO: pairing hint tip! what?
+            pairedDevices.showAccessoryDiscovery()
+        }
+            .navigationTitle(Text("Devices", bundle: .module))
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
-                AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName) {
+                AccessorySetupSheet(pairedDevices.discoveredDevices, appName: appName) {
                     pairingHint
                 }
             }
@@ -42,7 +46,7 @@ public struct DevicesView<PairingHint: View>: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add Device", systemImage: "plus") {
-                        pairedDevices.shouldPresentDevicePairing = true
+                        pairedDevices.showAccessoryDiscovery()
                     }
                 }
             }

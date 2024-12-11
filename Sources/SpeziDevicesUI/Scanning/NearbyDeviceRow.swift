@@ -8,7 +8,8 @@
 
 
 import SpeziBluetooth
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -44,10 +45,11 @@ public struct NearbyDeviceRow: View {
         let stack = HStack {
             Button(action: devicePrimaryAction) {
                 HStack {
-                    ListRow(verbatim: peripheral.label) {
+                    LabeledContent(peripheral.label) {
                         deviceSecondaryLabel
                             .foregroundStyle(.secondary)
                     }
+                        .accessibilityElement(children: .combine)
                     if peripheral.state == .connecting || peripheral.state == .disconnecting {
                         ProgressView()
                             .accessibilityRemoveTraits(.updatesFrequently)

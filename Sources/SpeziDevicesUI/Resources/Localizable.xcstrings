@@ -17,6 +17,16 @@
         }
       }
     },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
     "%@, Searching" : {
       "localizations" : {
         "de" : {
@@ -32,6 +42,9 @@
           }
         }
       }
+    },
+    "%lld %%, is charging" : {
+
     },
     "%lld BPM" : {
       "localizations" : {
@@ -433,6 +446,9 @@
         }
       }
     },
+    "Failed to forget device" : {
+
+    },
     "Failed to pair accessory." : {
       "localizations" : {
         "de" : {
@@ -448,6 +464,9 @@
           }
         }
       }
+    },
+    "Failed to rename accessory" : {
+
     },
     "Forget Device" : {
       "localizations" : {
@@ -880,6 +899,9 @@
           }
         }
       }
+    },
+    "yesterday, %@" : {
+
     }
   },
   "version" : "1.0"
