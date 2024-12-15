@@ -11,6 +11,7 @@ import SpeziBluetooth
 import SwiftUI
 
 
+/// The label of a bluetooth peripheral.
 public struct PeripheralLabel: View {
     private let peripheral: any GenericBluetoothPeripheral
 
@@ -18,7 +19,9 @@ public struct PeripheralLabel: View {
         Text(peripheral.label)
             .accessibilityLabel(Text(peripheral.accessibilityLabel))
     }
-
+    
+    /// Create a new bluetooth peripheral label.
+    /// - Parameter peripheral: The peripheral to describe.
     public init(_ peripheral: any GenericBluetoothPeripheral) {
         self.peripheral = peripheral
     }

@@ -11,6 +11,10 @@ import SpeziBluetooth
 import SwiftUI
 
 
+/// A secondary label of a Bluetooth peripheral.
+///
+/// The secondary label describes the state of the Bluetooth peripheral (e.g., `connecting` or `connected`).
+/// It might be empty in a `disconnected` state.
 public struct PeripheralSecondaryLabel: View {
     private let peripheral: any GenericBluetoothPeripheral
 
@@ -51,7 +55,9 @@ public struct PeripheralSecondaryLabel: View {
                 }
             }
     }
-
+    
+    /// Create a new secondary peripheral label.
+    /// - Parameter peripheral: The Bluetooth peripheral.
     public init(_ peripheral: any GenericBluetoothPeripheral) {
         self.peripheral = peripheral
     }

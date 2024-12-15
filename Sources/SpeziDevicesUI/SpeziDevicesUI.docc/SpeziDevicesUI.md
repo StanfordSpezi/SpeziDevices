@@ -95,6 +95,8 @@ Views that are helpful when building a nearby devices view.
 - ``BluetoothUnavailableView``
 - ``NearbyDeviceRow``
 - ``LoadingSectionHeader``
+- ``PeripheralLabel``
+- ``PeripheralSecondaryLabel``
 
 ### Pairing Devices
 
