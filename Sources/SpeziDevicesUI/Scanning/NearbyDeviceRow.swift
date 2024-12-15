@@ -35,7 +35,7 @@ public struct NearbyDeviceRow<Label: View>: View {
             }
 
             if secondaryActionClosure != nil && peripheral.state == .connected {
-                ListInfoButton(Text("Device Details", bundle: .module), action: deviceDetailsAction)
+                InfoButton(Text("Device Details", bundle: .module), action: deviceDetailsAction)
             }
         }
             .accessibilityElement(children: .combine)
