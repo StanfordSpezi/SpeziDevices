@@ -22,17 +22,20 @@ public struct NearbyDeviceRow<Label: View>: View {
     public var body: some View {
         HStack {
             Button(action: devicePrimaryAction) {
-                label
+                HStack {
+                    label
+
+                    Spacer()
+
+                    if peripheral.state == .connecting || peripheral.state == .disconnecting {
+                        ProgressView()
+                            .accessibilityRemoveTraits(.updatesFrequently)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
+                .accessibilityAddTraits(.isButton)
                 .tint(.primary)
-
-            Spacer()
-
-            if peripheral.state == .connecting || peripheral.state == .disconnecting {
-                ProgressView()
-                    .accessibilityRemoveTraits(.updatesFrequently)
-                    .foregroundStyle(.secondary)
-            }
 
             if secondaryActionClosure != nil && peripheral.state == .connected {
                 InfoButton(Text("Device Details", bundle: .module), action: deviceDetailsAction)
@@ -53,12 +56,12 @@ public struct NearbyDeviceRow<Label: View>: View {
         peripheral: any GenericBluetoothPeripheral,
         primaryAction: @escaping () -> Void,
         secondaryAction: (() -> Void)? = nil
-    ) where Label == ListRow<PeripheralLabel, PeripheralSecondaryLabel> {
+    ) where Label == LabeledContent<PeripheralLabel, PeripheralSecondaryLabel> {
         self.init(peripheral: peripheral, primaryAction: primaryAction, secondaryAction: secondaryAction) {
-            ListRow {
-                PeripheralLabel(peripheral)
-            } content: {
+            LabeledContent {
                 PeripheralSecondaryLabel(peripheral)
+            } label: {
+                PeripheralLabel(peripheral)
             }
         }
     }
