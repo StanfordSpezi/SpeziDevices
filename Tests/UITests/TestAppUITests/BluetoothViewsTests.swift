@@ -59,7 +59,6 @@ class BluetoothViewsTests: XCTestCase {
 
         XCTAssert(app.staticTexts["DEVICES"].exists)
 
-        print(app.debugDescription)
         XCTAssert(app.staticTexts["Mock Device"].exists)
         app.staticTexts["Mock Device"].tap()
 
