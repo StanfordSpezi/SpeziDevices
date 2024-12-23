@@ -59,8 +59,8 @@ class BluetoothViewsTests: XCTestCase {
 
         XCTAssert(app.staticTexts["DEVICES"].exists)
 
-        XCTAssert(app.buttons["Mock Device"].exists)
-        app.buttons["Mock Device"].tap()
+        XCTAssert(app.staticTexts["Mock Device"].exists)
+        app.staticTexts["Mock Device"].tap()
 
         XCTAssert(app.buttons["Mock Device, Connected"].waitForExistence(timeout: 5.0))
         XCTAssert(app.buttons["Device Details"].exists)

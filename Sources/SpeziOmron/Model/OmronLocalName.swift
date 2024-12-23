@@ -84,7 +84,6 @@ public struct OmronLocalName {
 
     /// Initialize the local name from the raw value string.
     /// - Parameter rawValue: The local name raw value.
-    /// - Returns: Returns nil if the string is ill-formatted.
     public init?(rawValue: String) {
         let pattern = Regex {
             TryCapture {
