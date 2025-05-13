@@ -125,7 +125,7 @@ public final class PairedDevices { // TODO: update docs!
             return nil
         }
         guard let loadASKit = module as? LoadAccessorySetupKit else {
-            preconditionFailure("\(LoadAccessorySetupKit.self) was not injected into dependency tree.")
+            fatalError("\(LoadAccessorySetupKit.self) was not injected into dependency tree.")
         }
         return loadASKit.accessorySetupKit
     }
@@ -149,8 +149,8 @@ public final class PairedDevices { // TODO: update docs!
     /// The collection of paired devices that are persisted on disk.
     @MainActor public var pairedDevices: [PairedDeviceInfo]? { // swiftlint:disable:this discouraged_optional_collection
         didLoadDevices
-        ? Array(_pairedDevices.values.map { $0.info })
-        : nil
+            ? Array(_pairedDevices.values.map { $0.info })
+            : nil
     }
 
     @MainActor private var didLoadDevices = false
@@ -549,7 +549,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
-        try await removeDevice(id: id) { @SpeziBluetooth in
+        try await removeDevice(id: id) {
             if #available(iOS 18, *) {
                 guard let accessorySetup,
                       let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
@@ -575,6 +575,8 @@ extension PairedDevices {
 
         let externallyManaged: Bool
         do {
+            // TODO: the only reason why this is await, is to signal ASKit in a manual removal, which is okay
+            //  but shouldn't cause the other places to be async!
             externallyManaged = try await externalRemoval()
         } catch {
             device.markForRemoval(false) // restore state again
@@ -594,11 +596,13 @@ extension PairedDevices {
         }
 
 
+        // TODO: we should also not await connect/disconnect, this should be handled by a different state machine!
         await device.removeDevice(manualDisconnect: !externallyManaged)
 
         logger.debug("Successfully removed device \(device.info.name), \(device.info.id)!")
 
         if _pairedDevices.isEmpty {
+            // TODO: this should yield into our internal event stream!
             await self.cancelSubscription()
         }
     }
@@ -806,7 +810,7 @@ extension PairedDevices {
     /// - Parameter deviceId: The identifier for a paired bluetooth device.
     /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
     @_spi(Internal)
-    @SpeziBluetooth
+    @MainActor
     public func accessory(for deviceId: UUID) -> ASAccessory? {
         if let accessorySetup {
             accessorySetup.accessories.first { accessory in
@@ -829,20 +833,14 @@ extension PairedDevices {
             switch event {
             case .available:
                 if let accessories = accessorySetup?.accessories {
-                    Task {
-                        await handleSessionAvailable(for: accessories)
-                    }
+                    handleSessionAvailable(for: accessories)
                 }
             case let .added(accessory):
-                Task {
-                    await handleAddedAccessory(accessory)
-                }
+                handleAddedAccessory(accessory)
             case let .changed(accessory):
-                Task { @MainActor in
-                    updateAccessory(accessory)
-                }
+                updateAccessory(accessory)
             case let .removed(accessory):
-                Task {
+                Task { // TODO: we should not need to spawn a task here!
                     await handleRemovedAccessory(accessory)
                 }
             }
@@ -850,7 +848,7 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handleSessionAvailable(for accessories: [ASAccessory]) async {
+    private func handleSessionAvailable(for accessories: [ASAccessory]) {
         for accessory in accessories {
             guard let uuid = accessory.bluetoothIdentifier else {
                 continue
@@ -866,7 +864,11 @@ extension PairedDevices {
         }
 
         if !_pairedDevices.isEmpty {
-            await self.setupBluetoothStateSubscription()
+            // TODO: we need some event stream that we synchronize to! this should restructure it a bit!
+            //   => we are spawning way to many unstructured tasks here!
+            Task {
+                await self.setupBluetoothStateSubscription()
+            }
         }
     }
 
