@@ -94,6 +94,9 @@
         }
       }
     },
+    "About" : {
+
+    },
     "Accessory Paired" : {
       "localizations" : {
         "de" : {
@@ -269,6 +272,9 @@
           }
         }
       }
+    },
+    "Change" : {
+
     },
     "Connected" : {
       "localizations" : {
@@ -464,9 +470,6 @@
           }
         }
       }
-    },
-    "Failed to rename accessory" : {
-
     },
     "Forget Device" : {
       "localizations" : {
@@ -836,6 +839,9 @@
         }
       }
     },
+    "This accessory seems to not be managed by the AccessorySetupKit!" : {
+
+    },
     "This device was last seen at %@" : {
       "localizations" : {
         "de" : {
@@ -883,6 +889,9 @@
           }
         }
       }
+    },
+    "Unsupported" : {
+
     },
     "We have trouble with the Bluetooth communication. Please try again." : {
       "localizations" : {

@@ -48,6 +48,10 @@ public final class PairedDeviceInfo {
     @Transient private var _icon: ImageReference?
     @Transient private var _accessory: (AnyObject & Sendable)?
 
+    public var managedByAccessorySetupKit: Bool {
+        _accessory != nil
+    }
+
     @available(iOS 18.0, *)
     public internal(set) var accessory: ASAccessory? {
         get {

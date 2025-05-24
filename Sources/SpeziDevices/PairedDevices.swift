@@ -929,6 +929,8 @@ extension PairedDevices {
             variant.criteria.matches(descriptor: accessory.descriptor)
         }
 
+        logger.debug("Pairing ASAccessory \(accessory.displayName) as \(deviceType) ...")
+
         let deviceInfo = PairedDeviceInfo(
             id: id,
             deviceType: deviceType.deviceTypeIdentifier,
@@ -959,6 +961,7 @@ extension PairedDevices {
     private func updateAccessory(_ accessory: ASAccessory) {
         guard let id = accessory.bluetoothIdentifier,
               let pairedDevice = _pairedDevices[id] else {
+            logger.error("Received a accessory update for \(accessory.displayName) \(accessory.bluetoothIdentifier?.uuidString ?? "<unknown>") but unable to find local paired device!")
             return // unknown device or not a bluetooth device
         }
 
@@ -988,8 +991,10 @@ extension PairedDevices {
             return // we wouldn't receive the event if it the module wouldn't be configured
         }
 
+        logger.debug("Renaming accessory via AccessorySetupKit ...")
         do {
             try await accessorySetup.renameAccessory(accessory)
+            logger.debug("Successfully renamed accessory.")
         } catch {
             logger.error("Failed to rename accessory managed by AccessorySetupKit (\(accessory)): \(error)")
             throw error

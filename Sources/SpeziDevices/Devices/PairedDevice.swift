@@ -126,6 +126,8 @@ final class PairedDevice: Sendable {
             // TODO: this flag might not be set if the device is unpaired from settings!
             if !willBeRemoved { // long-running reconnect (if applicable)
                 Self.logger.debug("Restoring connection attempt for device \(device.label), \(device.id) after disconnect.")
+                // TODO: this happening to early, prevents us from receiving any errors!
+                // (e.g., bluetooth connect error, state disconnect => task cancelled instead of throwing into the loop below!)
                 connectionAttempt()
             }
 
@@ -179,6 +181,7 @@ extension PairedDevice {
         connectionAttemptTask = Task { @MainActor [weak self] in
             await previousTask?.value // make sure its ordered
 
+            // TODO: better exp backoff!
             var backOff: Duration = .milliseconds(500) // exponential back-off for retry!
 
             var iteration: UInt = 0
@@ -198,6 +201,8 @@ extension PairedDevice {
                     Self.logger.warning("Failed connection attempt \(attempt) as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
                     return
                 } catch {
+                    // TODO: handle some Bluetooth related errors for more durability
+                    //  if Omron device was connected to a different device previously Failed to connect to 'EVOLV'@3E1851C3-5CE3-B407-5A3C-7A7B04FDAFB4: Error Domain=CBErrorDomain Code=14 "Peer removed pairing information" UserInfo={NSLocalizedDescription=Peer removed pairing information}
                     if Task.isCancelled || error is CancellationError {
                         Self.logger.debug("Connection attempt \(attempt) for device \(device.label), \(device.id) was cancelled.")
                         return

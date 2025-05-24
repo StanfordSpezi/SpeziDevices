@@ -75,23 +75,36 @@ public struct DeviceDetailsView: View {
         Calendar.current.isDateInToday(deviceInfo.lastSeen)
     }
 
+    private var shouldShowModelSeparately: Bool {
+        deviceInfo.managedByAccessorySetupKit && deviceInfo.model != nil && deviceInfo.model != deviceInfo.name
+    }
+
     public var body: some View {
         List {
             Section {
                 imageHeader
             }
 
-            DeviceInfoSection(deviceInfo: deviceInfo)
-
-            if let percentage = deviceInfo.lastBatteryPercentage {
+            if #available(iOS 18, *), deviceInfo.managedByAccessorySetupKit {
+                Section("Name") {
+                    AccessoryRenameButton(deviceInfo: deviceInfo)
+                }
+            } else {
                 Section {
-                    LabeledContent {
-                        BatteryIcon(percentage: Int(percentage))
-                            .labelStyle(.reverse)
-                    } label: {
-                        Text("Battery", bundle: .module)
+                    DeviceNameRow(deviceInfo: deviceInfo)
+                    DeviceModelRow(deviceInfo: deviceInfo)
+                }
+            }
+
+
+            if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
+                Section {
+                    DeviceBatteryInfoRow(deviceInfo: deviceInfo)
+                    DeviceModelRow(deviceInfo: deviceInfo)
+                } header: {
+                    if shouldShowModelSeparately {
+                        Text("About")
                     }
-                        .accessibilityElement(children: .combine)
                 }
             }
 

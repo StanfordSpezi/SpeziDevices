@@ -11,121 +11,90 @@ import AccessorySetupKit
 import SpeziDevices
 import SpeziViews
 import SwiftUI
+import OSLog
 
 
 @available(iOS 18, *)
 struct AccessoryRenameButton: View {
-    private let accessory: ASAccessory
+    private struct MissingAccessory: LocalizedError {
+        var errorDescription: String? {
+            "Unsupported" // this is a developer error. therefore we do not really localize here
+        }
 
-    @State private var buttonPressed: Bool = false
-    @State private var viewState: ViewState = .idle
-    @State private var buttonDebounce: Task<Void, Never>? {
-        willSet {
-            buttonDebounce?.cancel()
+        var failureReason: String? {
+            "This accessory seems to not be managed by the AccessorySetupKit!"
         }
-    }
-    @State private var renameTask: Task<Void, Never>? {
-        willSet {
-            renameTask?.cancel()
-        }
+
+        init() {}
     }
 
-    @State private var observedRename: Bool = false
+    private let deviceInfo: PairedDeviceInfo
 
     @Environment(PairedDevices.self)
     private var pairedDevices
 
-    private var buttonBackground: (some View)? {
-        if buttonPressed {
-            Rectangle()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    Color(uiColor: .systemGray4)
-                )
-                .foregroundStyle(.clear)
-        } else {
-            nil
-        }
-    }
+    @State private var viewState: ViewState = .idle
+
+    @State private var actionTask: Task<Void, Never>?
 
     var body: some View {
-        Group { // swiftlint:disable:this closure_body_length
-            if pairedDevices.accessoryPickerPresented && !observedRename {
-                HStack {
-                    LabeledContent("Name") {
-                        Text(accessory.displayName)
-                    }
-                    Spacer()
-                    ProgressView()
-                        .padding(.trailing, -10) // make sure content still right aligns
-                        .accessibilityRemoveTraits(.updatesFrequently)
-                }
-                    .onChange(of: accessory.displayName) {
-                        observedRename = true
-                    }
-            } else {
-                NavigationLink {
-                    EmptyView()
-                } label: {
-                    LabeledContent {
-                        Text(accessory.displayName)
-                            .foregroundStyle(.secondary)
-                    } label: {
-                        Text("Name", bundle: .module)
-                    }
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            guard !buttonPressed else {
-                                return
-                            }
-
-                            buttonPressed = true
-                            renameAccessory()
-
-                            buttonDebounce = Task {
-                                try? await Task.sleep(for: .milliseconds(75))
-                                buttonPressed = false
-                            }
-                        }
-                        .onLongPressGesture(minimumDuration: 0.5, maximumDistance: .infinity) {
-                            renameAccessory()
-                        } onPressingChanged: { pressing in
-                            buttonPressed = pressing
-                        }
-                }
-                    .listRowBackground(buttonBackground)
+        Button(action: renameAccessory) {
+            LabeledContent {
+                Text("Change")
+                    .foregroundStyle(Color.accentColor)
+            } label: {
+                Text(deviceInfo.name)
+                    .foregroundStyle(Color.primary)
             }
+
         }
+            .disabled(viewState != .idle)
             .viewStateAlert(state: $viewState)
+            .onDisappear {
+                actionTask?.cancel()
+            }
     }
 
 
-    init(accessory: ASAccessory) {
-        self.accessory = accessory
+    init(deviceInfo: PairedDeviceInfo) {
+        self.deviceInfo = deviceInfo
     }
-
 
     private func renameAccessory() {
-        guard renameTask == nil else {
-            return
-        }
+        // we don't set the view state currently to processing, as some never iOS 18 versions have `renameAccessory`
+        // never actually return (leak in AccessorySetupKit).
 
-        observedRename = false
-
-        renameTask = Task {
-            defer {
-                renameTask = nil
-            }
+        actionTask?.cancel()
+        actionTask = Task {
             do {
-                try await pairedDevices.renameAccessory(for: accessory)
+                try await _renameAccessory()
             } catch {
                 viewState = .error(AnyLocalizedError(
                     error: error,
-                    defaultErrorDescription: .init("Failed to rename accessory", bundle: .atURL(from: .module))
+                    defaultErrorDescription: "Failed to rename accessory."
                 ))
             }
         }
     }
+
+    private func _renameAccessory() async throws {
+        guard let accessory = deviceInfo.accessory else {
+            throw MissingAccessory()
+        }
+
+        try await pairedDevices.renameAccessory(for: accessory)
+    }
 }
+
+
+#if DEBUG
+#Preview {
+    let deviceInfo = PairedDeviceInfo(id: .init(), deviceType: "MockDevice", name: "BP", model: "BP5250")
+    List {
+        DeviceModelRow(deviceInfo: deviceInfo)
+    }
+        .previewWith {
+            PairedDevices()
+        }
+}
+#endif
