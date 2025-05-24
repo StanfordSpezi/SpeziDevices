@@ -129,6 +129,9 @@
         }
       }
     },
+    "at %@" : {
+
+    },
     "Battery" : {
       "localizations" : {
         "de" : {
@@ -663,6 +666,16 @@
         }
       }
     },
+    "on %@ at %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "on %1$@ at %2$@"
+          }
+        }
+      }
+    },
     "Open Settings" : {
       "localizations" : {
         "de" : {
@@ -842,7 +855,11 @@
     "This accessory seems to not be managed by the AccessorySetupKit!" : {
 
     },
+    "This device was last seen %@." : {
+
+    },
     "This device was last seen at %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -859,6 +876,7 @@
       }
     },
     "This device was last seen on %@ at %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
