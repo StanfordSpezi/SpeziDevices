@@ -30,8 +30,8 @@ final class DeviceConnections: Sendable {
         input.continuation.yield(.cancel(device))
     }
 
-    private func run() async throws {
-        try await withDiscardingTaskGroup { group in
+    private func run() async {
+        await withDiscardingTaskGroup { group in
             var state: [UUID: CancelableTaskHandle] = [:]
 
             // TODO: we have a strong reference here (makes sense for explicit lifecycle handling?) but not here?
@@ -43,9 +43,7 @@ final class DeviceConnections: Sendable {
                     }
 
                     let handle = group.addCancelableTask {
-                        await Self._runDeviceConnection(for: device, using: bluetooth)
-                        // TODO: retrieve,
-                        // TODO: connect etc!
+                        await device.run(using: bluetooth)
                     }
 
                     state[device.id] = handle
@@ -59,14 +57,10 @@ final class DeviceConnections: Sendable {
             }
         }
     }
-
-    @MainActor
-    private static func _runDeviceConnection(for device: PairedDevice, using bluetooth: Bluetooth) async {
-    }
 }
 
 
-@MainActor // TODO: is this really need to be main actor?
+@MainActor // TODO: is this really needed to be main actor?
 @Observable
 final class PairedDevice: Sendable {
     private enum ConnectionEvent {
@@ -92,7 +86,7 @@ final class PairedDevice: Sendable {
     private var events: (stream: AsyncStream<ConnectionEvent>, continuation: AsyncStream<ConnectionEvent>.Continuation)
 
     init(info: PairedDeviceInfo, assigning peripheral: (any PairableDevice)? = nil) {
-        self.events = AsyncStream.makeStream() // TODO: this is longer than the whole lifetime is it?
+        self.events = AsyncStream.makeStream()
         self.id = info.id
         self.info = info
         self.peripheral = peripheral
@@ -115,13 +109,13 @@ final class PairedDevice: Sendable {
         }
     }
 
-    func handlePowerOffReturningTask() -> Task<Void, Never>? {
+    private func handlePowerOffReturningTask() -> Task<Void, Never>? {
         let connectionAttemptTask = cancelConnectionAttemptReturningPrevious()
         self.peripheral = nil
         return connectionAttemptTask
     }
 
-    func handlePowerOff() async {
+    private func handlePowerOff() async {
         let connectionAttemptTask = handlePowerOffReturningTask()
         if let connectionAttemptTask {
             await connectionAttemptTask.value // TODO: are we sure the connect action is fully cancellable?
@@ -137,7 +131,7 @@ final class PairedDevice: Sendable {
     }
 
     @MainActor
-    public func run(using bluetooth: Bluetooth) async throws {
+    public func run(using bluetooth: Bluetooth) async {
         let peripheral: any PairableDevice
         if let existingPeripheral = self.peripheral {
             peripheral = existingPeripheral
@@ -148,28 +142,47 @@ final class PairedDevice: Sendable {
                 return
             }
 
-            guard let retrievedDevice = try await self.retrieveDevice(for: deviceType, using: bluetooth) else {
-                // TODO: we might want to retry this one?
-                info.notLocatable = true
+            if Task.isCancelled {
+                return // already cancelled, do not even attempt to connect
+            }
+
+            guard let retrievedDevice = await self.retrieveDevice(for: deviceType, using: bluetooth) else {
+                info.notLocatable = true // TODO: is this decision final, any need to retry (not currently!)
                 return
             }
 
             peripheral = retrievedDevice
         }
 
-        try Task.checkCancellation()
+        if Task.isCancelled {
+            return // already cancelled, do not even attempt to connect
+        }
+
         // TODO: manage rety at this point!
 
         // TODO: implement retry and decisions!
-        try await runConnectionAttempt(for: peripheral)
+        connectLoop: while true {
+            let result = await runConnectionAttempt(for: peripheral)
+
+            switch result {
+            case .end:
+                break connectLoop
+            case let .reconnectAfterCooldown(duration):
+                do {
+                    try await Task.sleep(for: duration)
+                } catch {
+                    break connectLoop // cancellation error
+                }
+            }
+        }
     }
 
     private enum NextConnectionDecision { // TODO: move!
-        case finish
+        case end
         case reconnectAfterCooldown(Duration)
     }
 
-    private func runConnectionAttempt(for peripheral: any PairableDevice) async throws -> NextConnectionDecision {
+    private func runConnectionAttempt(for peripheral: any PairableDevice) async -> NextConnectionDecision {
         do {
             try await peripheral.connect()
 
@@ -180,27 +193,27 @@ final class PairedDevice: Sendable {
             for await event in events.stream {
                 switch event {
                 case .disconnected:
-                    return .reconnectAfterCooldown(.seconds(5))
+                    return .reconnectAfterCooldown(.seconds(5)) // TODO: make this configurable?
                 }
             }
 
-            return .finish // connected and stream ended for some reason!
+            return .end // connected and stream ended (e.g., task got cancelled while waiting for the loop
+        } catch is CancellationError {
+            return .end // connect attempt above was cancelled, return
         } catch let BluetoothError.invalidState(state) {
             // TODO: does it make sense to handle this like that?
             Self.logger.warning("Failed connection attempt as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
 
-            // TODO: but is this concurrency safe? maybe we should retry once a last time?
-            return .finish // we will receive another event that will restart us again
+            // TODO: but is this concurrency safe? maybe we should retry once?
+            return .end // we will receive another event that will restart us again
         } catch {
             // TODO: generic blueutoh errors?
             Self.logger.warning("Failed connection attempt for device \(peripheral.label): \(error)")
-            throw error // TODO: trigger a retry!
+            return .reconnectAfterCooldown(.seconds(10)) // TODO: exponential backoff!
         }
     }
 
-    private func retrieveDevice(for deviceType: any PairableDevice.Type, using bluetooth: borrowing Bluetooth) async throws -> (any PairableDevice)? {
-        try Task.checkCancellation()
-
+    private func retrieveDevice(for deviceType: any PairableDevice.Type, using bluetooth: borrowing Bluetooth) async -> (any PairableDevice)? {
         if let peripheral {
             Self.logger.debug("Ignoring request to retrieve device. Device \(peripheral.label), \(peripheral.id) already associated.")
             return peripheral
@@ -220,7 +233,7 @@ final class PairedDevice: Sendable {
         assert(peripheral == nil, "Cannot overwrite peripheral. Device \(info) was paired twice. This is a concurrency issue.")
         self.peripheral = device
 
-        // TODO: remove connectionAttempt()
+        // TODO: removed: connectionAttempt()
         return device
     }
 

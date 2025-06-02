@@ -26,10 +26,11 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-collections.git", from: "1.1.1"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation.git", from: "2.0.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziFoundation.git", from: "2.1.8"),
         .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.8.0"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.8.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", branch: "feature/accessory-setup-kit"),
+        .package(path: "../SpeziBluetooth"),
+        // TODO: .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", branch: "feature/accessory-setup-kit"),
         .package(url: "https://github.com/StanfordSpezi/SpeziNetworking.git", from: "2.1.1"),
         .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", from: "1.0.0")
     ] + swiftLintPackage(),
