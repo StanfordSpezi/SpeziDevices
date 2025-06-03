@@ -104,7 +104,12 @@ import SwiftUI
 /// - ``isScanningForNearbyDevices``
 /// - ``pair(with:timeout:)``
 @Observable
-public final class PairedDevices { // TODO: update docs!
+public final class PairedDevices: ServiceModule { // TODO: update docs!
+    private enum InternalEvents: Sendable {
+        case legacyForget(deviceId: UUID)
+        case showPicker(runnable: @Sendable () async -> Void) // need to pass a closure as we cannot yet use iOS 18 only types
+    }
+
     @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once")
     @MainActor @ObservationIgnored private var everPairedDevice = false
 
@@ -171,12 +176,14 @@ public final class PairedDevices { // TODO: update docs!
 
     private let stateSubscription = BluetoothCentralStateSubscription()
     private let deviceConnections = DeviceConnections()
+    private let internalEvents: (stream: AsyncStream<InternalEvents>, continuation: AsyncStream<InternalEvents>.Continuation)
 
     @MainActor @ObservationIgnored private var accessoryEventRegistration: AccessoryEventRegistration?
 
 
     /// Initialize the Paired Devices Module.
     public required init() {
+        self.internalEvents = AsyncStream.makeStream()
         if #available(iOS 18, *) {
             if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 __accessorySetup = Dependency {
@@ -212,10 +219,6 @@ public final class PairedDevices { // TODO: update docs!
             self.logger.error("PairedDevices failed to initialize ModelContainer: \(error)")
         }
 
-        self.stateSubscription.run { [weak self] state in
-            self?.handleBluetoothStateChanged(state)
-        }
-
         self.fetchAllPairedInfos()
         self.syncDeviceIcons() // make sure assets are up to date
 
@@ -233,6 +236,39 @@ public final class PairedDevices { // TODO: update docs!
         // We use the ASKit activate event to power up the central if there are paired devices as we need control over it.
         if !powerUpUsingASKit && !self.devicesLock.withLock({ _pairedDevices.isEmpty }), let bluetooth {
             self.stateSubscription.subscribe(with: bluetooth)
+        }
+    }
+
+    public func run() async {
+        await withDiscardingTaskGroup { group in
+            group.addTask {
+                await self.stateSubscription.run { state in
+                    self.handleBluetoothStateChanged(state)
+                }
+            }
+
+            group.addTask {
+                await self.deviceConnections.run()
+            }
+
+            group.addTask {
+                await self.runEvents()
+            }
+        }
+    }
+
+    private func runEvents() async {
+        for await event in self.internalEvents.stream {
+            switch event {
+            case let .legacyForget(deviceId):
+                do {
+                    try await forgetDevice(id: deviceId)
+                } catch {
+                    logger.error("Failed to forget device \(deviceId): \(error)")
+                }
+            case let .showPicker(body):
+                await body()
+            }
         }
     }
 
@@ -455,6 +491,7 @@ extension PairedDevices {
                         discoveredDevice.assignContinuation(continuation)
                     }
                 } onCancel: {
+                    // TODO: get rid of this?
                     Task { @SpeziBluetooth [weak device] in
                         await MainActor.run {
                             discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
@@ -472,6 +509,8 @@ extension PairedDevices {
         }
 
         await registerPairedDevice(device)
+
+        // TODO: does this still work? where is this getting connected?
     }
 }
 
@@ -547,52 +586,38 @@ extension PairedDevices {
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     @available(*, deprecated, message: "Please use the async version of this method.")
     @_documentation(visibility: internal)
-    public func forgetDevice(id: UUID) {
-        Task {
-            do {
-                try await forgetDevice(id: id)
-            } catch {
-                logger.error("Failed to forget device \(id): \(error)")
-            }
-        }
+    public func forgetDevice(id: UUID, file: String = #fileID, line: UInt = #line) {
+        logger.warning("Deprecated version of \(#function) got called from \(file):\(line). Please migrate to the async throwing version.")
+        internalEvents.continuation.yield(.legacyForget(deviceId: id))
     }
 
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
-        try await removeDevice(id: id) {
-            if #available(iOS 18, *) {
-                guard let accessorySetup,
-                      let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) else {
-                    return false
-                }
-
+        let externallyManaged: Bool
+        if #available(iOS 18, *) {
+            if let accessorySetup,
+               let accessory = accessorySetup.accessories.first(where: { $0.bluetoothIdentifier == id }) {
                 // this will trigger a disconnect
                 try await accessorySetup.removeAccessory(accessory)
-                return true
+                externallyManaged = true
+            } else {
+                externallyManaged = false
             }
-            return false
+        } else {
+            externallyManaged = false
         }
+
+        self.removeDevice(id: id, externallyManaged: externallyManaged)
     }
 
-    private func removeDevice(id: UUID, externalRemoval: () async throws -> Bool) async rethrows {
+    private func removeDevice(id: UUID, externallyManaged: Bool) {
         guard let device = devicesLock.withLock({ _pairedDevices[id] }) else {
-            return // this will be called twice, as the AccessorySetupKit will dispatch an event on manual removal
+            return // this might be called twice, as the AccessorySetupKit will dispatch an event on manual removal
         }
 
 
         logger.debug("Removing device \(device.info.name), \(device.info.id) ...")
-        device.markForRemoval() // prevent the device from automatically reconnecting
-
-        let externallyManaged: Bool
-        do {
-            // TODO: the only reason why this is await, is to signal ASKit in a manual removal, which is okay
-            //  but shouldn't cause the other places to be async!
-            externallyManaged = try await externalRemoval()
-        } catch {
-            device.markForRemoval(false) // restore state again
-            throw error
-        }
 
         // just make sure to remove it from discovered devices
         let discoveredDevice = _discoveredDevices.removeValue(forKey: id)
@@ -608,9 +633,7 @@ extension PairedDevices {
             logger.warning("Failed to persist device removal of \(device.info.id): \(error)")
         }
 
-
-        // TODO: we should also not await connect/disconnect, this should be handled by a different state machine!
-        await device.removeDevice(manualDisconnect: !externallyManaged)
+        device.removeDevice(manualDisconnect: !externallyManaged)
 
         logger.debug("Successfully removed device \(device.info.name), \(device.info.id)!")
     }
@@ -713,6 +736,8 @@ extension PairedDevices {
 
         devicesLock.withLock {
             assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
+
+            // TODO: make configurable the connection behavior (all, single etc)?
             for device in self._pairedDevices.values {
                 deviceConnections.connect(device: device, using: bluetooth)
             }
@@ -782,9 +807,7 @@ extension PairedDevices {
             case let .changed(accessory):
                 updateAccessory(accessory)
             case let .removed(accessory):
-                Task { // TODO: we should not need to spawn a task here!
-                    await handleRemovedAccessory(accessory)
-                }
+                handleRemovedAccessory(accessory)
             }
         }
     }
@@ -843,13 +866,13 @@ extension PairedDevices {
             }
         }
 
-        Task {
+        internalEvents.continuation.yield(.showPicker(runnable: { [logger] in
             do {
                 try await accessorySetup.showPicker(for: displayItems)
             } catch {
                 logger.error("Failed to show setup picker: \(error)")
             }
-        }
+        }))
     }
 
     @MainActor
@@ -908,14 +931,12 @@ extension PairedDevices {
     }
 
     @MainActor
-    private func handleRemovedAccessory(_ accessory: ASAccessory) async {
+    private func handleRemovedAccessory(_ accessory: ASAccessory) {
         guard let id = accessory.bluetoothIdentifier else {
             return
         }
 
-        await self.removeDevice(id: id) {
-            true // signal externally managed without doing anything!
-        }
+        self.removeDevice(id: id, externallyManaged: true)
     }
 
     /// Rename an accessory.
@@ -943,7 +964,7 @@ extension PairedDevices {
 // MARK: Bluetooth
 
 extension PairedDevices {
-    final class BluetoothCentralStateSubscription: Sendable {
+    struct BluetoothCentralStateSubscription: Sendable {
         private enum Event: Sendable {
             case subscribe(Bluetooth)
             case cancel(Bluetooth)
@@ -951,10 +972,6 @@ extension PairedDevices {
 
         private let logger: Logger
         private let input: (stream: AsyncStream<Event>, continuation: AsyncStream<Event>.Continuation)
-
-        @SpeziBluetooth private var stateRegistration: StateRegistration?
-        private nonisolated(unsafe) var runLoop: Task<Void, Never>?
-        private let lock = NSLock()
 
         init() {
             self.logger = Logger(subsystem: "edu.stanford.spezi.spezidevices", category: "\(Self.self)")
@@ -969,43 +986,28 @@ extension PairedDevices {
             input.continuation.yield(.cancel(bluetooth))
         }
 
-        func run(_ handler: @escaping @SpeziBluetooth (BluetoothState) -> Void) {
-            lock.withLock {
-                precondition(runLoop == nil, "Tried to run twice!")
-                runLoop = Task.detached { @Sendable @SpeziBluetooth [weak self] in
-                    defer {
-                        self?.lock.withLock {
-                            self?.runLoop = nil
-                        }
+        @SpeziBluetooth
+        func run(_ handler: @escaping @SpeziBluetooth (BluetoothState) -> Void) async {
+            var stateRegistration: StateRegistration?
+            _ = stateRegistration // silence warning
+
+            for await event in input.stream {
+                switch event {
+                case let .subscribe(bluetooth):
+                    logger.debug("Setting up Bluetooth state subscription ...")
+                    stateRegistration = bluetooth.registerStateHandler(handler)
+
+                    // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
+                    // such that we are notified about the bluetooth state changing.
+                    bluetooth.powerOn()
+
+                    if case .poweredOn = bluetooth.state {
+                        handler(.poweredOn) // TODO: always call the handler!
                     }
-
-                    guard let stream = self?.input.stream else {
-                        return
-                    }
-
-                    for await event in stream {
-                        guard let self else {
-                            break
-                        }
-
-                        switch event {
-                        case let .subscribe(bluetooth):
-                            logger.debug("Setting up Bluetooth state subscription ...")
-                            stateRegistration = bluetooth.registerStateHandler(handler)
-
-                            // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
-                            // such that we are notified about the bluetooth state changing.
-                            bluetooth.powerOn()
-
-                            if case .poweredOn = bluetooth.state {
-                                handler(.poweredOn) // TODO: always call the handler!
-                            }
-                        case let .cancel(bluetooth):
-                            logger.debug("Cancelling state subscription and powering off bluetooth module.")
-                            stateRegistration = nil // implicitly cancels the task
-                            bluetooth.powerOff()
-                        }
-                    }
+                case let .cancel(bluetooth):
+                    logger.debug("Cancelling state subscription and powering off bluetooth module.")
+                    stateRegistration = nil // implicitly cancels the task
+                    bluetooth.powerOff()
                 }
             }
         }

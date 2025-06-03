@@ -129,7 +129,7 @@ public struct DeviceDetailsView: View {
 
         viewState = .processing
 
-        Task {
+        Task { // TODO: remove!
             do {
                 let managedByAccessorySetupKit = if #available(iOS 18, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                     true
