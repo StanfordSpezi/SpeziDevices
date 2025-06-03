@@ -122,12 +122,14 @@ final class PairedDevice: Sendable {
         self.peripheral = peripheral
     }
 
-    func removeDevice(manualDisconnect: Bool) {
+    func removeDevice(manualDisconnect: Bool, cancelling connections: DeviceConnections) {
         self.peripheral = nil
 
         // Do not call disconnect with AccessorySetupKit. We do not have the permission for that anymore.
         // The device will be disconnected automatically.
         events.continuation.yield(.removed(disconnect: manualDisconnect))
+        
+        connections.cancel(device: self)
     }
 
     func updateUponConfiguration<Device: PairableDevice>(of device: Device) {
@@ -202,6 +204,13 @@ final class PairedDevice: Sendable {
 
                 if backoff == retry.maxBackoff { // overflow protection
                     retryFactor >>= 1
+                }
+
+                Self.logger.debug("\(backoff) connection backoff for device \(peripheral.label), \(peripheral.id).")
+                do {
+                    try await Task.sleep(for: backoff)
+                } catch {
+                    break connectLoop // cancellation error
                 }
             }
         }

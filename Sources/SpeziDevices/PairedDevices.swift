@@ -623,8 +623,10 @@ extension PairedDevices {
         let discoveredDevice = _discoveredDevices.removeValue(forKey: id)
         discoveredDevice?.clearPairingContinuationWithIntentionToResume()?.signalDisconnect()
 
-        devicesLock.withLock { // TODO: this races with the thing above!
+        let isEmpty = devicesLock.withLock { // TODO: this races with the thing above!
             _ = _pairedDevices.removeValue(forKey: id)
+
+            return _pairedDevices.isEmpty
         }
         modelContainer?.mainContext.delete(device.info)
         do {
@@ -633,9 +635,13 @@ extension PairedDevices {
             logger.warning("Failed to persist device removal of \(device.info.id): \(error)")
         }
 
-        device.removeDevice(manualDisconnect: !externallyManaged)
+        device.removeDevice(manualDisconnect: !externallyManaged, cancelling: deviceConnections)
 
         logger.debug("Successfully removed device \(device.info.name), \(device.info.id)!")
+
+        if isEmpty, let bluetooth {
+            stateSubscription.cancel(bluetooth)
+        }
     }
 }
 
@@ -667,7 +673,7 @@ extension PairedDevices {
             devicesLock.withLock {
                 _pairedDevices = pairedDevices
             }
-            logger.debug("Initialized PairedDevices with \(pairedDevices.count) paired devices!")
+            logger.debug("Initialized PairedDevices with \(pairedDevices.count) paired devices: \(pairedDevices.map { $0.value.info.name }.joined(separator: ", "))")
         } catch {
             logger.error("Failed to fetch paired device info from disk: \(error)")
         }
@@ -988,14 +994,18 @@ extension PairedDevices {
 
         @SpeziBluetooth
         func run(_ handler: @escaping @SpeziBluetooth (BluetoothState) -> Void) async {
-            var stateRegistration: StateRegistration?
-            _ = stateRegistration // silence warning
+            final class Box {
+                var registration: StateRegistration?
+            }
+
+            var box = Box()
 
             for await event in input.stream {
                 switch event {
                 case let .subscribe(bluetooth):
+                    // TODO: what do do on double registration?
                     logger.debug("Setting up Bluetooth state subscription ...")
-                    stateRegistration = bluetooth.registerStateHandler(handler)
+                    box.registration = bluetooth.registerStateHandler(handler)
 
                     // If Bluetooth is currently turned off in control center or not authorized anymore, we would want to keep central allocated
                     // such that we are notified about the bluetooth state changing.
@@ -1006,10 +1016,13 @@ extension PairedDevices {
                     }
                 case let .cancel(bluetooth):
                     logger.debug("Cancelling state subscription and powering off bluetooth module.")
-                    stateRegistration = nil // implicitly cancels the task
+                    box.registration?.cancel()
+                    box.registration = nil
                     bluetooth.powerOff()
                 }
             }
+
+            logger.debug("Bluetooth State Subscription service ended.")
         }
     }
 }
