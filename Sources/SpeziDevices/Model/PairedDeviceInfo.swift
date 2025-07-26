@@ -47,6 +47,7 @@ public final class PairedDeviceInfo {
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
     @Transient private var _accessory: (AnyObject & Sendable)?
+    @Transient public internal(set) var lastConnectionAttemptResult: ConnectionAttemptResult?
 
     public var managedByAccessorySetupKit: Bool {
         _accessory != nil

@@ -502,8 +502,6 @@ extension PairedDevices {
         }
 
         await registerPairedDevice(device)
-
-        // TODO: does this still work? where is this getting connected?
     }
 }
 
@@ -605,10 +603,17 @@ extension PairedDevices {
     }
 
     private func removeDevice(id: UUID, externallyManaged: Bool) {
-        guard let device = devicesLock.withLock({ _pairedDevices[id] }) else {
-            return // this might be called twice, as the AccessorySetupKit will dispatch an event on manual removal
+        let (device, isEmpty) = devicesLock.withLock { () -> (PairedDevice?, Bool) in
+            guard let device = _pairedDevices.removeValue(forKey: id) else {
+                return (nil, _pairedDevices.isEmpty)
+            }
+
+            return (device, _pairedDevices.isEmpty)
         }
 
+        guard let device else {
+            return // this might be called twice, as the AccessorySetupKit will dispatch an event on manual removal
+        }
 
         logger.debug("Removing device \(device.info.name), \(device.info.id) ...")
 
@@ -616,11 +621,6 @@ extension PairedDevices {
         let discoveredDevice = _discoveredDevices.removeValue(forKey: id)
         discoveredDevice?.clearPairingContinuationWithIntentionToResume()?.signalDisconnect()
 
-        let isEmpty = devicesLock.withLock { // TODO: this races with the thing above!
-            _ = _pairedDevices.removeValue(forKey: id)
-
-            return _pairedDevices.isEmpty
-        }
         modelContainer?.mainContext.delete(device.info)
         do {
             try modelContainer?.mainContext.save()
@@ -736,7 +736,6 @@ extension PairedDevices {
         devicesLock.withLock {
             assert(!_pairedDevices.isEmpty, "Bluetooth State subscription doesn't need to be set up without any paired devices.")
 
-            // TODO: make configurable the connection behavior (all, single etc)?
             for device in self._pairedDevices.values {
                 deviceConnections.connect(device: device, using: bluetooth)
             }
@@ -991,12 +990,11 @@ extension PairedDevices {
                 var registration: StateRegistration?
             }
 
-            var box = Box()
+            let box = Box()
 
             for await event in input.stream {
                 switch event {
                 case let .subscribe(bluetooth):
-                    // TODO: what do do on double registration?
                     logger.debug("Setting up Bluetooth state subscription ...")
                     box.registration = bluetooth.registerStateHandler(handler)
 
@@ -1004,9 +1002,7 @@ extension PairedDevices {
                     // such that we are notified about the bluetooth state changing.
                     bluetooth.powerOn()
 
-                    if case .poweredOn = bluetooth.state {
-                        handler(.poweredOn) // TODO: always call the handler!
-                    }
+                    handler(bluetooth.state)
                 case let .cancel(bluetooth):
                     logger.debug("Cancelling state subscription and powering off bluetooth module.")
                     box.registration?.cancel()

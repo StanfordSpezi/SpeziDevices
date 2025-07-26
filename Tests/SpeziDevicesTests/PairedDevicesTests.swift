@@ -88,7 +88,7 @@ final class PairedDevicesTests: XCTestCase {
         XCTAssertEqual(device.state, .connected)
 
 
-        devices.forgetDevice(id: device.id)
+        try await devices.forgetDevice(id: device.id)
         try await Task.sleep(for: .milliseconds(50))
 
         XCTAssertEqual(device.state, .disconnected)
