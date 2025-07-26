@@ -10,83 +10,6 @@ import OSLog
 import SpeziBluetooth
 import SpeziFoundation
 
-struct DeviceConnections: Sendable { // TODO: move!
-    private static let logger = Logger(subsystem: "edu.stanford.spezi.spezidevices", category: "\(Self.self)")
-    private enum Input {
-        case connect(_ device: PairedDevice, _ bluetooth: Bluetooth)
-        case cancel(_ device: PairedDevice)
-        case clearStaleState(deviceId: UUID, id: UUID)
-    }
-
-    private let input: (stream: AsyncStream<Input>, continuation: AsyncStream<Input>.Continuation)
-    private let retry: RetryConfiguration
-
-    init(retry: RetryConfiguration = RetryConfiguration()) {
-        self.input = AsyncStream.makeStream()
-        self.retry = retry
-    }
-
-    func connect(device: PairedDevice, using bluetooth: Bluetooth) {
-        input.continuation.yield(.connect(device, bluetooth))
-    }
-
-    func cancel(device: PairedDevice) {
-        input.continuation.yield(.cancel(device))
-    }
-
-    func run() async {
-        await withDiscardingTaskGroup { group in
-            var state: [UUID: (handle: CancelableTaskHandle, id: UUID)] = [:]
-
-            for await input in self.input.stream {
-                switch input {
-                case let .connect(device, bluetooth):
-                    guard state[device.id] == nil else {
-                        Self.logger.warning("Ignoring connect request as task is still running.")
-                        continue
-                    }
-
-                    let id = UUID()
-
-                    let handle = group.addCancelableTask {
-                        await device.run(using: bluetooth, retry: self.retry)
-                        self.input.continuation.yield(.clearStaleState(deviceId: device.id, id: id))
-                    }
-
-                    state[device.id] = (handle, id)
-                case let .cancel(device ):
-                    let entry = state.removeValue(forKey: device.id)
-                    entry?.handle.cancel()
-                case let .clearStaleState(deviceId, id):
-                    guard let entry = state[deviceId],
-                          entry.id == id else {
-                        continue
-                    }
-                    entry.handle.cancel()
-                    state.removeValue(forKey: deviceId)
-                }
-            }
-        }
-    }
-}
-
-
-struct RetryConfiguration {
-    var initialBackoff: Duration
-    var maxBackoff: Duration
-    var minimumQuietPeriod: Duration
-
-    init(
-        initialBackoff: Duration = .seconds(0.5),
-        maxBackoff: Duration = .seconds(30),
-        minimumQuietPeriod: Duration = .seconds(60)
-    ) {
-        self.initialBackoff = initialBackoff
-        self.maxBackoff = maxBackoff
-        self.minimumQuietPeriod = minimumQuietPeriod
-    }
-}
-
 
 @MainActor // TODO: is this really needed to be main actor?
 @Observable // TODO: why is this observable?
@@ -138,7 +61,7 @@ final class PairedDevice: Sendable {
     }
 
     @MainActor
-    public func run(using bluetooth: Bluetooth, retry: RetryConfiguration) async {
+    public func run(using bluetooth: Bluetooth, retry: DeviceConnections.RetryConfiguration) async {
         let peripheral: any PairableDevice
 
         if let existingPeripheral = self.peripheral {
@@ -184,7 +107,7 @@ final class PairedDevice: Sendable {
                 case .disconnected:
                     Self.logger.debug("Restoring connection attempt for device \(peripheral.label), \(peripheral.id) after disconnect.")
                     do {
-                        try await Task.sleep(for: .seconds(2)) // TODO: configurable?
+                        try await Task.sleep(for: retry.reconnectBackoff)
                     } catch {
                         break connectLoop // cancellation error
                     }

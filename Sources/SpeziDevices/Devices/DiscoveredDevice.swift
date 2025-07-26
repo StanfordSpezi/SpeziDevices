@@ -11,15 +11,29 @@ import SpeziBluetooth
 import SpeziFoundation
 
 
-@MainActor
 final class DiscoveredDevice: Sendable {
     private static nonisolated let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "DiscoveredDevice")
 
     let device: any PairableDevice
-    private(set) var ongoingPairing: PairingContinuation?
+    private nonisolated(unsafe) var ongoingPairing: PairingContinuation?
+    private let nsLock = NSLock()
+
+    var hasContinuationAssigned: Bool {
+        nsLock.withLock {
+            ongoingPairing != nil
+        }
+    }
 
     init(device: some PairableDevice) {
         self.device = device
+    }
+
+    private func consumeContinuation() -> PairingContinuation? {
+        nsLock.withLock {
+            let continuation = self.ongoingPairing
+            self.ongoingPairing = nil
+            return continuation
+        }
     }
 
     func handleDeviceStateUpdated<Device: PairableDevice>(for device: Device, _ state: PeripheralState) {
@@ -29,9 +43,8 @@ final class DiscoveredDevice: Sendable {
 
         switch state {
         case .disconnected:
-            if let ongoingPairing {
+            if let ongoingPairing = self.consumeContinuation() {
                 Self.logger.debug("Device \(device.label), \(device.id) disconnected while pairing was ongoing")
-                self.ongoingPairing = nil
                 ongoingPairing.signalDisconnect()
             }
         default:
@@ -44,9 +57,8 @@ final class DiscoveredDevice: Sendable {
             return false
         }
 
-        if let ongoingPairing {
+        if let ongoingPairing = self.consumeContinuation() {
             Self.logger.debug("Device \(device.label), \(device.id) signaled it is fully paired.")
-            self.ongoingPairing = nil
             ongoingPairing.signalPaired()
             return true
         }
@@ -54,21 +66,17 @@ final class DiscoveredDevice: Sendable {
     }
 
     func assignContinuation(_ continuation: CheckedContinuation<Void, Error>) {
-        if let ongoingPairing {
-            ongoingPairing.signalCancellation()
+        nsLock.withLock {
+            self.ongoingPairing?.signalCancellation()
+            self.ongoingPairing = PairingContinuation(continuation)
         }
-        self.ongoingPairing = PairingContinuation(continuation)
     }
 
     func clearPairingContinuationWithIntentionToResume() -> PairingContinuation? {
-        if let ongoingPairing {
-            self.ongoingPairing = nil
-            return ongoingPairing
-        }
-        return nil
+        self.consumeContinuation()
     }
 
     deinit {
-        ongoingPairing?.signalCancellation()
+        self.consumeContinuation()?.signalCancellation()
     }
 }

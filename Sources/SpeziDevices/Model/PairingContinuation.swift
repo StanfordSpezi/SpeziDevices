@@ -11,7 +11,7 @@ import SpeziFoundation
 
 
 /// Stores pairing state information.
-final class PairingContinuation {
+struct PairingContinuation {
     private let pairingContinuation: CheckedContinuation<Void, Error>
 
     /// Create a new pairing continuation management object.

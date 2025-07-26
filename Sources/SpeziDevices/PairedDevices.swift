@@ -175,6 +175,7 @@ public final class PairedDevices: ServiceModule { // TODO: update docs!
     }
 
     private let stateSubscription = BluetoothCentralStateSubscription()
+    /// Manages and handles ongoing device connection attempts.
     private let deviceConnections = DeviceConnections()
     private let internalEvents: (stream: AsyncStream<InternalEvents>, continuation: AsyncStream<InternalEvents>.Continuation)
 
@@ -447,7 +448,7 @@ extension PairedDevices {
             throw DevicePairingError.invalidState
         }
 
-        guard discoveredDevice.ongoingPairing == nil else {
+        guard !discoveredDevice.hasContinuationAssigned else {
             throw DevicePairingError.busy
         }
 
@@ -463,43 +464,35 @@ extension PairedDevices {
             throw DevicePairingError.invalidState
         }
 
-        // race timeout against the tasks below
-        async let _ = await withTimeout(of: timeout) { @MainActor in
-            discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalTimeout()
-        }
-
         try await withThrowingDiscardingTaskGroup { group in
             // connect task
             group.addTask { @Sendable @SpeziBluetooth in
                 do {
                     try await device.connect()
-                } catch {
-                    if error is CancellationError {
-                        await MainActor.run {
-                            discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
-                        }
-                    }
-
+                } catch let error as CancellationError {
+                    discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
                     throw error
                 }
             }
 
-            // pairing task
-            group.addTask { @Sendable @MainActor in
-                try await withTaskCancellationHandler {
-                    try await withCheckedThrowingContinuation { continuation in
-                        discoveredDevice.assignContinuation(continuation)
-                    }
-                } onCancel: {
-                    // TODO: get rid of this?
-                    Task { @SpeziBluetooth [weak device] in
-                        await MainActor.run {
-                            discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
-                        }
-                        await device?.disconnect()
-                    }
+            group.addTask {
+                try? await Task.sleep(for: timeout)
+                if !Task.isCancelled {
+                    discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalTimeout()
                 }
             }
+
+            // waiting for task to signal pairing success by resuming the continuation
+            try await withTaskCancellationHandler { // error thrown here will implicitly cancel all other child tasks
+                try await withCheckedThrowingContinuation { continuation in
+                    discoveredDevice.assignContinuation(continuation)
+                }
+            } onCancel: {
+                discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
+            }
+
+            // if the connect task is still running above, we cancel the task group to disconnect the device
+            group.cancelAll()
         }
 
 

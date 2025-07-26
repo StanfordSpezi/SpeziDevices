@@ -41,7 +41,7 @@ public final class PairedDeviceInfo {
     ///
     /// A bluetooth device might implement the logic for multiple device variants that each have a different appearance. In these cases the device can define a appearance for each variant.
     /// This identifier stores the variant identifier of the variant we observed upon pairing.
-    public internal(set) var variantIdentifier: String? // TODO: observable? create legacy data store tests!
+    public internal(set) var variantIdentifier: String?
 
     /// Could not retrieve the device from the Bluetooth central.
     @Transient public internal(set) var notLocatable: Bool = false
