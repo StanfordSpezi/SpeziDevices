@@ -42,7 +42,7 @@ struct DeviceConnections: Sendable {
     private enum Input {
         case connect(_ device: PairedDevice, _ bluetooth: Bluetooth)
         case cancel(_ device: PairedDevice)
-        case clearStaleState(deviceId: UUID, id: UUID)
+        case clearStaleState(deviceId: UUID, identity: UUID)
     }
 
     private static let logger = Logger(subsystem: "edu.stanford.spezi.spezidevices", category: "\(Self.self)")
@@ -64,8 +64,18 @@ struct DeviceConnections: Sendable {
     }
 
     func run() async {
+        final class DeviceTaskHandle {
+            let identity: UUID
+            let handle: CancelableTaskHandle
+
+            init(identity: UUID, handle: CancelableTaskHandle) {
+                self.identity = identity
+                self.handle = handle
+            }
+        }
+
         await withDiscardingTaskGroup { group in
-            var state: [UUID: (handle: CancelableTaskHandle, id: UUID)] = [:]
+            var state: [UUID: DeviceTaskHandle] = [:]
 
             for await input in self.input.stream {
                 switch input {
@@ -75,23 +85,22 @@ struct DeviceConnections: Sendable {
                         continue
                     }
 
-                    let id = UUID()
+                    let identity = UUID()
 
                     let handle = group.addCancelableTask {
                         await device.run(using: bluetooth, retry: self.retry)
-                        self.input.continuation.yield(.clearStaleState(deviceId: device.id, id: id))
+                        self.input.continuation.yield(.clearStaleState(deviceId: device.id, identity: identity))
                     }
 
-                    state[device.id] = (handle, id)
+                    state[device.id] = DeviceTaskHandle(identity: identity, handle: handle)
                 case let .cancel(device ):
                     let entry = state.removeValue(forKey: device.id)
                     entry?.handle.cancel()
-                case let .clearStaleState(deviceId, id):
+                case let .clearStaleState(deviceId, identity):
                     guard let entry = state[deviceId],
-                          entry.id == id else {
+                          entry.identity == identity else {
                         continue
                     }
-                    entry.handle.cancel()
                     state.removeValue(forKey: deviceId)
                 }
             }

@@ -173,7 +173,10 @@ final class PairedDevice: Sendable {
         } catch let error as CancellationError {
             return .failed(cause: error) // connect attempt above was cancelled, return
         } catch let BluetoothError.invalidState(state) {
-            // TODO: this is racy if we are running not SpeziBluetooth? ( does it make sense to handle this like that?)
+            // While this seems racy (and is to an extend), connection establishment is fully handled by `DeviceConnections`.
+            // If central was powered off before this task could have been cancelled, `DeviceConnections` already got rid of the `DeviceTaskHandle`
+            // and will create a new connection task as soon as central is powered back off.
+            // In here, we won't reach a state were we don't retry the connect or the connection is never picked up again.
             Self.logger.warning("Failed connection attempt as bluetooth was not in poweredOn state (actual: \(state)). Aborting.")
             return .failed(cause: BluetoothError.invalidState(state)) // we will receive another event that will restart us again
         } catch {
