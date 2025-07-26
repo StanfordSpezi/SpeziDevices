@@ -251,6 +251,7 @@ final class PairedDevice: Sendable {
         } catch {
             // TODO: generic blueutoh errors?
             Self.logger.warning("Failed connection attempt for device \(peripheral.label): \(error)")
+            // TODO: store last connection error in the model!
             return .retry
         }
     }

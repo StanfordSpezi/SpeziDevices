@@ -673,7 +673,7 @@ extension PairedDevices {
             devicesLock.withLock {
                 _pairedDevices = pairedDevices
             }
-            logger.debug("Initialized PairedDevices with \(pairedDevices.count) paired devices: \(pairedDevices.map { $0.value.info.name }.joined(separator: ", "))")
+            logger.debug("Initialized PairedDevices with \(pairedDevices.count) paired devices: \(pairedDevices.map { $0.value.info.name }.joined(separator: ", "))")
         } catch {
             logger.error("Failed to fetch paired device info from disk: \(error)")
         }

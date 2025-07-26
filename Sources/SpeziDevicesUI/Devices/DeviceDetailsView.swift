@@ -16,6 +16,10 @@ import SwiftUI
 
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
+    private enum Event {
+        case forgetDevice
+    }
+
     private let deviceInfo: PairedDeviceInfo
 
     @Environment(\.dismiss)
@@ -25,6 +29,7 @@ public struct DeviceDetailsView: View {
 
     @State private var viewState: ViewState = .idle
     @State private var presentForgetConfirmation = false
+    @State private var events: (stream: AsyncStream<Event>, continuation: AsyncStream<Event>.Continuation) = AsyncStream.makeStream()
 
     private var image: Image {
         deviceInfo.icon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image
@@ -79,14 +84,22 @@ public struct DeviceDetailsView: View {
             .navigationTitle(Text("Device Details", bundle: .module))
             .navigationBarTitleDisplayMode(.inline)
             .viewStateAlert(state: $viewState)
+            .task {
+                for await event in events.stream {
+                    switch event {
+                    case .forgetDevice:
+                        await self.handleForgetDevice()
+                    }
+                }
+
+                self.events = AsyncStream.makeStream() // make sure onAppear works repeatedly.
+            }
             .confirmationDialog(
                 Text("Do you really want to forget this device?", bundle: .module),
                 isPresented: $presentForgetConfirmation,
                 titleVisibility: .visible
             ) {
-                Button {
-                    forgetDevice()
-                } label: {
+                Button(action: scheduleForgetDevice) {
                     Text("Forget Device", bundle: .module)
                 }
                 Button(role: .cancel) {} label: {
@@ -122,32 +135,34 @@ public struct DeviceDetailsView: View {
         self.deviceInfo = deviceInfo
     }
 
-    private func forgetDevice() {
+    private func scheduleForgetDevice() {
+        events.continuation.yield(.forgetDevice)
+    }
+
+    private func handleForgetDevice() async {
         guard case .idle = viewState else {
             return
         }
 
         viewState = .processing
 
-        Task { // TODO: remove!
-            do {
-                let managedByAccessorySetupKit = if #available(iOS 18, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
-                    true
-                } else {
-                    false
-                }
-                try await pairedDevices.forgetDevice(id: deviceInfo.id)
-                if !managedByAccessorySetupKit {
-                    ForgetDeviceTip.hasRemovedPairedDevice = true
-                }
-                dismiss()
-                viewState = .idle
-            } catch {
-                viewState = .error(AnyLocalizedError(
-                    error: error,
-                    defaultErrorDescription: .init("Failed to forget device", bundle: .atURL(from: .module))
-                ))
+        do {
+            let managedByAccessorySetupKit = if #available(iOS 18, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
+                true
+            } else {
+                false
             }
+            try await pairedDevices.forgetDevice(id: deviceInfo.id)
+            if !managedByAccessorySetupKit {
+                ForgetDeviceTip.hasRemovedPairedDevice = true
+            }
+            dismiss()
+            viewState = .idle
+        } catch {
+            viewState = .error(AnyLocalizedError(
+                error: error,
+                defaultErrorDescription: .init("Failed to forget device", bundle: .atURL(from: .module))
+            ))
         }
     }
 }
