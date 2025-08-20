@@ -19,17 +19,21 @@ import SwiftData
 import SwiftUI
 
 
-// TODO: support for migration within SpeziDevices (just upon app launch)! (maybe an alert with "Not Now"/"Migrate" buttons) if not now, have an option in settings?
-//  => is it enough to destroy any CBCentralManager instances before migration or are we never allowed to instantiate one.
-// TODO: the picker disables powers off the central. are we still connecting with other devices afterwards?
-
-
 /// Persistently pair with Bluetooth devices and automatically manage connections.
 ///
 /// Use the `PairedDevices` module to discover and pair ``PairableDevice``s and automatically manage connection establishment
 /// of connected devices.
 /// - Note: Implement your device as a [`BluetoothDevice`](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth/bluetoothdevice)
 ///     using [SpeziBluetooth](https://swiftpackageindex.com/stanfordspezi/spezibluetooth/documentation/spezibluetooth).
+///
+/// ## AccessorySetupKit
+///
+///  `PairedDevices` natively supports the `AccessorySetupKit`. Use ``showAccessoryDiscovery()`` to present the accessory picker.
+///
+///  - Note: If migrating from existing PairedDevices to AccessorySetupKit make sure to check ``needsAccessorySetupKitMigration`` and call ``showAccessoryMigration()`` to have
+///     existing accessories keep working. If not called explicitly, devices will be paired once the next accessory is setup up using ``showAccessoryDiscovery()``.
+///
+/// ## Legacy CoreBluetooth-based Discovery
 ///
 /// To support `PairedDevices`, you need to adopt the ``PairableDevice`` protocol for your device.
 /// Optionally you can adopt ``BatteryPoweredDevice`` if your device supports the
@@ -104,14 +108,25 @@ import SwiftUI
 /// - ``isScanningForNearbyDevices``
 /// - ``pair(with:timeout:)``
 @Observable
-public final class PairedDevices: ServiceModule { // TODO: update docs!
+public final class PairedDevices: ServiceModule {
     private enum InternalEvents: Sendable {
         case legacyForget(deviceId: UUID)
         case showPicker(runnable: @Sendable () async -> Void) // need to pass a closure as we cannot yet use iOS 18 only types
     }
 
+    private enum AccessorySetupKitMigrationState: String {
+        /// Initial state.
+        case notDetermined
+        /// PairedDevices has devices that were paired without the AccessorySetupKit (e.g., previous versions).
+        case needsMigration
+        /// All devices were paired with the AccessorySetupKit.
+        case complete
+    }
+
     @AppStorage("edu.stanford.spezi.SpeziDevices.ever-paired-once")
     @MainActor @ObservationIgnored private var everPairedDevice = false
+    @AppStorage("edu.stanford.spezi.SpeziDevices.askit-migration")
+    @MainActor @ObservationIgnored private var asKitMigrationState: AccessorySetupKitMigrationState = .notDetermined
 
 
     @Application(\.logger)
@@ -181,6 +196,14 @@ public final class PairedDevices: ServiceModule { // TODO: update docs!
 
     @MainActor @ObservationIgnored private var accessoryEventRegistration: AccessoryEventRegistration?
 
+    /// PairedDevices needs a migration to AccessorySetupKit.
+    ///
+    /// If this property is true, the PairedDevices module needs a migration to use AccessorySetupKit by calling ``showAccessoryMigration()``.
+    /// This property returns true if there were previously paired devices that were paired manually and require a migration to AccessorySetupKit.
+    @MainActor public var needsAccessorySetupKitMigration: Bool {
+        asKitMigrationState == .needsMigration
+    }
+
 
     /// Initialize the Paired Devices Module.
     public required init() {
@@ -227,16 +250,32 @@ public final class PairedDevices: ServiceModule { // TODO: update docs!
 
         if #available(iOS 18, *) {
             if accessorySetup != nil {
-                setupAccessoryChangeSubscription()
                 powerUpUsingASKit = true
             } else {
                 logger.info("AccessorySetupKit is supported by the platform but `NSAccessorySetupKitSupports` doesn't declare support for Bluetooth.")
             }
         }
 
-        // We use the ASKit activate event to power up the central if there are paired devices as we need control over it.
-        if !powerUpUsingASKit && !self.devicesLock.withLock({ _pairedDevices.isEmpty }), let bluetooth {
-            self.stateSubscription.subscribe(with: bluetooth)
+        let hasPairedDevices = !self.devicesLock.withLock { _pairedDevices.isEmpty }
+        if powerUpUsingASKit {
+            // We use the ASKit activate event to power up the central if there are paired devices as we need control over it.
+            switch asKitMigrationState {
+            case .notDetermined:
+                asKitMigrationState = hasPairedDevices ? .needsMigration : .complete
+            case .needsMigration, .complete:
+                break
+            }
+
+            // power up accessory setup kit after we determined the migration state
+            if #available(iOS 18, *) {
+                setupAccessoryChangeSubscription()
+            }
+        } else {
+            asKitMigrationState = .notDetermined // support downgrades
+            if let bluetooth, hasPairedDevices {
+                // otherwise, power up central and subscribe to state changes
+                self.stateSubscription.subscribe(with: bluetooth)
+            }
         }
     }
 
@@ -284,6 +323,19 @@ public final class PairedDevices: ServiceModule { // TODO: update docs!
         } else {
             shouldPresentDevicePairing = true
         }
+    }
+    
+    /// Show the accessory picker to migrate existing devices.
+    ///
+    /// Use the ``needsAccessorySetupKitMigration`` flag to determine if the migration picker needs to be shown.
+    @MainActor
+    public func showAccessoryMigration() {
+        guard #available(iOS 18, *), let accessorySetup else {
+            logger.error("AccessorySetupKit is unavailable on the platform or not configured.")
+            return
+        }
+
+        self.showAccessoryMigrationPicker()
     }
 
     /// Determine if a device is currently connected.
@@ -683,7 +735,6 @@ extension PairedDevices {
         }
 
         fetchAllPairedInfos()
-        // TODO: set accessory property if session is already available?
     }
 
     private func syncDeviceIcons() {
@@ -806,6 +857,11 @@ extension PairedDevices {
                 updateAccessory(accessory)
             case let .removed(accessory):
                 handleRemovedAccessory(accessory)
+            case .migrationComplete:
+                self.asKitMigrationState = .complete
+                if let bluetooth {
+                    self.stateSubscription.subscribe(with: bluetooth)
+                }
             }
         }
     }
@@ -819,14 +875,16 @@ extension PairedDevices {
 
             if let deviceInfo = devicesLock.withLock({ _pairedDevices[uuid] }) {
                 // already paired, associate with the device info
-                deviceInfo.info.accessory = accessory // TODO: ensure this is done on all code paths?
+                deviceInfo.info.accessory = accessory
             } else {
                 logger.debug("Found available accessory that hasn't been paired: \(accessory)")
                 handleAddedAccessory(accessory)
             }
         }
 
-        if devicesLock.withLock({ !_pairedDevices.isEmpty }), let bluetooth {
+        if let bluetooth,
+           case .complete = asKitMigrationState,
+           devicesLock.withLock({ !_pairedDevices.isEmpty }) {
             stateSubscription.subscribe(with: bluetooth)
         }
     }
@@ -841,7 +899,7 @@ extension PairedDevices {
             preconditionFailure("Tried to show accessory setup picker but AccessorySetupKit module was not configured.")
         }
 
-        let displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
+        var displayItems: [ASPickerDisplayItem] = bluetooth.configuration.reduce(into: []) { partialResult, descriptor in
             guard descriptor.deviceType is any PairableDevice.Type else {
                 return
             }
@@ -864,9 +922,68 @@ extension PairedDevices {
             }
         }
 
-        internalEvents.continuation.yield(.showPicker(runnable: { [logger] in
+        if case .needsMigration = asKitMigrationState {
+            displayItems.append(contentsOf: self.buildMigrationItemsForExistingDevices())
+        }
+
+        internalEvents.continuation.yield(.showPicker(runnable: { @MainActor [logger, displayItems] in
             do {
                 try await accessorySetup.showPicker(for: displayItems)
+            } catch {
+                logger.error("Failed to show setup picker: \(error)")
+            }
+        }))
+    }
+
+    @MainActor
+    private func buildMigrationItemsForExistingDevices() -> [ASMigrationDisplayItem] {
+        guard let bluetooth else {
+            preconditionFailure("Tried to show accessory setup picker but Bluetooth module was not configured.")
+        }
+
+        let configuredDevices: [String: DeviceDiscoveryDescriptor] = bluetooth.configuration.reduce(into: [:]) { partialResult, descriptor in
+            guard let pairableDevice = descriptor.deviceType as? any PairableDevice.Type else {
+                return
+            }
+            partialResult[pairableDevice.deviceTypeIdentifier] = descriptor
+        }
+
+        return _pairedDevices.values.reduce(into: []) { partialResult, device in
+            guard let descriptor = configuredDevices[device.info.deviceType] else {
+                return
+            }
+
+            let appearance: Appearance
+            if let migration = descriptor.deviceType as? DeviceVariantMigration.Type,
+               case .variants = descriptor.deviceType.appearance,
+               device.info.variantIdentifier == nil {
+                let (deviceAppearance, _) = migration.selectAppearance(for: device.info)
+                appearance = deviceAppearance
+            } else {
+                appearance = descriptor.deviceType.appearance.appearance { $0.id == device.info.variantIdentifier }.appearance
+            }
+
+            let asDescriptor = descriptor.discoveryCriteria.discoveryDescriptor
+            let image = appearance.icon.uiImageScaledForAccessorySetupKit()
+
+            let item = ASMigrationDisplayItem(name: appearance.name, productImage: image, descriptor: asDescriptor)
+            item.peripheralIdentifier = device.id
+
+            partialResult.append(item)
+        }
+    }
+
+    @MainActor
+    func showAccessoryMigrationPicker() {
+        guard let accessorySetup else {
+            preconditionFailure("Tried to show accessory setup picker but AccessorySetupKit module was not configured.")
+        }
+
+        let migrationItems: [ASMigrationDisplayItem] = buildMigrationItemsForExistingDevices()
+
+        internalEvents.continuation.yield(.showPicker(runnable: { @MainActor [logger] in
+            do {
+                try await accessorySetup.showPicker(for: migrationItems)
             } catch {
                 logger.error("Failed to show setup picker: \(error)")
             }
@@ -881,6 +998,14 @@ extension PairedDevices {
 
         guard let deviceType = bluetooth.pairableDevice(matches: accessory.descriptor) else {
             logger.error("Could not match discovery description of paired device: \(id)")
+            return
+        }
+
+        if case .needsMigration = self.asKitMigrationState,
+           devicesLock.withLock({ self._pairedDevices[id] != nil }) {
+            // If migration is done through the discovery picker, we might get an accessory added event we don't really need to process.
+            // This also avoids that we override the iconography, as the descriptor doesn't quite match our expectation.
+            logger.info("Received accessory added event for a migrated device \(accessory.displayName) as \(deviceType).")
             return
         }
 
@@ -901,16 +1026,6 @@ extension PairedDevices {
         deviceInfo.accessory = accessory
 
         let pairedDevice = PairedDevice(info: deviceInfo)
-
-
-        // AccessorySetupKit switches of the central for a few milliseconds after this call.
-        // So we do not need to retrieve the device now. It will be retrieved later.
-        /*
-         TODO: is that call really guaranteed?
-         if case .poweredOn = bluetooth.state {
-         await pairedDevice.retrieveDevice(for: deviceType, using: bluetooth)
-         }
-         */
 
         // otherwise device retrieval is handled once bluetooth is powered on
         persistPairedDevice(pairedDevice)
