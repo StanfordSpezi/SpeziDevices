@@ -30,14 +30,7 @@ public struct DevicesGrid: View {
         Group {
             if let devices {
                 if devices.isEmpty {
-                    ZStack {
-                        VStack {
-                            TipView(ForgetDeviceTip.instance)
-                                .padding([.leading, .trailing], 20)
-                            Spacer()
-                        }
-                        DevicesUnavailableView(showPairing: pairNewDevice)
-                    }
+                    emptyDevices
                 } else {
                     ScrollView(.vertical) {
                         VStack(spacing: 16) {
@@ -70,6 +63,17 @@ public struct DevicesGrid: View {
             .navigationDestination(item: $detailedDeviceInfo) { deviceInfo in
                 DeviceDetailsView(deviceInfo)
             }
+    }
+    
+    private var emptyDevices: some View {
+        ZStack {
+            VStack {
+                TipView(ForgetDeviceTip.instance)
+                    .padding([.leading, .trailing], 20)
+                Spacer()
+            }
+            DevicesUnavailableView(showPairing: pairNewDevice)
+        }
     }
 
 
