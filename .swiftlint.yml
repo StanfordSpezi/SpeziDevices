@@ -36,7 +36,7 @@ only_rules:
   - comment_spacing
   # All elements in a collection literal should be vertically aligned
   - collection_alignment
-  # Colons should be next txo the identifier when specifying a type and next to the key in dictionary literals.
+  # Colons should be next to the identifier when specifying a type and next to the key in dictionary literals.
   - colon
   # There should be no space before and one after any comma.
   - comma
