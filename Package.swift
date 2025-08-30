@@ -17,8 +17,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
-        .visionOS(.v1),
-        .macOS(.v14)
+        .macOS(.v14),
+        .visionOS(.v1)
     ],
     products: [
         .library(name: "SpeziDevices", targets: ["SpeziDevices"]),
