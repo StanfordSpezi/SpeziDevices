@@ -152,6 +152,8 @@ final class PairedDevicesTests: XCTestCase {
         device.isInPairingMode = true
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 
+        try await Task.sleep(for: .milliseconds(50))
+
         let task = Task {
             try await devices.pair(with: device)
         }
@@ -179,6 +181,8 @@ final class PairedDevicesTests: XCTestCase {
         device.isInPairingMode = true
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         let task = Task {
             try await devices.pair(with: device)
