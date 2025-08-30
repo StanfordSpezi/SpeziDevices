@@ -12,6 +12,7 @@ import SpeziViews
 import SwiftUI
 
 
+@available(macOS, unavailable)
 struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection.Element == any PairableDevice {
     private let devices: Collection
     private let appName: String
@@ -65,8 +66,10 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
                         }
                         selectedDevice = devices.first(where: { $0.id == selectedDeviceId })
                     }
+#if !os(macOS)
                     .tabViewStyle(.page)
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
+#endif
             } else if let device = devices.first {
                 AccessoryImageView(device)
                     .onAppear {
@@ -110,7 +113,7 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 }
 
 
-#if DEBUG
+#if DEBUG && !os(macOS)
 #Preview {
     SheetPreview {
         PairDeviceView(devices: [MockDevice.createMockDevice()], appName: "Example", state: .constant(.discovery)) { _ in

@@ -127,8 +127,10 @@ public struct MeasurementsRecordedSheet: View {
                         .tag(measurement)
                 }
             }
+#if !os(macOS)
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
+#endif
         } else if let measurement = selectedMeasurement {
             MeasurementLayer(measurement: measurement)
         }

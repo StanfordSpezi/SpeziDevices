@@ -42,7 +42,9 @@ public struct DevicesGrid: View {
                     ScrollView(.vertical) {
                         VStack(spacing: 16) {
                             TipView(ForgetDeviceTip.instance)
+#if canImport(UIKit)
                                 .tipBackground(Color(uiColor: .secondarySystemGroupedBackground))
+#endif
 
                             LazyVGrid(columns: gridItems) {
                                 ForEach(devices) { device in
@@ -57,7 +59,9 @@ public struct DevicesGrid: View {
                         }
                         .padding([.leading, .trailing], 20)
                     }
+#if canImport(UIKit)
                     .background(Color(uiColor: .systemGroupedBackground))
+#endif
                 }
             } else {
                 ProgressView()

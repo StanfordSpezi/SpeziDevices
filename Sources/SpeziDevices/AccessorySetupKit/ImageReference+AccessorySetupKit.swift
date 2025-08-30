@@ -11,6 +11,7 @@ import SwiftUI
 
 
 extension ImageReference {
+#if canImport(UIImage)
     func uiImageScaledForAccessorySetupKit() -> UIImage {
         let image: UIImage
         let isSymbol: Bool
@@ -38,4 +39,5 @@ extension ImageReference {
             return image
         }
     }
+#endif
 }

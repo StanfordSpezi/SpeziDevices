@@ -29,7 +29,11 @@ struct ForgetDeviceTip: Tip {
                 return
             }
             Task { @MainActor in
+#if canImport(UIKit)
                 UIApplication.shared.open(url)
+#elseif os(macOS)
+                NSWorkspace.shared.open(url)
+#endif
             }
         } _: {
             Text("Open Settings", bundle: .module)

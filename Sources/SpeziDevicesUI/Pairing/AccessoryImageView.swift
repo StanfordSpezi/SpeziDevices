@@ -28,7 +28,9 @@ struct AccessoryImageView: View {
                 .frame(maxWidth: 250, maxHeight: 120)
         }
             .frame(maxWidth: .infinity, maxHeight: 150) // make drag-able area a bit larger
+#if canImport(UIKit)
             .background(Color(uiColor: .systemBackground)) // we need to set a non-clear color for it to be drag-able
+#endif
     }
 
     private var icon: ImageReference? {

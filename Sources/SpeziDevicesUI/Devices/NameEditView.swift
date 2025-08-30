@@ -28,10 +28,14 @@ struct NameEditView: View {
             VerifiableTextField("enter device name", text: $name)
                 .validate(input: name, rules: [.nonEmpty, .deviceNameMaxLength])
                 .receiveValidation(in: $validation)
+#if !os(macOS)
                 .autocapitalization(.words)
+#endif
         }
             .navigationTitle(Text("Name", bundle: .module))
+#if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 Button {
                     save(name)

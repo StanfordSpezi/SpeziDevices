@@ -57,7 +57,9 @@ public struct DeviceTile: View {
             .padding(16)
             .background {
                 RoundedRectangle(cornerSize: CGSize(width: 25, height: 25))
+#if canImport(UIKit)
                     .foregroundStyle(Color(uiColor: .secondarySystemGroupedBackground))
+#endif
             }
             .aspectRatio(1.0, contentMode: .fit) // explicit aspect ratio to ensure tile is always square
             .accessibilityElement(children: .combine)
@@ -80,7 +82,9 @@ public struct DeviceTile: View {
                 DeviceTile(.mockHealthDevice2)
                 DeviceTile(.mockHealthDevice1)
             }
+#if canImport(UIKit)
                 .background(Color(uiColor: .systemGroupedBackground))
+#endif
                 .frame(maxHeight: 190)
         }
         HStack(spacing: 16) {
@@ -88,13 +92,17 @@ public struct DeviceTile: View {
                 DeviceTile(.mockHealthDevice2)
                 DeviceTile(.mockHealthDevice1)
             }
+#if canImport(UIKit)
                 .background(Color(uiColor: .systemGroupedBackground))
+#endif
                 .frame(maxHeight: 190)
         }
     }
         .padding([.leading, .trailing], 12)
         .frame(maxHeight: .infinity)
+#if canImport(UIKit)
         .background(Color(uiColor: .systemGroupedBackground))
+#endif
         .previewWith {
             PairedDevices()
         }

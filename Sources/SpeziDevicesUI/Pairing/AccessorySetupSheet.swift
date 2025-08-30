@@ -15,6 +15,7 @@ import SwiftUI
 
 
 /// Accessory Setup view displayed in a sheet.
+@available(macOS, unavailable)
 public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHint: View>: View where Collection.Element == any PairableDevice {
     private static var logger: Logger {
         Logger(subsystem: "edu.stanford.sepzi.SpeziDevices", category: "AccessorySetupSheet")
@@ -98,7 +99,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHin
 }
 
 
-#if DEBUG
+#if DEBUG && !os(macOS)
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {

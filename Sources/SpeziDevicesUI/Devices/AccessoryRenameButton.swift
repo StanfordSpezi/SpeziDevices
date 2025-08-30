@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-#if canImport(AccessorySetupKit)
+#if canImport(AccessorySetupKit) && !os(macOS)
 import AccessorySetupKit
 #endif
 import OSLog
@@ -79,7 +79,7 @@ struct AccessoryRenameButton: View {
     }
 
     private func _renameAccessory() async throws {
-#if canImport(AccessorySetupKit)
+#if canImport(AccessorySetupKit) && !os(macOS)
         guard let accessory = deviceInfo.accessory else {
             throw MissingAccessory()
         }

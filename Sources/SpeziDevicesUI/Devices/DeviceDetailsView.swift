@@ -82,7 +82,9 @@ public struct DeviceDetailsView: View {
             }
         }
             .navigationTitle(Text("Device Details", bundle: .module))
+#if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .viewStateAlert(state: $viewState)
             .task {
                 for await event in events.stream {
