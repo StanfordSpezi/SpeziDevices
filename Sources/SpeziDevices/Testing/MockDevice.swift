@@ -15,6 +15,8 @@ import SpeziNumerics
 
 @_spi(TestingSupport)
 public final class MockDevice: PairableDevice, HealthDevice, BatteryPoweredDevice, @unchecked Sendable {
+    public static let appearance: DeviceAppearance = .appearance(Appearance(name: "My Mock Device"))
+
     @DeviceState(\.id)
     public var id
     @DeviceState(\.name)

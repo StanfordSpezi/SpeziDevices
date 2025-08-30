@@ -47,12 +47,17 @@ public final class PairedDeviceInfo {
     @Transient public internal(set) var notLocatable: Bool = false
     @Transient private var _icon: ImageReference?
     @Transient private var _accessory: (AnyObject & Sendable)?
+    /// The result of the last connection attempt done by SpeziDevices.
+    ///
+    /// You can use this to visualize erroneous cases where connection attempts is failing repeatedly or failed completely and won't be retried.
     @Transient public internal(set) var lastConnectionAttemptResult: ConnectionAttemptResult?
 
+    /// Flag indicating if this device is managed by AccessorySetupKit
     public var managedByAccessorySetupKit: Bool {
         _accessory != nil
     }
 
+    /// Access the underlying `ASAccessory`.
     @available(iOS 18.0, *)
     public internal(set) var accessory: ASAccessory? {
         get {

@@ -9,7 +9,8 @@
 import Spezi
 import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziDevicesUI
 import SwiftUI
 
@@ -30,7 +31,8 @@ class TestAppDelegate: SpeziAppDelegate {
 
 @main
 struct TestApp: App {
-    @ApplicationDelegateAdaptor(TestAppDelegate.self) private var delegate
+    @ApplicationDelegateAdaptor(TestAppDelegate.self)
+    private var delegate
 
     var body: some Scene {
         WindowGroup {

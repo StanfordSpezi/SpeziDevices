@@ -8,7 +8,8 @@
 
 import HealthKit
 import Spezi
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziDevicesUI
 import SpeziViews
 import SwiftUI

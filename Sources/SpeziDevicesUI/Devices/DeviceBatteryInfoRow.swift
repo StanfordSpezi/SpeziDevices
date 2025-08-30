@@ -38,4 +38,3 @@ struct DeviceBatteryInfoRow: View {
     }
 }
 #endif
-

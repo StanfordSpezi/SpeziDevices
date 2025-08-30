@@ -7,9 +7,11 @@
 //
 
 import HealthKit
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) @testable import SpeziDevices
+@_spi(TestingSupport)
+@testable import SpeziDevices
 import XCTest
 
 

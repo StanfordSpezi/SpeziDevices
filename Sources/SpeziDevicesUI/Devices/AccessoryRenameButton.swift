@@ -7,11 +7,11 @@
 //
 
 import AccessorySetupKit
+import OSLog
 @_spi(Internal)
 import SpeziDevices
 import SpeziViews
 import SwiftUI
-import OSLog
 
 
 @available(iOS 18, *)
@@ -46,7 +46,6 @@ struct AccessoryRenameButton: View {
                 Text(deviceInfo.name)
                     .foregroundStyle(Color.primary)
             }
-
         }
             .disabled(viewState != .idle)
             .viewStateAlert(state: $viewState)

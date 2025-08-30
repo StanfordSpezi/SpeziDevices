@@ -76,7 +76,7 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziDevices"),
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
-                .product(name: "XCTSpezi", package: "Spezi"),
+                .product(name: "SpeziTesting", package: "Spezi"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
                 .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
                 .product(name: "XCTestExtensions", package: "XCTestExtensions")

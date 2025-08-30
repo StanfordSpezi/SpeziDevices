@@ -41,7 +41,7 @@ struct DeviceConnections: Sendable {
 
     private enum Input {
         case connect(_ device: PairedDevice, _ bluetooth: Bluetooth)
-        case cancel(_ device: PairedDevice)
+        case cancel(_ device: PairedDevice, disconnectPeripheral: (any PairableDevice)?)
         case clearStaleState(deviceId: UUID, identity: UUID)
     }
 
@@ -59,8 +59,8 @@ struct DeviceConnections: Sendable {
         input.continuation.yield(.connect(device, bluetooth))
     }
 
-    func cancel(device: PairedDevice) {
-        input.continuation.yield(.cancel(device))
+    func cancel(device: PairedDevice, disconnect peripheral: (any PairableDevice)?) {
+        input.continuation.yield(.cancel(device, disconnectPeripheral: peripheral))
     }
 
     func run() async {
@@ -93,9 +93,13 @@ struct DeviceConnections: Sendable {
                     }
 
                     state[device.id] = DeviceTaskHandle(identity: identity, handle: handle)
-                case let .cancel(device ):
+                case let .cancel(device, peripheral):
                     let entry = state.removeValue(forKey: device.id)
                     entry?.handle.cancel()
+
+                    if let peripheral {
+                        await peripheral.disconnect()
+                    }
                 case let .clearStaleState(deviceId, identity):
                     guard let entry = state[deviceId],
                           entry.identity == identity else {

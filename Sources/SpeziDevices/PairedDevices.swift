@@ -496,24 +496,18 @@ extension PairedDevices {
     ///   - timeout: The duration after which the pairing attempt times out.
     /// - Throws: Throws a ``DevicePairingError`` if not successful.
     public func pair(with device: some PairableDevice, timeout: Duration = .seconds(15)) async throws {
-        guard let discoveredDevice = _discoveredDevices[device.id] else {
+        guard device.isInPairingMode else {
+            throw DevicePairingError.notInPairingMode
+        }
+
+        guard let discoveredDevice = _discoveredDevices[device.id],
+              case .disconnected = device.state,
+              device.nearby else {
             throw DevicePairingError.invalidState
         }
 
         guard !discoveredDevice.hasContinuationAssigned else {
             throw DevicePairingError.busy
-        }
-
-        guard device.isInPairingMode else {
-            throw DevicePairingError.notInPairingMode
-        }
-
-        guard case .disconnected = device.state else {
-            throw DevicePairingError.invalidState
-        }
-
-        guard device.nearby else {
-            throw DevicePairingError.invalidState
         }
 
         try await withThrowingDiscardingTaskGroup { group in
@@ -534,13 +528,20 @@ extension PairedDevices {
                 }
             }
 
-            // waiting for task to signal pairing success by resuming the continuation
-            try await withTaskCancellationHandler { // error thrown here will implicitly cancel all other child tasks
-                try await withCheckedThrowingContinuation { continuation in
-                    discoveredDevice.assignContinuation(continuation)
+            do {
+                // waiting for task to signal pairing success by resuming the continuation
+                try await withTaskCancellationHandler { // error thrown here will implicitly cancel all other child tasks
+                    try await withCheckedThrowingContinuation { continuation in
+                        discoveredDevice.assignContinuation(continuation)
+                    }
+                } onCancel: {
+                    discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
                 }
-            } onCancel: {
-                discoveredDevice.clearPairingContinuationWithIntentionToResume()?.signalCancellation()
+            } catch let error as CancellationError {
+                // If we got cancelled while connecting, SpeziBluetooth will make sure to disconnect the device anyways.
+                // If we are just waiting for pairing to complete, we want to disconnect again.
+                await device.disconnect()
+                throw error
             }
 
             // if the connect task is still running above, we cancel the task group to disconnect the device
@@ -695,7 +696,7 @@ extension PairedDevices {
 
 @MainActor
 extension PairedDevices {
-    private func fetchAllPairedInfos() {
+    private func fetchAllPairedInfos(previousPeripherals: [UUID: (any PairableDevice)] = [:]) {
         defer {
             didLoadDevices = true
         }
@@ -712,8 +713,8 @@ extension PairedDevices {
 
         do {
             let allPairedDevices = try context.fetch(allPairedDevices)
-            let pairedDevices = allPairedDevices.reduce(into: OrderedDictionary<UUID, PairedDevice>()) { partialResult, deviceInfo in
-                partialResult[deviceInfo.id] = PairedDevice(info: deviceInfo)
+            let pairedDevices: OrderedDictionary<UUID, PairedDevice> = allPairedDevices.reduce(into: [:]) { partialResult, deviceInfo in
+                partialResult[deviceInfo.id] = PairedDevice(info: deviceInfo, assigning: previousPeripherals[deviceInfo.id])
             }
             devicesLock.withLock {
                 _pairedDevices = pairedDevices
@@ -725,8 +726,12 @@ extension PairedDevices {
     }
 
     func refreshPairedDevices() throws {
-        devicesLock.withLock {
+        let previousPeripherals = devicesLock.withLock {
+            let peripherals = _pairedDevices.reduce(into: [:]) { partialResult, entry in
+                partialResult[entry.key] = entry.value.peripheral
+            }
             _pairedDevices.removeAll()
+            return peripherals
         }
         didLoadDevices = false
 
@@ -734,7 +739,7 @@ extension PairedDevices {
             try modelContainer.mainContext.save()
         }
 
-        fetchAllPairedInfos()
+        fetchAllPairedInfos(previousPeripherals: previousPeripherals)
     }
 
     private func syncDeviceIcons() {
@@ -801,7 +806,7 @@ extension PairedDevices {
             }
 
             for device in _pairedDevices.values {
-                deviceConnections.cancel(device: device)
+                deviceConnections.cancel(device: device, disconnect: nil)
             }
 
             return true

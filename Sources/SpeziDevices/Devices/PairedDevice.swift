@@ -41,6 +41,7 @@ final class PairedDevice: Sendable {
 
     @MainActor
     func removeDevice(manualDisconnect: Bool, cancelling connections: DeviceConnections) {
+        let peripheral = self.peripheral
         self.peripheral = nil
 
         // Do not call disconnect with AccessorySetupKit. We do not have the permission for that anymore.
@@ -49,7 +50,7 @@ final class PairedDevice: Sendable {
             _ = _events.continuation.yield(.removed(disconnect: manualDisconnect))
         }
         
-        connections.cancel(device: self)
+        connections.cancel(device: self, disconnect: manualDisconnect ? peripheral : nil)
     }
 
     @MainActor
@@ -59,7 +60,9 @@ final class PairedDevice: Sendable {
     }
 
     @MainActor
-    public func run(using bluetooth: Bluetooth, retry: DeviceConnections.RetryConfiguration) async {
+    func run(using bluetooth: Bluetooth, retry: DeviceConnections.RetryConfiguration) async {
+        // swiftlint:disable:previous cyclomatic_complexity function_body_length
+
         let peripheral: any PairableDevice
 
         if let existingPeripheral = self.peripheral {
