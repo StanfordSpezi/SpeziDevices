@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if canImport(AccessorySetupKit)
 import AccessorySetupKit
+#endif
 import OSLog
 @_spi(Internal)
 import SpeziDevices
@@ -77,11 +79,13 @@ struct AccessoryRenameButton: View {
     }
 
     private func _renameAccessory() async throws {
+#if canImport(AccessorySetupKit)
         guard let accessory = deviceInfo.accessory else {
             throw MissingAccessory()
         }
 
         try await pairedDevices.renameAccessory(for: accessory)
+#endif
     }
 }
 

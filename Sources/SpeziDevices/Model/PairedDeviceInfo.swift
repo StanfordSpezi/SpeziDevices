@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if canImport(AccessorySetupKit)
 import AccessorySetupKit
+#endif
 import Foundation
 import SpeziViews
 import SwiftData
@@ -57,6 +59,7 @@ public final class PairedDeviceInfo {
         _accessory != nil
     }
 
+#if canImport(AccessorySetupKit)
     /// Access the underlying `ASAccessory`.
     @available(iOS 18.0, *)
     public internal(set) var accessory: ASAccessory? {
@@ -71,6 +74,7 @@ public final class PairedDeviceInfo {
             _accessory = newValue
         }
     }
+#endif
 
     /// Visual representation of the device.
     public var icon: ImageReference? {

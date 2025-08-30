@@ -6,7 +6,9 @@
 // SPDX-License-Identifier: MIT
 //
 
+#if canImport(AccessorySetupKit)
 import AccessorySetupKit
+#endif
 import OrderedCollections
 import OSLog
 import Spezi
@@ -182,11 +184,15 @@ public final class PairedDevices: ServiceModule {
     /// Scanning is automatically started if there hasn't been a paired device or if the discovery sheet is presented.
     @MainActor public var isScanningForNearbyDevices: Bool {
         let shouldAutoStartSearching = pairedDevices?.isEmpty == true && !everPairedDevice
+#if canImport(AccessorySetupKit)
         return if #available(iOS 18, *) {
             shouldPresentDevicePairing || (accessorySetup == nil && shouldAutoStartSearching)
         } else {
             shouldPresentDevicePairing || shouldAutoStartSearching
         }
+#else
+        return shouldPresentDevicePairing || shouldAutoStartSearching
+#endif
     }
 
     private let stateSubscription = BluetoothCentralStateSubscription()
@@ -208,6 +214,7 @@ public final class PairedDevices: ServiceModule {
     /// Initialize the Paired Devices Module.
     public required init() {
         self.internalEvents = AsyncStream.makeStream()
+#if canImport(AccessorySetupKit)
         if #available(iOS 18, *) {
             if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 __accessorySetup = Dependency {
@@ -217,6 +224,7 @@ public final class PairedDevices: ServiceModule {
                 }
             }
         }
+#endif
     }
 
 
@@ -248,6 +256,7 @@ public final class PairedDevices: ServiceModule {
 
         var powerUpUsingASKit = false
 
+#if canImport(AccessorySetupKit)
         if #available(iOS 18, *) {
             if accessorySetup != nil {
                 powerUpUsingASKit = true
@@ -255,6 +264,7 @@ public final class PairedDevices: ServiceModule {
                 logger.info("AccessorySetupKit is supported by the platform but `NSAccessorySetupKitSupports` doesn't declare support for Bluetooth.")
             }
         }
+#endif
 
         let hasPairedDevices = !self.devicesLock.withLock { _pairedDevices.isEmpty }
         if powerUpUsingASKit {
@@ -266,10 +276,12 @@ public final class PairedDevices: ServiceModule {
                 break
             }
 
+#if canImport(AccessorySetupKit)
             // power up accessory setup kit after we determined the migration state
             if #available(iOS 18, *) {
                 setupAccessoryChangeSubscription()
             }
+#endif
         } else {
             asKitMigrationState = .notDetermined // support downgrades
             if let bluetooth, hasPairedDevices {
@@ -318,24 +330,31 @@ public final class PairedDevices: ServiceModule {
     /// which should be used to present the `AccessorySetupSheet` from `SpeziDevicesUI`.
     @MainActor
     public func showAccessoryDiscovery() {
+#if canImport(AccessorySetupKit)
         if #available(iOS 18, *), accessorySetup != nil {
             showAccessorySetupPicker()
         } else {
             shouldPresentDevicePairing = true
         }
+#else
+        shouldPresentDevicePairing = true
+#endif
     }
     
     /// Show the accessory picker to migrate existing devices.
     ///
     /// Use the ``needsAccessorySetupKitMigration`` flag to determine if the migration picker needs to be shown.
     @MainActor
+    @available(iOS 18, *)
     public func showAccessoryMigration() {
+#if canImport(AccessorySetupKit)
         guard #available(iOS 18, *), let accessorySetup else {
             logger.error("AccessorySetupKit is unavailable on the platform or not configured.")
             return
         }
 
         self.showAccessoryMigrationPicker()
+#endif
     }
 
     /// Determine if a device is currently connected.
@@ -638,6 +657,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
+#if canImport(AccessorySetupKit)
         let externallyManaged: Bool
         if #available(iOS 18, *) {
             if let accessorySetup,
@@ -651,6 +671,9 @@ extension PairedDevices {
         } else {
             externallyManaged = false
         }
+#else
+        let externallyManaged = false
+#endif
 
         self.removeDevice(id: id, externallyManaged: externallyManaged)
     }
@@ -827,6 +850,7 @@ extension PairedDevices {
         accessorySetup?.pickerPresented ?? false
     }
 
+#if canImport(AccessorySetupKit)
     /// Retrieve the `ASAccessory` for a device identifier.
     /// - Parameter deviceId: The identifier for a paired bluetooth device.
     /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
@@ -1077,6 +1101,7 @@ extension PairedDevices {
             throw error
         }
     }
+#endif
 }
 
 // MARK: Bluetooth
@@ -1171,6 +1196,7 @@ extension Bluetooth {
         return nil
     }
 
+#if canImport(AccessorySetupKit)
     @available(iOS 18, *)
     fileprivate nonisolated func pairableDevice(matches discoveryDescriptor: ASDiscoveryDescriptor) -> (any PairableDevice.Type)? {
         for descriptor in self.configuration {
@@ -1184,6 +1210,7 @@ extension Bluetooth {
 
         return nil
     }
+#endif
 }
 
 // swiftlint:disable:this file_length

@@ -6,7 +6,6 @@
 // SPDX-License-Identifier: MIT
 //
 
-import AccessorySetupKit
 import SpeziViews
 import SwiftUI
 

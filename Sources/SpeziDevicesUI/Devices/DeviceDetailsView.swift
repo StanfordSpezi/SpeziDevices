@@ -45,7 +45,7 @@ public struct DeviceDetailsView: View {
                 imageHeader
             }
 
-            if #available(iOS 18, *), deviceInfo.managedByAccessorySetupKit {
+            if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
                 Section("Name") {
                     AccessoryRenameButton(deviceInfo: deviceInfo)
                 }
@@ -147,7 +147,7 @@ public struct DeviceDetailsView: View {
         viewState = .processing
 
         do {
-            let managedByAccessorySetupKit = if #available(iOS 18, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
+            let managedByAccessorySetupKit = if #available(iOS 18, visionOS 2, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 true
             } else {
                 false
