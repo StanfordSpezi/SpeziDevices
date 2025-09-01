@@ -109,7 +109,7 @@ public struct MeasurementsRecordedSheet: View {
                     DismissButton()
                 }
         }
-            .presentationDetents([.fraction(0.45), .fraction(0.6), .large])
+            .presentationDetents([.fraction(0.5), .large])
             .presentationCornerRadius(25)
     }
 
