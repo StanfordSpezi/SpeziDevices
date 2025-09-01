@@ -29,8 +29,6 @@ jobs:
         platform:
           - name: iOS
             destination: 'platform=iOS Simulator,name=iPhone 16 Pro'
-          - name: macOS
-            destination: 'platform=macOS,arch=arm64'
           - name: visionOS
             destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       fail-fast: false
