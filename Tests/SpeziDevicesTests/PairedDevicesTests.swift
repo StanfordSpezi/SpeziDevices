@@ -6,13 +6,15 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) @testable import SpeziDevices
+@_spi(TestingSupport)
+@testable import SpeziDevices
 import SpeziFoundation
+import SpeziTesting
 import XCTest
 import XCTestExtensions
-import XCTSpezi
 
 
 final class PairedDevicesTests: XCTestCase {
@@ -28,6 +30,8 @@ final class PairedDevicesTests: XCTestCase {
             devices
         }
 
+        async let _ = devices.run() // make sure lifecycle runs
+
         device.isInPairingMode = true
 
 
@@ -35,6 +39,8 @@ final class PairedDevicesTests: XCTestCase {
         XCTAssertFalse(devices.isPaired(device))
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         try await devices.pair(with: device)
 
@@ -47,9 +53,9 @@ final class PairedDevicesTests: XCTestCase {
 
         XCTAssertEqual(deviceInfo.id, device.id)
         XCTAssertEqual(deviceInfo.deviceType, MockDevice.deviceTypeIdentifier)
-        XCTAssertNil(deviceInfo.icon)
+        XCTAssertEqual(deviceInfo.icon, .system("sensor"))
         XCTAssertEqual(deviceInfo.model, device.deviceInformation.modelNumber)
-        XCTAssertEqual(deviceInfo.name, device.name)
+        XCTAssertEqual(deviceInfo.name, "My Mock Device") // ensure this uses the appearance name
         XCTAssertEqual(deviceInfo.lastBatteryPercentage, 85)
 
         let initialLastSeen = deviceInfo.lastSeen
@@ -88,8 +94,8 @@ final class PairedDevicesTests: XCTestCase {
         XCTAssertEqual(device.state, .connected)
 
 
-        devices.forgetDevice(id: device.id)
-        try await Task.sleep(for: .milliseconds(50))
+        try await devices.forgetDevice(id: device.id)
+        try await Task.sleep(for: .milliseconds(500))
 
         XCTAssertEqual(device.state, .disconnected)
         XCTAssertEqual(devices.pairedDevices?.isEmpty, true)
@@ -106,6 +112,7 @@ final class PairedDevicesTests: XCTestCase {
         }
 
         device.isInPairingMode = true
+        devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 
         device.$nearby.inject(false)
         try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
@@ -124,9 +131,12 @@ final class PairedDevicesTests: XCTestCase {
             XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .notInPairingMode)
         }
         device.isInPairingMode = true
+        device.$advertisementData.inject(.init())
+
+        try await Task.sleep(for: .milliseconds(200))
 
         try await XCTAssertThrowsErrorAsync(await devices.pair(with: device, timeout: .milliseconds(200))) { error in
-            XCTAssertTrue(error is TimeoutError)
+            XCTAssertTrue(error is TimeoutError, "Unexpected error \(error)")
         }
     }
 
@@ -140,6 +150,9 @@ final class PairedDevicesTests: XCTestCase {
         }
 
         device.isInPairingMode = true
+        devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         let task = Task {
             try await devices.pair(with: device)
@@ -149,7 +162,7 @@ final class PairedDevicesTests: XCTestCase {
         task.cancel()
 
         try await XCTAssertThrowsErrorAsync(await task.value) { error in
-            XCTAssertTrue(error is CancellationError)
+            XCTAssertTrue(error is CancellationError, "Unexpected error: \(error)")
         }
 
         XCTAssertEqual(device.state, .disconnected)
@@ -168,6 +181,8 @@ final class PairedDevicesTests: XCTestCase {
         device.isInPairingMode = true
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         let task = Task {
             try await devices.pair(with: device)

@@ -8,7 +8,8 @@
 
 import HealthKit
 import OSLog
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
@@ -19,7 +20,7 @@ struct TimeSubheadline: View {
     var body: some View {
         Group {
             if Calendar.current.isDateInToday(measurement.startDate) {
-                Text("Today, \(Text(measurement.startDate, style: .time))")
+                Text("Today, \(Text(measurement.startDate, style: .time))", bundle: .module)
             } else {
                 Text(.now, style: .date) + Text(verbatim: ", ") + Text(.now, style: .time)
             }
@@ -43,9 +44,12 @@ public struct MeasurementsRecordedSheet: View {
     private let logger = Logger(subsystem: "edu.stanford.spezi.SpeziDevices", category: "MeasurementsRecordedSheet")
     private let saveSamples: @MainActor ([HKSample]) async throws -> Void
 
-    @Environment(HealthMeasurements.self) private var measurements
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(HealthMeasurements.self)
+    private var measurements
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(\.dynamicTypeSize)
+    private var dynamicTypeSize
 
     @State private var selectedMeasurement: HealthKitMeasurement?
 
@@ -63,17 +67,22 @@ public struct MeasurementsRecordedSheet: View {
     }
 
     public var body: some View {
-        NavigationStack {
+        NavigationStack { // swiftlint:disable:this closure_body_length
             Group {
                 if measurements.pendingMeasurements.isEmpty && selectedMeasurement == nil {
-                    ContentUnavailableView(
-                        "No Pending Measurements",
-                        systemImage: "heart.text.square",
-                        description: Text("There are currently no pending measurements. Conduct a measurement with a paired device while nearby.")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            Text("No Pending Measurements", bundle: .module)
+                        } icon: {
+                            Image(systemName: "heart.text.square")
+                                .accessibilityHidden(true)
+                        }
+                    } description: {
+                        Text("There are currently no pending measurements. Conduct a measurement with a paired device while nearby.", bundle: .module)
+                    }
                 } else {
                     PaneContent {
-                        Text("Measurement Recorded")
+                        Text("Measurement Recorded", bundle: .module)
                             .font(.title)
                             .fixedSize(horizontal: false, vertical: true)
                         if let selectedMeasurement {
@@ -100,7 +109,7 @@ public struct MeasurementsRecordedSheet: View {
                     DismissButton()
                 }
         }
-            .presentationDetents([.fraction(0.45), .fraction(0.6), .large])
+            .presentationDetents([.fraction(0.5), .large])
             .presentationCornerRadius(25)
     }
 
@@ -118,8 +127,10 @@ public struct MeasurementsRecordedSheet: View {
                         .tag(measurement)
                 }
             }
+#if !os(macOS)
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
+#endif
         } else if let measurement = selectedMeasurement {
             MeasurementLayer(measurement: measurement)
         }

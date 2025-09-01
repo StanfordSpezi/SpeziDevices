@@ -8,7 +8,8 @@
 
 import HealthKit
 import Spezi
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziDevicesUI
 import SpeziViews
 import SwiftUI
@@ -19,9 +20,10 @@ struct HKQuantitySampleView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            ListRow(sample.quantity.description) {
+            LabeledContent(sample.quantity.description) {
                 Text(sample.startDate, style: .time)
             }
+                .accessibilityElement(children: .combine)
             if let device = sample.device, let name = device.name {
                 Text(name)
                     .foregroundStyle(.secondary)

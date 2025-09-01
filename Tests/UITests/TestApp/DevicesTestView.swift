@@ -7,18 +7,23 @@
 //
 
 import CoreBluetooth
-@_spi(APISupport) import Spezi
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(APISupport)
+import Spezi
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziDevicesUI
-@_spi(TestingSupport) import SpeziOmron
+@_spi(TestingSupport)
+import SpeziOmron
 import SpeziViews
 import SwiftUI
 
 
 class MockDeviceLoading: Module, EnvironmentAccessible {
-    @Application(\.spezi) private var spezi
+    @Application(\.spezi)
+    private var spezi
 
     init() {}
 
@@ -30,8 +35,10 @@ class MockDeviceLoading: Module, EnvironmentAccessible {
 
 
 struct DevicesTestView: View {
-    @Environment(PairedDevices.self) private var pairedDevices
-    @Environment(MockDeviceLoading.self) private var moduleLoading
+    @Environment(PairedDevices.self)
+    private var pairedDevices
+    @Environment(MockDeviceLoading.self)
+    private var moduleLoading
 
     @State private var didRegister = false
     @State private var device = MockDevice.createMockDevice()

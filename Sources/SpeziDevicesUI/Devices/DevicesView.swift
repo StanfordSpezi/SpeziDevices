@@ -14,22 +14,27 @@ import SwiftUI
 /// Devices view showing grid of paired devices and provides functionality to pair new devices.
 ///
 /// - Note: Make sure to place this view into an `NavigationStack`.
+@available(macOS, unavailable)
 public struct DevicesView<PairingHint: View>: View {
     private let appName: String
     private let pairingHint: PairingHint
 
-    @Environment(Bluetooth.self) private var bluetooth
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(Bluetooth.self)
+    private var bluetooth
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
     public var body: some View {
         @Bindable var pairedDevices = pairedDevices
 
-        DevicesGrid(devices: pairedDevices.pairedDevices, presentingDevicePairing: $pairedDevices.shouldPresentDevicePairing)
-            .navigationTitle("Devices")
+        DevicesGrid(devices: pairedDevices.pairedDevices) {
+            pairedDevices.showAccessoryDiscovery()
+        }
+            .navigationTitle(Text("Devices", bundle: .module))
             // automatically search if no devices are paired
             .scanNearbyDevices(enabled: pairedDevices.isScanningForNearbyDevices, with: bluetooth)
             .sheet(isPresented: $pairedDevices.shouldPresentDevicePairing) {
-                AccessorySetupSheet(pairedDevices.discoveredDevices.values, appName: appName) {
+                AccessorySetupSheet(pairedDevices.discoveredDevices, appName: appName) {
                     pairingHint
                 }
             }
@@ -42,7 +47,7 @@ public struct DevicesView<PairingHint: View>: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add Device", systemImage: "plus") {
-                        pairedDevices.shouldPresentDevicePairing = true
+                        pairedDevices.showAccessoryDiscovery()
                     }
                 }
             }
@@ -77,7 +82,7 @@ public struct DevicesView<PairingHint: View>: View {
 }
 
 
-#if DEBUG
+#if DEBUG && !os(macOS)
 #Preview {
     NavigationStack {
         DevicesView(appName: "Example")

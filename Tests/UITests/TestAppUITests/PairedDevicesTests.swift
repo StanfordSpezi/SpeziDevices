@@ -71,6 +71,9 @@ class PairedDevicesTests: XCTestCase {
         XCTAssert(app.buttons["Discover Device"].waitForExistence(timeout: 0.5))
         app.buttons["Discover Device"].tap()
 
+        XCTAssert(app.buttons["Add Device"].exists)
+        app.buttons["Add Device"].tap()
+
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
         XCTAssert(app.staticTexts["Do you want to pair \"Mock Device\" with the Example app?"].exists)
         XCTAssert(app.buttons["Pair"].exists)
@@ -81,17 +84,17 @@ class PairedDevicesTests: XCTestCase {
         XCTAssert(app.buttons["Done"].exists)
         app.buttons["Done"].tap()
 
-        XCTAssert(app.buttons["Mock Device, 85 %"].waitForExistence(timeout: 0.5))
-        app.buttons["Mock Device, 85 %"].tap()
+        XCTAssert(app.buttons["My Mock Device, 85 %"].waitForExistence(timeout: 0.5))
+        app.buttons["My Mock Device, 85 %"].tap()
 
         XCTAssert(app.navigationBars.staticTexts["Device Details"].waitForExistence(timeout: 2.0))
-        XCTAssert(app.buttons["Name, Mock Device"].exists)
+        XCTAssert(app.buttons["Name, My Mock Device"].exists)
         XCTAssert(app.staticTexts["Model, MD1"].exists)
         XCTAssert(app.staticTexts["Battery, 85 %"].exists)
         XCTAssert(app.buttons["Forget This Device"].exists)
         XCTAssert(app.staticTexts["Synchronizing ..."].exists) // assert device currently connected
 
-        app.buttons["Name, Mock Device"].tap()
+        app.buttons["Name, My Mock Device"].tap()
 
         XCTAssert(app.textFields["enter device name"].exists)
         app.textFields["enter device name"].tap()
@@ -102,11 +105,11 @@ class PairedDevicesTests: XCTestCase {
         XCTAssert(app.navigationBars.buttons["Done"].waitForExistence(timeout: 0.5))
         app.navigationBars.buttons["Done"].tap()
 
-        XCTAssert(app.staticTexts["Name, Mock Device2"].waitForExistence(timeout: 0.5))
+        XCTAssert(app.staticTexts["Name, My Mock Device2"].waitForExistence(timeout: 0.5))
         XCTAssert(app.navigationBars.buttons["Devices"].exists)
         app.navigationBars.buttons["Devices"].tap()
 
-        XCTAssert(app.buttons["Mock Device2, 85 %"].waitForExistence(timeout: 2.0))
+        XCTAssert(app.buttons["My Mock Device2, 85 %"].waitForExistence(timeout: 2.0))
 
         XCTAssert(app.navigationBars.buttons["More"].exists)
         app.navigationBars.buttons["More"].tap()
@@ -114,7 +117,7 @@ class PairedDevicesTests: XCTestCase {
         app.buttons["Disconnect"].tap()
         sleep(1)
 
-        app.buttons["Mock Device2, 85 %"].tap()
+        app.buttons["My Mock Device2, 85 %"].tap()
         XCTAssert(app.navigationBars.buttons["Devices"].waitForExistence(timeout: 2.0))
         app.navigationBars.buttons["Devices"].tap()
 
@@ -125,8 +128,8 @@ class PairedDevicesTests: XCTestCase {
         sleep(3)
 
 
-        XCTAssert(app.buttons["Mock Device2, 85 %"].waitForExistence(timeout: 0.5))
-        app.buttons["Mock Device2, 85 %"].tap()
+        XCTAssert(app.buttons["My Mock Device2, 85 %"].waitForExistence(timeout: 0.5))
+        app.buttons["My Mock Device2, 85 %"].tap()
 
         XCTAssert(app.buttons["Forget This Device"].waitForExistence(timeout: 2.0))
         app.buttons["Forget This Device"].tap()
@@ -151,6 +154,9 @@ class PairedDevicesTests: XCTestCase {
 
         XCTAssert(app.buttons["Discover Device"].waitForExistence(timeout: 0.5))
         app.buttons["Discover Device"].tap()
+
+        XCTAssert(app.buttons["Add Device"].exists)
+        app.buttons["Add Device"].tap()
 
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
         XCTAssert(app.buttons["Dismiss"].exists)
@@ -179,6 +185,9 @@ class PairedDevicesTests: XCTestCase {
         app.navigationBars.buttons["More"].tap()
         XCTAssert(app.buttons["Discover Device"].exists)
         app.buttons["Discover Device"].tap()
+
+        XCTAssert(app.buttons["Add Device"].exists)
+        app.buttons["Add Device"].tap()
 
         XCTAssert(app.staticTexts["Pair Accessory"].waitForExistence(timeout: 2.0))
         XCTAssert(app.buttons["Pair"].exists)

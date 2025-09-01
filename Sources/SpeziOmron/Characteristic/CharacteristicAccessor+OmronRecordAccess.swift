@@ -7,7 +7,8 @@
 //
 
 import SpeziBluetooth
-@_spi(APISupport) import SpeziBluetoothServices
+@_spi(APISupport)
+import SpeziBluetoothServices
 
 
 extension CharacteristicAccessor where Value == RecordAccessControlPoint<OmronRecordAccessOperand> {

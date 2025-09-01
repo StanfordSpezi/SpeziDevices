@@ -8,12 +8,14 @@
 
 import OSLog
 import SpeziBluetooth
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
 
 /// Accessory Setup view displayed in a sheet.
+@available(macOS, unavailable)
 public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHint: View>: View where Collection.Element == any PairableDevice {
     private static var logger: Logger {
         Logger(subsystem: "edu.stanford.sepzi.SpeziDevices", category: "AccessorySetupSheet")
@@ -23,9 +25,12 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHin
     private let appName: String
     private let pairingHint: PairingHint
 
-    @Environment(Bluetooth.self) private var bluetooth
-    @Environment(PairedDevices.self) private var pairedDevices
-    @Environment(\.dismiss) private var dismiss
+    @Environment(Bluetooth.self)
+    private var bluetooth
+    @Environment(PairedDevices.self)
+    private var pairedDevices
+    @Environment(\.dismiss)
+    private var dismiss
 
     @State private var pairingState: PairingViewState = .discovery
 
@@ -94,7 +99,7 @@ public struct AccessorySetupSheet<Collection: RandomAccessCollection, PairingHin
 }
 
 
-#if DEBUG
+#if DEBUG && !os(macOS)
 #Preview {
     Text(verbatim: "")
         .sheet(isPresented: .constant(true)) {

@@ -17,6 +17,16 @@
         }
       }
     },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
     "%@, Searching" : {
       "localizations" : {
         "de" : {
@@ -32,6 +42,9 @@
           }
         }
       }
+    },
+    "%lld %%, is charging" : {
+
     },
     "%lld BPM" : {
       "localizations" : {
@@ -81,6 +94,9 @@
         }
       }
     },
+    "About" : {
+
+    },
     "Accessory Paired" : {
       "localizations" : {
         "de" : {
@@ -112,6 +128,9 @@
           }
         }
       }
+    },
+    "at %@" : {
+
     },
     "Battery" : {
       "localizations" : {
@@ -256,6 +275,9 @@
           }
         }
       }
+    },
+    "Change" : {
+
     },
     "Connected" : {
       "localizations" : {
@@ -432,6 +454,9 @@
           }
         }
       }
+    },
+    "Failed to forget device" : {
+
     },
     "Failed to pair accessory." : {
       "localizations" : {
@@ -641,6 +666,16 @@
         }
       }
     },
+    "on %@ at %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "on %1$@ at %2$@"
+          }
+        }
+      }
+    },
     "Open Settings" : {
       "localizations" : {
         "de" : {
@@ -817,7 +852,14 @@
         }
       }
     },
+    "This accessory seems to not be managed by the AccessorySetupKit!" : {
+
+    },
+    "This device was last seen %@." : {
+
+    },
     "This device was last seen at %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -834,6 +876,7 @@
       }
     },
     "This device was last seen on %@ at %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -865,6 +908,9 @@
         }
       }
     },
+    "Unsupported" : {
+
+    },
     "We have trouble with the Bluetooth communication. Please try again." : {
       "localizations" : {
         "de" : {
@@ -880,6 +926,9 @@
           }
         }
       }
+    },
+    "yesterday, %@" : {
+
     }
   },
   "version" : "1.0"
