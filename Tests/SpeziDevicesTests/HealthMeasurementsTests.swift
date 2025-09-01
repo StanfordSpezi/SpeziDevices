@@ -123,8 +123,8 @@ final class HealthMeasurementsTests: XCTestCase {
     func testMeasurementStorage() async throws {
         let measurements = HealthMeasurements()
 
-        measurements.configure() // init model container
-        try await Task.sleep(for: .milliseconds(50))
+        measurements.configure(inMemoryStorage: true) // init model container
+        await measurements.run() // load measurements
 
         measurements.loadMockWeightMeasurement()
         measurements.loadMockBloodPressureMeasurement()

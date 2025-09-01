@@ -83,7 +83,7 @@ import SwiftUI
 /// - ``pendingMeasurements``
 /// - ``discardMeasurement(_:)``
 @Observable
-public final class HealthMeasurements: @unchecked Sendable {
+public final class HealthMeasurements: ServiceModule, EnvironmentAccessible, DefaultInitializable, @unchecked Sendable {
 #if compiler(<6)
     public typealias WeightScaleKeyPath<Device> = KeyPath<Device, WeightScaleService>
     public typealias BloodPressureKeyPath<Device> = KeyPath<Device, BloodPressureService>
@@ -119,16 +119,27 @@ public final class HealthMeasurements: @unchecked Sendable {
         self.pendingMeasurements = measurements
     }
 
-    /// Configure the Module.
     @_documentation(visibility: internal)
     public func configure() {
-        let configuration: ModelConfiguration
+        let inMemoryStorage: Bool
 #if targetEnvironment(simulator)
-        configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        inMemoryStorage = true
 #else
-        let storageUrl = URL.documentsDirectory.appending(path: "edu.stanford.spezidevices.health-measurements.sqlite")
-        configuration = ModelConfiguration(url: storageUrl)
+        inMemoryStorage = false
 #endif
+        self.configure(inMemoryStorage: inMemoryStorage)
+    }
+
+    /// Configure the Module.
+    @_documentation(visibility: internal)
+    package func configure(inMemoryStorage: Bool) {
+        let configuration: ModelConfiguration
+        if inMemoryStorage {
+            configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+        } else {
+            let storageUrl = URL.documentsDirectory.appending(path: "edu.stanford.spezidevices.health-measurements.sqlite")
+            configuration = ModelConfiguration(url: storageUrl)
+        }
 
         do {
             self.modelContainer = try ModelContainer(for: StoredMeasurement.self, configurations: configuration)
@@ -137,11 +148,10 @@ public final class HealthMeasurements: @unchecked Sendable {
             self.logger.error("HealthMeasurements failed to initialize ModelContainer: \(error)")
             return
         }
+    }
 
-
-        Task.detached {
-            await self.fetchMeasurements()
-        }
+    public func run() async {
+        await self.fetchMeasurements()
     }
 
     /// Configure receiving and processing weight measurements from the provided service.
@@ -273,9 +283,6 @@ public final class HealthMeasurements: @unchecked Sendable {
         return true
     }
 }
-
-
-extension HealthMeasurements: Module, EnvironmentAccessible, DefaultInitializable {}
 
 
 extension HealthMeasurements {
