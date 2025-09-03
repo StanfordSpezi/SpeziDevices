@@ -6,26 +6,37 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+import SpeziBluetooth
+@_spi(Internal)
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziViews
 import SwiftUI
 
 
 /// Show the device details of a paired device.
 public struct DeviceDetailsView: View {
+    private enum Event {
+        case forgetDevice
+    }
+
     private let deviceInfo: PairedDeviceInfo
 
-    @Environment(\.dismiss) private var dismiss
-    @Environment(PairedDevices.self) private var pairedDevices
+    @Environment(\.dismiss)
+    private var dismiss
+    @Environment(PairedDevices.self)
+    private var pairedDevices
 
+    @State private var viewState: ViewState = .idle
     @State private var presentForgetConfirmation = false
+    @State private var events: (stream: AsyncStream<Event>, continuation: AsyncStream<Event>.Continuation) = AsyncStream.makeStream()
 
     private var image: Image {
         deviceInfo.icon?.image ?? Image(systemName: "sensor") // swiftlint:disable:this accessibility_label_for_image
     }
 
-    private var lastSeenToday: Bool {
-        Calendar.current.isDateInToday(deviceInfo.lastSeen)
+    private var shouldShowModelSeparately: Bool {
+        deviceInfo.managedByAccessorySetupKit && deviceInfo.model != nil && deviceInfo.model != deviceInfo.name
     }
 
     public var body: some View {
@@ -34,40 +45,68 @@ public struct DeviceDetailsView: View {
                 imageHeader
             }
 
-            DeviceInfoSection(deviceInfo: deviceInfo)
-
-            if let percentage = deviceInfo.lastBatteryPercentage {
+            if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
+                Section("Name") {
+                    AccessoryRenameButton(deviceInfo: deviceInfo)
+                }
+            } else {
                 Section {
-                    ListRow("Battery") {
-                        BatteryIcon(percentage: Int(percentage))
-                            .labelStyle(.reverse)
-                    }
+                    DeviceNameRow(deviceInfo: deviceInfo)
+                    DeviceModelRow(deviceInfo: deviceInfo)
+                }
+            }
+
+
+            if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
+                Section("About") {
+                    DeviceBatteryInfoRow(deviceInfo: deviceInfo)
+                    DeviceModelRow(deviceInfo: deviceInfo)
                 }
             }
 
             Section {
-                Button("Forget This Device") {
+                AsyncButton(state: $viewState) {
                     presentForgetConfirmation = true
+                } label: {
+                    Text("Forget This Device", bundle: .module)
                 }
             } footer: {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
-                    Text("Synchronizing ...")
-                } else if lastSeenToday {
-                    Text("This device was last seen at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text("Synchronizing ...", bundle: .module)
                 } else {
-                    Text("This device was last seen on \(Text(deviceInfo.lastSeen, style: .date)) at \(Text(deviceInfo.lastSeen, style: .time))")
+                    Text(
+                        "This device was last seen \(Text.deviceLastSeen(date: deviceInfo.lastSeen)).",
+                        bundle: .module
+                    )
                 }
             }
         }
-            .navigationTitle("Device Details")
+            .navigationTitle(Text("Device Details", bundle: .module))
+#if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
-            .confirmationDialog("Do you really want to forget this device?", isPresented: $presentForgetConfirmation, titleVisibility: .visible) {
-                Button("Forget Device", role: .destructive) {
-                    ForgetDeviceTip.hasRemovedPairedDevice = true
-                    pairedDevices.forgetDevice(id: deviceInfo.id)
-                    dismiss()
+#endif
+            .viewStateAlert(state: $viewState)
+            .task {
+                for await event in events.stream {
+                    switch event {
+                    case .forgetDevice:
+                        await self.handleForgetDevice()
+                    }
                 }
-                Button("Cancel", role: .cancel) {}
+
+                self.events = AsyncStream.makeStream() // make sure onAppear works repeatedly.
+            }
+            .confirmationDialog(
+                Text("Do you really want to forget this device?", bundle: .module),
+                isPresented: $presentForgetConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button(action: scheduleForgetDevice) {
+                    Text("Forget Device", bundle: .module)
+                }
+                Button(role: .cancel) {} label: {
+                    Text("Cancel", bundle: .module)
+                }
             }
             .toolbar {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
@@ -97,6 +136,37 @@ public struct DeviceDetailsView: View {
     public init(_ deviceInfo: PairedDeviceInfo) {
         self.deviceInfo = deviceInfo
     }
+
+    private func scheduleForgetDevice() {
+        events.continuation.yield(.forgetDevice)
+    }
+
+    private func handleForgetDevice() async {
+        guard case .idle = viewState else {
+            return
+        }
+
+        viewState = .processing
+
+        do {
+            let managedByAccessorySetupKit = if #available(iOS 18, visionOS 2, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
+                true
+            } else {
+                false
+            }
+            try await pairedDevices.forgetDevice(id: deviceInfo.id)
+            if !managedByAccessorySetupKit {
+                ForgetDeviceTip.hasRemovedPairedDevice = true
+            }
+            dismiss()
+            viewState = .idle
+        } catch {
+            viewState = .error(AnyLocalizedError(
+                error: error,
+                defaultErrorDescription: .init("Failed to forget device", bundle: .atURL(from: .module))
+            ))
+        }
+    }
 }
 
 
@@ -108,6 +178,7 @@ public struct DeviceDetailsView: View {
             deviceType: MockDevice.deviceTypeIdentifier,
             name: "Blood Pressure Monitor",
             model: "BP5250",
+            lastSeen: .now.addingTimeInterval(-120),
             batteryPercentage: 100
         ))
     }

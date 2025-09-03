@@ -9,7 +9,8 @@
 @_spi(TestingSupport) import ByteCoding
 import ByteCodingTesting
 import CoreBluetooth
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
 @_spi(TestingSupport) import SpeziDevices
 @_spi(TestingSupport) @testable import SpeziOmron

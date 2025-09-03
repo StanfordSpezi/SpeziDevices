@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziValidation
 import SwiftUI
 
@@ -15,7 +16,8 @@ struct NameEditView: View {
     private let deviceInfo: PairedDeviceInfo
     private let save: (String) -> Void
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     @State private var name: String
 
@@ -26,14 +28,20 @@ struct NameEditView: View {
             VerifiableTextField("enter device name", text: $name)
                 .validate(input: name, rules: [.nonEmpty, .deviceNameMaxLength])
                 .receiveValidation(in: $validation)
+#if !os(macOS)
                 .autocapitalization(.words)
+#endif
         }
-            .navigationTitle("Name")
+            .navigationTitle(Text("Name", bundle: .module))
+#if !os(macOS)
             .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
-                Button("Done") {
+                Button {
                     save(name)
                     dismiss()
+                } label: {
+                    Text("Done", bundle: .module)
                 }
                     .disabled(deviceInfo.name == name || !validation.allInputValid)
             }
@@ -52,7 +60,7 @@ extension ValidationRule {
     static var deviceNameMaxLength: ValidationRule {
         ValidationRule(rule: { input in
             input.count <= 50
-        }, message: "The device name cannot be longer than 50 characters.")
+        }, message: .init("The device name cannot be longer than 50 characters.", bundle: .atURL(from: .module)))
     }
 }
 

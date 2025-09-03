@@ -10,30 +10,32 @@ import SwiftUI
 
 
 struct DevicesUnavailableView: View {
-    @Binding private var presentingDevicePairing: Bool
+    private let pairNewDevice: (() -> Void)?
 
     var body: some View {
         ContentUnavailableView {
-            Text("No Devices")
+            Text("No Devices", bundle: .module)
                 .fontWeight(.semibold)
         } description: {
-            Text("Paired devices will appear here once set up.")
+            Text("Paired devices will appear here once set up.", bundle: .module)
         } actions: {
-            Button("Pair New Device") {
-                presentingDevicePairing = true
+            if let pairNewDevice {
+                Button(action: pairNewDevice) {
+                    Text("Pair New Device", bundle: .module)
+                }
             }
         }
     }
 
 
-    init(presentingDevicePairing: Binding<Bool>) {
-        self._presentingDevicePairing = presentingDevicePairing
+    init(showPairing pairNewDevice: (() -> Void)?) {
+        self.pairNewDevice = pairNewDevice
     }
 }
 
 
 #if DEBUG
 #Preview {
-    DevicesUnavailableView(presentingDevicePairing: .constant(false))
+    DevicesUnavailableView {}
 }
 #endif

@@ -84,7 +84,8 @@ extension BloodPressureMeasurement {
 
 extension HKCorrelation {
     /// Retrieve a mock blood pressure sample.
-    @_spi(TestingSupport) public static var mockBloodPressureSample: HKCorrelation {
+    @_spi(TestingSupport)
+    public static var mockBloodPressureSample: HKCorrelation {
         let dateTime = DateTime(from: .now)
         let measurement = BloodPressureMeasurement(
             systolic: 117,
@@ -103,7 +104,8 @@ extension HKCorrelation {
 
 extension HKQuantitySample {
     /// Retrieve a mock heart rate sample.
-    @_spi(TestingSupport) public static var mockHeartRateSample: HKQuantitySample {
+    @_spi(TestingSupport)
+    public static var mockHeartRateSample: HKQuantitySample {
         let dateTime = DateTime(from: .now)
         let measurement = BloodPressureMeasurement(
             systolic: 117,

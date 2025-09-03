@@ -42,7 +42,7 @@ struct ConfirmMeasurementButton: View {
     var body: some View {
         VStack {
             AsyncButton(state: $viewState, action: confirm) {
-                Text("Save")
+                Text("Save", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
                     .font(.title2)
                     .bold()
@@ -55,7 +55,7 @@ struct ConfirmMeasurementButton: View {
         }
     }
 
-    init(viewState: Binding<ViewState>, confirm: @escaping @MainActor () async throws -> Void, discard: @escaping () -> Void) {
+    init(viewState: Binding<ViewState>, confirm: @MainActor @escaping () async throws -> Void, discard: @escaping () -> Void) {
         self._viewState = viewState
         self.confirm = confirm
         self.discard = discard

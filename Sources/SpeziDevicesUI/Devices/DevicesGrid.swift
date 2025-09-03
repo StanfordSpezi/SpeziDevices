@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SwiftUI
 import TipKit
 
@@ -14,7 +15,7 @@ import TipKit
 /// Grid view of paired devices.
 public struct DevicesGrid: View {
     private let devices: [PairedDeviceInfo]? // swiftlint:disable:this discouraged_optional_collection
-    @Binding private var presentingDevicePairing: Bool
+    private let pairNewDevice: (() -> Void)?
 
     @State private var detailedDeviceInfo: PairedDeviceInfo?
 
@@ -29,19 +30,14 @@ public struct DevicesGrid: View {
         Group {
             if let devices {
                 if devices.isEmpty {
-                    ZStack {
-                        VStack {
-                            TipView(ForgetDeviceTip.instance)
-                                .padding([.leading, .trailing], 20)
-                            Spacer()
-                        }
-                        DevicesUnavailableView(presentingDevicePairing: $presentingDevicePairing)
-                    }
+                    emptyDevices
                 } else {
                     ScrollView(.vertical) {
                         VStack(spacing: 16) {
                             TipView(ForgetDeviceTip.instance)
+#if canImport(UIKit)
                                 .tipBackground(Color(uiColor: .secondarySystemGroupedBackground))
+#endif
 
                             LazyVGrid(columns: gridItems) {
                                 ForEach(devices) { device in
@@ -56,7 +52,9 @@ public struct DevicesGrid: View {
                         }
                         .padding([.leading, .trailing], 20)
                     }
+#if canImport(UIKit)
                     .background(Color(uiColor: .systemGroupedBackground))
+#endif
                 }
             } else {
                 ProgressView()
@@ -66,6 +64,17 @@ public struct DevicesGrid: View {
                 DeviceDetailsView(deviceInfo)
             }
     }
+    
+    private var emptyDevices: some View {
+        ZStack {
+            VStack {
+                TipView(ForgetDeviceTip.instance)
+                    .padding([.leading, .trailing], 20)
+                Spacer()
+            }
+            DevicesUnavailableView(showPairing: pairNewDevice)
+        }
+    }
 
 
     /// Create a new devices grid.
@@ -73,10 +82,31 @@ public struct DevicesGrid: View {
     ///   - devices: The list of paired devices to display.
     ///   - presentingDevicePairing: Binding to indicate if the device discovery menu should be presented.
     ///     The view shows an `ContentUnavailableView` if no paired devices exists and uses the binding to provide an action that present device pairing.
+    @available(*, deprecated, message: "Please migrate to the new closure-based init(devices:showPairing:) initializer.")
     public init(devices: [PairedDeviceInfo]?, presentingDevicePairing: Binding<Bool>) {
         // swiftlint:disable:previous discouraged_optional_collection
+        self.init(devices: devices) {
+            presentingDevicePairing.wrappedValue = true
+        }
+    }
+    
+    /// Create a new devices grid.
+    /// - Parameter devices: The list of paired devices to display.
+    public init(devices: [PairedDeviceInfo]?) {
+        // swiftlint:disable:previous discouraged_optional_collection
         self.devices = devices
-        self._presentingDevicePairing = presentingDevicePairing
+        self.pairNewDevice = nil
+    }
+    
+    /// Create a new devices grid.
+    /// - Parameters:
+    ///   - devices: The list of paired devices to display.
+    ///   - pairNewDevice: Action that is called if the user request to pair a new device. This might be used to present a "Pair New Device" action in the
+    ///     content unavailable view.
+    public init(devices: [PairedDeviceInfo]?, showPairing pairNewDevice: @escaping () -> Void) {
+        // swiftlint:disable:previous discouraged_optional_collection
+        self.devices = devices
+        self.pairNewDevice = pairNewDevice
     }
 }
 
@@ -84,7 +114,7 @@ public struct DevicesGrid: View {
 #if DEBUG
 #Preview {
     NavigationStack {
-        DevicesGrid(devices: [], presentingDevicePairing: .constant(false))
+        DevicesGrid(devices: []) {}
     }
         .previewWith {
             PairedDevices()
@@ -98,7 +128,7 @@ public struct DevicesGrid: View {
     ]
 
     return NavigationStack {
-        DevicesGrid(devices: devices, presentingDevicePairing: .constant(false))
+        DevicesGrid(devices: devices) {}
     }
         .previewWith {
             PairedDevices()

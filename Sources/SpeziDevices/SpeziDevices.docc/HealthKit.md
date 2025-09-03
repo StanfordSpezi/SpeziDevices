@@ -33,7 +33,7 @@ Use methods like ``SpeziBluetoothServices/BloodPressureMeasurement/bloodPressure
 ``SpeziBluetoothServices/WeightMeasurement/weightSample(source:resolution:)`` to convert these measurements to their respective HealthKit Sample
 representation.
 
-> Tip: By using the [`resource`](https://swiftpackageindex.com/stanfordbdhg/healthkitonfhir/documentation/healthkitonfhir/healthkit/hksample/resource)
+> Tip: By using the [`resource`](https://swiftpackageindex.com/stanfordbdhg/healthkitonfhir/0.2.15/documentation/healthkitonfhir/healthkit/hksample/resource)
     provided through [`HealthKitOnFHIR`](https://swiftpackageindex.com/StanfordBDHG/HealthKitOnFHIR/documentation/healthkitonfhir) you can convert
     your Bluetooth measurements to [HL7 FHIR Observation Resources](http://hl7.org/fhir/R4/observation.html).
 

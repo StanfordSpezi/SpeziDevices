@@ -9,8 +9,10 @@
 import CoreBluetooth
 import Foundation
 import OSLog
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
+@_spi(Migration)
 import SpeziDevices
 import SpeziNumerics
 
@@ -25,21 +27,30 @@ import SpeziNumerics
 /// - Note: It is likely that other Omron Blood Pressure Cuffs are also supported with this implementation. However, they will be displayed with a generic device icon
 ///   in `SpeziDevicesUI` related components.
 public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronHealthDevice, BatteryPoweredDevice, @unchecked Sendable {
-    public static var assets: [DeviceAsset] {
-        [
-            .name("BP5250", .asset("Omron-BP5250", bundle: .module)),
-            .name("EVOLV", .asset("Omron-EVOLV", bundle: .module)),
-            .name("BP7000", .asset("Omron-BP7000", bundle: .module))
-        ]
-    }
+    public static let appearance: DeviceAppearance = .variants(defaultAppearance: Appearance(name: "Omron Blood Pressure Cuff"), variants: [
+        Variant(
+            id: "omron-bp5250",
+            name: "BP5250",
+            icon: .asset("Omron-BP5250", bundle: .module),
+            criteria: .nameSubstring("BLEsmart_00000160"),
+            .manufacturer(.omronHealthcareCoLtd)
+        ),
+        Variant(id: "omron-evolv", name: "EVOLV", icon: .asset("Omron-EVOLV", bundle: .module), criteria: .nameSubstring("BLEsmart_0000021F")),
+        Variant(id: "omron-bp7000", name: "BP7000", icon: .asset("Omron-BP7000", bundle: .module), criteria: .nameSubstring("BLEsmart_0000011F"))
+    ])
 
     private let logger = Logger(subsystem: "ENGAGEHF", category: "BloodPressureCuffDevice")
 
-    @DeviceState(\.id) public var id: UUID
-    @DeviceState(\.name) public var name: String?
-    @DeviceState(\.state) public var state: PeripheralState
-    @DeviceState(\.advertisementData) public var advertisementData: AdvertisementData
-    @DeviceState(\.nearby) public var nearby
+    @DeviceState(\.id)
+    public var id: UUID
+    @DeviceState(\.name)
+    public var name: String?
+    @DeviceState(\.state)
+    public var state: PeripheralState
+    @DeviceState(\.advertisementData)
+    public var advertisementData: AdvertisementData
+    @DeviceState(\.nearby)
+    public var nearby
 
     @Service public var deviceInformation = DeviceInformationService()
 
@@ -47,11 +58,15 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
     @Service public var battery = BatteryService()
     @Service public var bloodPressure = BloodPressureService()
 
-    @DeviceAction(\.connect) public var connect
-    @DeviceAction(\.disconnect) public var disconnect
+    @DeviceAction(\.connect)
+    public var connect
+    @DeviceAction(\.disconnect)
+    public var disconnect
 
-    @Dependency(HealthMeasurements.self) private var measurements: HealthMeasurements?
-    @Dependency(PairedDevices.self) private var pairedDevices: PairedDevices?
+    @Dependency(HealthMeasurements.self)
+    private var measurements: HealthMeasurements?
+    @Dependency(PairedDevices.self)
+    private var pairedDevices: PairedDevices?
 
     @SpeziBluetooth private var didReceiveFirstTimeNotification = false
 
@@ -80,7 +95,7 @@ public final class OmronBloodPressureCuff: BluetoothDevice, Identifiable, OmronH
 
     @SpeziBluetooth
     private func handleStateChange(_ state: PeripheralState) {
-        logger.debug("\(Self.self) changed state to \(state).")
+        logger.debug("\(Self.self) \(self.label), \(self.id) changed state to \(state).")
         switch state {
         case .connecting, .connected:
             break
@@ -231,5 +246,15 @@ extension OmronBloodPressureCuff {
         }
 
         return device
+    }
+}
+
+
+@_spi(Migration)
+extension OmronBloodPressureCuff: DeviceVariantMigration {
+    public static func selectAppearance(for deviceInfo: PairedDeviceInfo) -> (appearance: Appearance, variantId: String?) {
+        appearance.appearance { variant in
+            variant.name == deviceInfo.model
+        }
     }
 }

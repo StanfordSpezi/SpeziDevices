@@ -257,7 +257,7 @@ only_rules:
   # Objective-C attribute (@objc) is redundant in declaration.
   - redundant_objc_attribute
   # Initializing an optional variable with nil is redundant.
-  - redundant_optional_initialization
+  - implicit_optional_initialization
   # Property setter access level shouldn't be explicit if it's the same as the variable access level.
   - redundant_set_access_control
   # String enum values can be omitted when they are equal to the enumcase name.
@@ -366,13 +366,6 @@ only_rules:
   - xctfail_message
   # The variable should be placed on the left, the constant on the right of a comparison operator.
   - yoda_condition
-
-attributes:
-  attributes_with_arguments_always_on_line_above: false
-
-deployment_target: # Availability checks or attributes shouldn’t be using older versions that are satisfied by the deployment target.
-  iOSApplicationExtension_deployment_target: 16.0
-  iOS_deployment_target: 16.0
 
 excluded: # paths to ignore during linting. Takes precedence over `included`.
   - .build

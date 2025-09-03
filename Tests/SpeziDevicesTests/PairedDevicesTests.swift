@@ -6,9 +6,11 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziBluetooth
+@_spi(TestingSupport)
+import SpeziBluetooth
 import SpeziBluetoothServices
-@_spi(TestingSupport) @testable import SpeziDevices
+@_spi(TestingSupport)
+@testable import SpeziDevices
 import SpeziFoundation
 import SpeziTesting
 import Testing
@@ -28,6 +30,8 @@ struct PairedDevicesTests {
             devices
         }
 
+        async let _ = devices.run() // make sure lifecycle runs
+
         device.isInPairingMode = true
 
 
@@ -35,6 +39,8 @@ struct PairedDevicesTests {
         #expect(!devices.isPaired(device))
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         try await devices.pair(with: device)
 
@@ -47,9 +53,9 @@ struct PairedDevicesTests {
 
         #expect(deviceInfo.id == device.id)
         #expect(deviceInfo.deviceType == MockDevice.deviceTypeIdentifier)
-        #expect(deviceInfo.icon == nil)
+        #expect(deviceInfo.icon == .system("sensor"))
         #expect(deviceInfo.model == device.deviceInformation.modelNumber)
-        #expect(deviceInfo.name == device.name)
+        #expect(deviceInfo.name == "My Mock Device") // ensure this uses the appearance name
         #expect(deviceInfo.lastBatteryPercentage == 85)
 
         let initialLastSeen = deviceInfo.lastSeen
@@ -88,8 +94,8 @@ struct PairedDevicesTests {
         #expect(device.state == .connected)
 
 
-        devices.forgetDevice(id: device.id)
-        try await Task.sleep(for: .milliseconds(50))
+        try await devices.forgetDevice(id: device.id)
+        try await Task.sleep(for: .milliseconds(500))
         
         #expect(device.state == .disconnected)
         #expect(devices.pairedDevices?.isEmpty == true)
@@ -106,6 +112,7 @@ struct PairedDevicesTests {
         }
 
         device.isInPairingMode = true
+        devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 
         device.$nearby.inject(false)
         let error = await #expect(throws: DevicePairingError.self) { try await devices.pair(with: device) }
@@ -121,6 +128,9 @@ struct PairedDevicesTests {
         let error2 = await #expect(throws: DevicePairingError.self) { try await devices.pair(with: device) }
         #expect(error2 == .notInPairingMode)
         device.isInPairingMode = true
+        device.$advertisementData.inject(.init())
+
+        try await Task.sleep(for: .milliseconds(200))
 
         try await #require(throws: TimeoutError.self) { try await devices.pair(with: device, timeout: .milliseconds(200)) }
     }
@@ -135,6 +145,9 @@ struct PairedDevicesTests {
         }
 
         device.isInPairingMode = true
+        devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         let task = Task {
             try await devices.pair(with: device)
@@ -142,7 +155,7 @@ struct PairedDevicesTests {
 
         try await Task.sleep(for: .milliseconds(50))
         task.cancel()
-
+        
         await #expect(throws: CancellationError.self) { try await task.value }
 
         #expect(device.state == .disconnected)
@@ -161,6 +174,8 @@ struct PairedDevicesTests {
         device.isInPairingMode = true
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
+
+        try await Task.sleep(for: .milliseconds(50))
 
         let task = Task {
             try await devices.pair(with: device)

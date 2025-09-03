@@ -8,13 +8,15 @@
 
 import HealthKit
 import Spezi
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SpeziDevicesUI
 import SwiftUI
 
 
 struct MeasurementsTestView: View {
-    @Environment(HealthMeasurements.self) private var healthMeasurements
+    @Environment(HealthMeasurements.self)
+    private var healthMeasurements
 
     @State private var samples: [HKSample] = []
     @State private var hideUnavailableView = false

@@ -6,7 +6,8 @@
 // SPDX-License-Identifier: MIT
 //
 
-@_spi(TestingSupport) import SpeziDevices
+@_spi(TestingSupport)
+import SpeziDevices
 import SwiftUI
 
 
@@ -14,16 +15,20 @@ struct PairedDeviceView: View {
     private let device: any PairableDevice
     private let appName: String
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss)
+    private var dismiss
 
     var body: some View {
-        PaneContent(title: "Accessory Paired", subtitle: "\"\(device.label)\" was successfully paired with the \(appName) app.") {
+        PaneContent(
+            title: .init("Accessory Paired", bundle: .module),
+            subtitle: .init("\"\(device.label)\" was successfully paired with the \(appName) app.", bundle: .module)
+        ) {
             AccessoryImageView(device)
         } action: {
             Button {
                 dismiss()
             } label: {
-                Text("Done")
+                Text("Done", bundle: .module)
                     .frame(maxWidth: .infinity, maxHeight: 35)
             }
             .buttonStyle(.borderedProminent)

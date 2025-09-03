@@ -57,7 +57,11 @@ class BluetoothViewsTests: XCTestCase {
         XCTAssert(app.buttons["Views"].waitForExistence(timeout: 2.0))
         app.buttons["Views"].tap()
 
-        XCTAssert(app.staticTexts["DEVICES"].exists)
+        if ProcessInfo().operatingSystemVersion.majorVersion >= 26 {
+            XCTAssert(app.staticTexts["Devices"].exists)
+        } else {
+            XCTAssert(app.staticTexts["DEVICES"].exists)
+        }
 
         XCTAssert(app.staticTexts["Mock Device"].exists)
         app.staticTexts["Mock Device"].tap()
