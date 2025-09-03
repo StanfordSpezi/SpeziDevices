@@ -10,8 +10,8 @@ import HealthKit
 @_spi(TestingSupport)
 import SpeziBluetooth
 import SpeziBluetoothServices
-import Testing
 @_spi(TestingSupport) @testable import SpeziDevices
+import Testing
 
 
 @MainActor

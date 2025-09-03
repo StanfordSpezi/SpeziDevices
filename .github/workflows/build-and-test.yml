@@ -31,6 +31,8 @@ jobs:
             destination: 'platform=iOS Simulator,name=iPhone 16 Pro'
           - name: visionOS
             destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
+          - name: macOS
+            destination: 'platform=macOS,arch=arm64'
       fail-fast: false
     with:
       runsonlabels: '["macOS", "self-hosted"]'
