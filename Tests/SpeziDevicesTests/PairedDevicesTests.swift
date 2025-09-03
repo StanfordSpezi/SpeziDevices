@@ -13,11 +13,11 @@ import SpeziFoundation
 import SpeziTesting
 import Testing
 
+@MainActor
 @Suite
 struct PairedDevicesTests {
-    @MainActor
     @Test
-    func testPairDevice() async throws {
+    func pairDevice() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -96,9 +96,8 @@ struct PairedDevicesTests {
         #expect(devices.discoveredDevices.isEmpty)
     }
 
-    @MainActor
     @Test
-    func testPairingErrors() async throws {
+    func pairingErrors() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -123,12 +122,11 @@ struct PairedDevicesTests {
         #expect(error2 == .notInPairingMode)
         device.isInPairingMode = true
 
-        await #expect(throws: TimeoutError.self) { try await devices.pair(with: device, timeout: .milliseconds(200)) }
+        try await #require(throws: TimeoutError.self) { try await devices.pair(with: device, timeout: .milliseconds(200)) }
     }
     
-    @MainActor
     @Test
-    func testPairingCancellation() async throws {
+    func pairingCancellation() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -150,9 +148,8 @@ struct PairedDevicesTests {
         #expect(device.state == .disconnected)
     }
 
-    @MainActor
     @Test
-    func testFailedPairing() async throws {
+    func failedPairing() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 

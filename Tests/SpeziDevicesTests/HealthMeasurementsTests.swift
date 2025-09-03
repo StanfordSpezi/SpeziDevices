@@ -13,11 +13,11 @@ import SpeziBluetoothServices
 import Testing
 
 
+@MainActor
 @Suite
 final class HealthMeasurementsTests {
-    @MainActor
     @Test
-    func testReceivingWeightMeasurements() async throws {
+    func receivingWeightMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connecting, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
@@ -68,9 +68,8 @@ final class HealthMeasurementsTests {
         #expect(height.device?.name == "Mock Device")
     }
 
-    @MainActor
     @Test
-    func testReceivingBloodPressureMeasurements() async throws {
+    func receivingBloodPressureMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
@@ -120,9 +119,8 @@ final class HealthMeasurementsTests {
         #expect(diastolic.device?.name == "Mock Device")
     }
 
-    @MainActor
     @Test
-    func testMeasurementStorage() async throws {
+    func measurementStorage() async throws {
         let measurements = HealthMeasurements()
 
         measurements.configure() // init model container
@@ -147,9 +145,8 @@ final class HealthMeasurementsTests {
         }
     }
 
-    @MainActor
     @Test
-    func testDiscardingMeasurements() async throws {
+    func discardingMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
@@ -188,7 +185,8 @@ final class HealthMeasurementsTests {
         }
     }
 
-    func testBluetoothMeasurementCodable() throws { // swiftlint:disable:this function_body_length
+    @Test
+    func bluetoothMeasurementCodable() throws { // swiftlint:disable:this function_body_length
         let weightMeasurement =
             """
             {

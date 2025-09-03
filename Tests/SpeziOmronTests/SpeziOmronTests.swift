@@ -21,7 +21,7 @@ typealias RACP = RecordAccessControlPoint<OmronRecordAccessOperand>
 @Suite
 struct SpeziOmronTests {
     @Test
-    func testModelCodable() throws {
+    func modelCodable() throws {
         let string = "\"SC-150\""
         let data = try #require(string.data(using: .utf8))
         let decoded = try JSONDecoder().decode(OmronModel.self, from: data)
@@ -29,7 +29,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testOmronManufacturerData() throws {
+    func omronManufacturerData() throws {
         try testIdentity(from: OmronManufacturerData(
             timeSet: true,
             pairingMode: .pairingMode,
@@ -76,7 +76,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testOmronHealthDevice() throws {
+    func omronHealthDevice() throws {
         let manufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [.init(id: 1, sequenceNumber: 3, recordsNumber: 8)])
         
         let device = MockDevice.createMockDevice()
@@ -96,7 +96,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testTimeUpdateOnFirstNotificationBP() async throws {
+    func timeUpdateOnFirstNotificationBP() async throws {
         let device = OmronBloodPressureCuff.createMockDevice(state: .connecting, simulateRealDevice: true)
         
         var currentTime: CurrentTime?
@@ -116,7 +116,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testTimeUpdateOnFirstNotificationScale() async throws {
+    func timeUpdateOnFirstNotificationScale() async throws {
         let device = OmronWeightScale.createMockDevice(state: .connecting, simulateRealDevice: true)
         
         var currentTime: CurrentTime?
@@ -136,7 +136,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testRACPReportStoredRecords() throws {
+    func reportStoredRecords() throws {
         try testIdentity(from: RACP.reportStoredRecords(.allRecords))
         try testIdentity(from: RACP.reportStoredRecords(.lastRecord))
         try testIdentity(from: RACP.reportStoredRecords(.firstRecord))
@@ -149,7 +149,7 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testRACPReportNumberOfStoredRecords() throws {
+    func reportNumberOfStoredRecords() throws {
         try testIdentity(from: RACP.reportNumberOfStoredRecords(.allRecords))
         try testIdentity(from: RACP.reportNumberOfStoredRecords(.lastRecord))
         try testIdentity(from: RACP.reportNumberOfStoredRecords(.firstRecord))
@@ -161,14 +161,14 @@ struct SpeziOmronTests {
     }
     
     @Test
-    func testRACPNumberOfLatestRecords() throws {
+    func numberOfLatestRecords() throws {
         try testIdentity(from: RACP.reportSequenceNumberOfLatestRecords())
         
         try testIdentity(of: RACP.self, from: #require(Data(hex: "0x1100FFFF"))) // Response
     }
     
     @Test
-    func testRACPReportRecordsRequest() async throws {
+    func reportRecordsRequest() async throws {
         let service = OmronOptionService()
         
         service.$recordAccessControlPoint.onRequest { _ in
@@ -183,12 +183,14 @@ struct SpeziOmronTests {
                 operand: .generalResponse(.init(requestOpCode: .reportStoredRecords, response: .noRecordsFound))
             )
         }
-        let error = await #expect(throws: RecordAccessResponseCode.self) { try await service.reportStoredRecords(.allRecords) }
+        let error = try await #require(throws: RecordAccessResponseCode.self) {
+            try await service.reportStoredRecords(.allRecords)
+        }
         #expect(error == .noRecordsFound)
     }
     
     @Test
-    func testRACPReportNumberOfStoredRecordsRequest() async throws {
+    func reportNumberOfStoredRecordsRequest() async throws {
         let service = OmronOptionService()
         
         service.$recordAccessControlPoint.onRequest { _ in
@@ -201,12 +203,14 @@ struct SpeziOmronTests {
         service.$recordAccessControlPoint.onRequest { _ in
             RACP(opCode: .numberOfStoredRecordsResponse, operator: .null, operand: .sequenceNumber(1234))
         }
-        let error = await #expect(throws: RecordAccessResponseFormatError.self) { try await service.reportNumberOfStoredRecords(.allRecords) }
-        #expect(error?.reason == .unexpectedOperand)
+        let error = try await #require(throws: RecordAccessResponseFormatError.self) {
+            try await service.reportNumberOfStoredRecords(.allRecords)
+        }
+        #expect(error.reason == .unexpectedOperand)
     }
     
     @Test
-    func testRACPReportSequenceNumberOfLatestRecords() async throws {
+    func reportSequenceNumberOfLatestRecords() async throws {
         let service = OmronOptionService()
         
         service.$recordAccessControlPoint.onRequest { _ in
@@ -220,12 +224,14 @@ struct SpeziOmronTests {
             RACP(opCode: .omronSequenceNumberOfLatestRecordsResponse, operator: .null, operand: .numberOfRecords(1234))
         }
         
-        let error = await #expect(throws: RecordAccessResponseFormatError.self) { try await service.reportSequenceNumberOfLatestRecords() }
-        #expect(error?.reason == .unexpectedOperand)
+        let error = try await #require(throws: RecordAccessResponseFormatError.self) {
+            try await service.reportSequenceNumberOfLatestRecords()
+        }
+        #expect(error.reason == .unexpectedOperand)
     }
     
     @Test
-    func testOmronLocalNames() throws {
+    func omronLocalNames() throws {
         let sc150 = try #require(OmronLocalName(rawValue: "BLESmart_00010112F974C431DBE2"))
         #expect(sc150.pairingMode == .transferMode)
         #expect(sc150.model.rawValue == "00010112")
