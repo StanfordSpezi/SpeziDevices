@@ -348,7 +348,7 @@ public final class PairedDevices: ServiceModule {
     @available(iOS 18, *)
     public func showAccessoryMigration() {
 #if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
-        guard #available(iOS 18, *), let accessorySetup else {
+        guard accessorySetup != nil else {
             logger.error("AccessorySetupKit is unavailable on the platform or not configured.")
             return
         }
