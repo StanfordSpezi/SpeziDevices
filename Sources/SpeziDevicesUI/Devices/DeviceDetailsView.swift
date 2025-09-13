@@ -70,6 +70,18 @@ public struct DeviceDetailsView: View {
                 } label: {
                     Text("Forget This Device", bundle: .module)
                 }
+                .confirmationDialog(
+                    Text("Do you really want to forget this device?", bundle: .module),
+                    isPresented: $presentForgetConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button(role: .destructive, action: scheduleForgetDevice) {
+                        Text("Forget Device", bundle: .module)
+                    }
+                    Button(role: .cancel) {} label: {
+                        Text("Cancel", bundle: .module)
+                    }
+                }
             } footer: {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
                     Text("Synchronizing ...", bundle: .module)
@@ -95,18 +107,6 @@ public struct DeviceDetailsView: View {
                 }
 
                 self.events = AsyncStream.makeStream() // make sure onAppear works repeatedly.
-            }
-            .confirmationDialog(
-                Text("Do you really want to forget this device?", bundle: .module),
-                isPresented: $presentForgetConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button(action: scheduleForgetDevice) {
-                    Text("Forget Device", bundle: .module)
-                }
-                Button(role: .cancel) {} label: {
-                    Text("Cancel", bundle: .module)
-                }
             }
             .toolbar {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
