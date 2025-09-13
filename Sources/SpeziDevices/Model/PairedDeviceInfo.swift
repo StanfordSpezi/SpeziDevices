@@ -59,7 +59,7 @@ public final class PairedDeviceInfo {
         _accessory != nil
     }
 
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
     /// Access the underlying `ASAccessory`.
     @available(iOS 18.0, *)
     public internal(set) var accessory: ASAccessory? {

@@ -79,7 +79,7 @@ struct AccessoryRenameButton: View {
     }
 
     private func _renameAccessory() async throws {
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
         guard let accessory = deviceInfo.accessory else {
             throw MissingAccessory()
         }

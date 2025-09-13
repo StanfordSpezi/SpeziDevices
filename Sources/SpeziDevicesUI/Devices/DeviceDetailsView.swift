@@ -149,11 +149,16 @@ public struct DeviceDetailsView: View {
         viewState = .processing
 
         do {
+            #if !targetEnvironment(macCatalyst)
             let managedByAccessorySetupKit = if #available(iOS 18, visionOS 2, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 true
             } else {
                 false
             }
+            #else
+            let managedByAccessorySetupKit = false
+            #endif
+            
             try await pairedDevices.forgetDevice(id: deviceInfo.id)
             if !managedByAccessorySetupKit {
                 ForgetDeviceTip.hasRemovedPairedDevice = true
