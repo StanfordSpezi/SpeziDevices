@@ -41,29 +41,7 @@ public struct DeviceDetailsView: View {
 
     public var body: some View {
         List {
-            Section {
-                imageHeader
-            }
-
-            if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
-                Section("Name") {
-                    AccessoryRenameButton(deviceInfo: deviceInfo)
-                }
-            } else {
-                Section {
-                    DeviceNameRow(deviceInfo: deviceInfo)
-                    DeviceModelRow(deviceInfo: deviceInfo)
-                }
-            }
-
-
-            if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
-                Section("About") {
-                    DeviceBatteryInfoRow(deviceInfo: deviceInfo)
-                    DeviceModelRow(deviceInfo: deviceInfo)
-                }
-            }
-
+            deviceInformation
             Section {
                 AsyncButton(state: $viewState) {
                     presentForgetConfirmation = true
@@ -115,6 +93,30 @@ public struct DeviceDetailsView: View {
                     }
                 }
             }
+    }
+    
+    @ViewBuilder private var deviceInformation: some View {
+        Section {
+            imageHeader
+        }
+
+        if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
+            Section("Name") {
+                AccessoryRenameButton(deviceInfo: deviceInfo)
+            }
+        } else {
+            Section {
+                DeviceNameRow(deviceInfo: deviceInfo)
+                DeviceModelRow(deviceInfo: deviceInfo)
+            }
+        }
+
+        if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
+            Section("About") {
+                DeviceBatteryInfoRow(deviceInfo: deviceInfo)
+                DeviceModelRow(deviceInfo: deviceInfo)
+            }
+        }
     }
 
     @ViewBuilder private var imageHeader: some View {

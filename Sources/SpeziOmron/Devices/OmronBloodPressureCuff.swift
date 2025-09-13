@@ -151,7 +151,7 @@ extension OmronBloodPressureCuff {
         systolic: MedFloat16 = 103,
         diastolic: MedFloat16 = 64,
         pulseRate: MedFloat16 = 62,
-        name: String = "BP5250",
+        name: String = "BLEsmart_00000160",
         state: PeripheralState = .disconnected,
         nearby: Bool = true,
         manufacturerData: OmronManufacturerData = OmronManufacturerData(pairingMode: .pairingMode, users: [
