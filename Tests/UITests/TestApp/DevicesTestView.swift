@@ -47,7 +47,7 @@ struct DevicesTestView: View {
         manufacturerData: .omronManufacturerData(mode: .transferMode)
     )
     @State private var bloodPressureCuffBP7000 = OmronBloodPressureCuff.createMockDevice(
-        name: "BP7000",
+        name: "BLEsmart_0000011F",
         manufacturerData: .omronManufacturerData(mode: .transferMode)
     )
 

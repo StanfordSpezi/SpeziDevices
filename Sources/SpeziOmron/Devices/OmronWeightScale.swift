@@ -144,7 +144,7 @@ extension OmronWeightScale {
         let device = OmronWeightScale()
 
         device.$id.inject(UUID())
-        device.$name.inject("SC-150")
+        device.$name.inject("BLESmart_00010112")
         device.$state.inject(state)
         device.$nearby.inject(nearby)
 

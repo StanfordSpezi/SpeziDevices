@@ -28,9 +28,11 @@ jobs:
         config: [Debug, Release]
         platform:
           - name: iOS
-            destination: 'platform=iOS Simulator,name=iPhone 16 Pro'
+            destination: 'platform=iOS Simulator,name=iPhone 17 Pro'
           - name: macOS
             destination: 'platform=macOS,arch=arm64'
+          - name: 'Mac Catalyst'
+            destination: 'platform=macOS,arch=arm64,variant=Mac Catalyst'
           - name: visionOS
             destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
       fail-fast: false
@@ -49,7 +51,7 @@ jobs:
         config: [Debug, Release]
         platform:
           - name: iOS
-            destination: 'platform=iOS Simulator,name=iPhone 16 Pro'
+            destination: 'platform=iOS Simulator,name=iPhone 17 Pro'
       fail-fast: false
     with:
       runsonlabels: '["macOS", "self-hosted"]'

@@ -214,7 +214,7 @@ public final class PairedDevices: ServiceModule {
     /// Initialize the Paired Devices Module.
     public required init() {
         self.internalEvents = AsyncStream.makeStream()
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
         if #available(iOS 18, *) {
             if AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 __accessorySetup = Dependency {
@@ -256,7 +256,7 @@ public final class PairedDevices: ServiceModule {
 
         var powerUpUsingASKit = false
 
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
         if #available(iOS 18, *) {
             if accessorySetup != nil {
                 powerUpUsingASKit = true
@@ -276,7 +276,7 @@ public final class PairedDevices: ServiceModule {
                 break
             }
 
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
             // power up accessory setup kit after we determined the migration state
             if #available(iOS 18, *) {
                 setupAccessoryChangeSubscription()
@@ -330,7 +330,7 @@ public final class PairedDevices: ServiceModule {
     /// which should be used to present the `AccessorySetupSheet` from `SpeziDevicesUI`.
     @MainActor
     public func showAccessoryDiscovery() {
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
         if #available(iOS 18, *), accessorySetup != nil {
             showAccessorySetupPicker()
         } else {
@@ -347,8 +347,8 @@ public final class PairedDevices: ServiceModule {
     @MainActor
     @available(iOS 18, *)
     public func showAccessoryMigration() {
-#if canImport(AccessorySetupKit) && !os(macOS)
-        guard #available(iOS 18, *), let accessorySetup else {
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
+        guard accessorySetup != nil else {
             logger.error("AccessorySetupKit is unavailable on the platform or not configured.")
             return
         }
@@ -657,7 +657,7 @@ extension PairedDevices {
     /// Forget a paired device.
     /// - Parameter id: The Bluetooth peripheral identifier of a paired device.
     public func forgetDevice(id: UUID) async throws {
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
         let externallyManaged: Bool
         if #available(iOS 18, *) {
             if let accessorySetup,
@@ -850,7 +850,7 @@ extension PairedDevices {
         accessorySetup?.pickerPresented ?? false
     }
 
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
     /// Retrieve the `ASAccessory` for a device identifier.
     /// - Parameter deviceId: The identifier for a paired bluetooth device.
     /// - Returns: The accessory or `nil` if the device is not managed by the AccessorySetupKit.
@@ -1196,7 +1196,7 @@ extension Bluetooth {
         return nil
     }
 
-#if canImport(AccessorySetupKit) && !os(macOS)
+#if canImport(AccessorySetupKit) && !os(macOS) && !targetEnvironment(macCatalyst)
     @available(iOS 18, *)
     fileprivate nonisolated func pairableDevice(matches discoveryDescriptor: ASDiscoveryDescriptor) -> (any PairableDevice.Type)? {
         for descriptor in self.configuration {
