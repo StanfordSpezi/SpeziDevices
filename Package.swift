@@ -31,9 +31,8 @@ let package = Package(
         .package(url: "https://github.com/StanfordSpezi/SpeziFoundation.git", from: "2.1.8"),
         .package(url: "https://github.com/StanfordSpezi/Spezi.git", from: "1.9.1"),
         .package(url: "https://github.com/StanfordSpezi/SpeziViews.git", from: "1.8.0"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", from: "3.3.2"),
-        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking.git", from: "2.1.1"),
-        .package(url: "https://github.com/StanfordBDHG/XCTestExtensions.git", from: "1.0.0")
+        .package(url: "https://github.com/StanfordSpezi/SpeziBluetooth.git", from: "3.3.0"),
+        .package(url: "https://github.com/StanfordSpezi/SpeziNetworking.git", from: "2.3.0")
     ] + swiftLintPackage(),
     targets: [
         .target(
@@ -80,8 +79,7 @@ let package = Package(
                 .product(name: "SpeziFoundation", package: "SpeziFoundation"),
                 .product(name: "SpeziTesting", package: "Spezi"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth"),
-                .product(name: "XCTestExtensions", package: "XCTestExtensions")
+                .product(name: "SpeziBluetoothServices", package: "SpeziBluetooth")
             ],
             plugins: [] + swiftLintPlugin()
         ),
@@ -90,8 +88,7 @@ let package = Package(
             dependencies: [
                 .target(name: "SpeziOmron"),
                 .product(name: "SpeziBluetooth", package: "SpeziBluetooth"),
-                .product(name: "XCTByteCoding", package: "SpeziNetworking"),
-                .product(name: "XCTestExtensions", package: "XCTestExtensions")
+                .product(name: "ByteCodingTesting", package: "SpeziNetworking")
             ],
             plugins: [] + swiftLintPlugin()
         )

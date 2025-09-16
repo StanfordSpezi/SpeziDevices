@@ -13,13 +13,13 @@ import SpeziBluetoothServices
 @testable import SpeziDevices
 import SpeziFoundation
 import SpeziTesting
-import XCTest
-import XCTestExtensions
+import Testing
 
-
-final class PairedDevicesTests: XCTestCase {
-    @MainActor
-    func testPairDevice() async throws {
+@MainActor
+@Suite
+struct PairedDevicesTests {
+    @Test
+    func pairDevice() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -35,8 +35,8 @@ final class PairedDevicesTests: XCTestCase {
         device.isInPairingMode = true
 
 
-        XCTAssertFalse(devices.isConnected(device: device.id))
-        XCTAssertFalse(devices.isPaired(device))
+        #expect(!devices.isConnected(device: device.id))
+        #expect(!devices.isPaired(device))
 
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 
@@ -45,18 +45,18 @@ final class PairedDevicesTests: XCTestCase {
         try await devices.pair(with: device)
 
 
-        XCTAssertTrue(devices.isPaired(device))
-        XCTAssertTrue(devices.isConnected(device: device.id))
+        #expect(devices.isPaired(device))
+        #expect(devices.isConnected(device: device.id))
 
-        XCTAssertEqual(devices.pairedDevices?.count, 1)
-        let deviceInfo = try XCTUnwrap(devices.pairedDevices?.first)
+        #expect(devices.pairedDevices?.count == 1)
+        let deviceInfo = try #require(devices.pairedDevices?.first)
 
-        XCTAssertEqual(deviceInfo.id, device.id)
-        XCTAssertEqual(deviceInfo.deviceType, MockDevice.deviceTypeIdentifier)
-        XCTAssertEqual(deviceInfo.icon, .system("sensor"))
-        XCTAssertEqual(deviceInfo.model, device.deviceInformation.modelNumber)
-        XCTAssertEqual(deviceInfo.name, "My Mock Device") // ensure this uses the appearance name
-        XCTAssertEqual(deviceInfo.lastBatteryPercentage, 85)
+        #expect(deviceInfo.id == device.id)
+        #expect(deviceInfo.deviceType == MockDevice.deviceTypeIdentifier)
+        #expect(deviceInfo.icon == .system("sensor"))
+        #expect(deviceInfo.model == device.deviceInformation.modelNumber)
+        #expect(deviceInfo.name == "My Mock Device") // ensure this uses the appearance name
+        #expect(deviceInfo.lastBatteryPercentage == 85)
 
         let initialLastSeen = deviceInfo.lastSeen
 
@@ -64,46 +64,46 @@ final class PairedDevicesTests: XCTestCase {
         await device.disconnect()
         device.$nearby.inject(false)
 
-        XCTAssertEqual(device.state, .disconnected)
+        #expect(device.state == .disconnected)
 
         try await Task.sleep(for: .milliseconds(50))
 
 
-        XCTAssertTrue(deviceInfo.lastSeen > initialLastSeen) // should be later and updated on disconnect
-        XCTAssertEqual(deviceInfo.lastBatteryPercentage, 71) // should have captured the updated battery
+        #expect(deviceInfo.lastSeen > initialLastSeen) // should be later and updated on disconnect
+        #expect(deviceInfo.lastBatteryPercentage == 71) // should have captured the updated battery
 
 
         devices.updateName(for: deviceInfo, name: "Custom Name")
-        XCTAssertEqual(deviceInfo.name, "Custom Name")
+        #expect(deviceInfo.name == "Custom Name")
 
         let recentLastSeen = deviceInfo.lastSeen
 
         // test storage persistence!
         try devices.refreshPairedDevices()
         try {
-            XCTAssertEqual(devices.pairedDevices?.count, 1)
-            let info0 = try XCTUnwrap(devices.pairedDevices?.first)
-            XCTAssertEqual(info0.name, "Custom Name")
-            XCTAssertEqual(info0.lastBatteryPercentage, 71)
-            XCTAssertEqual(info0.lastSeen, recentLastSeen)
+            #expect(devices.pairedDevices?.count == 1)
+            let info0 = try #require(devices.pairedDevices?.first)
+            #expect(info0.name == "Custom Name")
+            #expect(info0.lastBatteryPercentage == 71)
+            #expect(info0.lastSeen == recentLastSeen)
         }()
 
 
         try await device.connect()
         try await Task.sleep(for: .seconds(1.1))
-        XCTAssertEqual(device.state, .connected)
+        #expect(device.state == .connected)
 
 
         try await devices.forgetDevice(id: device.id)
         try await Task.sleep(for: .milliseconds(500))
-
-        XCTAssertEqual(device.state, .disconnected)
-        XCTAssertEqual(devices.pairedDevices?.isEmpty, true)
-        XCTAssertTrue(devices.discoveredDevices.isEmpty)
+        
+        #expect(device.state == .disconnected)
+        #expect(devices.pairedDevices?.isEmpty == true)
+        #expect(devices.discoveredDevices.isEmpty)
     }
 
-    @MainActor
-    func testPairingErrors() async throws {
+    @Test
+    func pairingErrors() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -115,33 +115,28 @@ final class PairedDevicesTests: XCTestCase {
         devices.configure(device: device, accessing: device.$state, device.$advertisementData, device.$nearby)
 
         device.$nearby.inject(false)
-        try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
-            XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .invalidState)
-        }
+        let error = await #expect(throws: DevicePairingError.self) { try await devices.pair(with: device) }
+        #expect(error == .invalidState)
         device.$nearby.inject(true)
 
         try await device.connect()
-        try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
-            XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .invalidState)
-        }
+        let error1 = await #expect(throws: DevicePairingError.self) { try await devices.pair(with: device) }
+        #expect(error1 == .invalidState)
         await device.disconnect()
 
         device.isInPairingMode = false
-        try await XCTAssertThrowsErrorAsync(await devices.pair(with: device)) { error in
-            XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .notInPairingMode)
-        }
+        let error2 = await #expect(throws: DevicePairingError.self) { try await devices.pair(with: device) }
+        #expect(error2 == .notInPairingMode)
         device.isInPairingMode = true
         device.$advertisementData.inject(.init())
 
         try await Task.sleep(for: .milliseconds(200))
 
-        try await XCTAssertThrowsErrorAsync(await devices.pair(with: device, timeout: .milliseconds(200))) { error in
-            XCTAssertTrue(error is TimeoutError, "Unexpected error \(error)")
-        }
+        try await #require(throws: TimeoutError.self) { try await devices.pair(with: device, timeout: .milliseconds(200)) }
     }
-
-    @MainActor
-    func testPairingCancellation() async throws {
+    
+    @Test
+    func pairingCancellation() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -160,16 +155,14 @@ final class PairedDevicesTests: XCTestCase {
 
         try await Task.sleep(for: .milliseconds(50))
         task.cancel()
+        
+        await #expect(throws: CancellationError.self) { try await task.value }
 
-        try await XCTAssertThrowsErrorAsync(await task.value) { error in
-            XCTAssertTrue(error is CancellationError, "Unexpected error: \(error)")
-        }
-
-        XCTAssertEqual(device.state, .disconnected)
+        #expect(device.state == .disconnected)
     }
 
-    @MainActor
-    func testFailedPairing() async throws {
+    @Test
+    func failedPairing() async throws {
         let device = MockDevice.createMockDevice()
         let devices = PairedDevices()
 
@@ -191,10 +184,9 @@ final class PairedDevicesTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(1150))
         await device.disconnect()
 
-        try await XCTAssertThrowsErrorAsync(await task.value) { error in
-            XCTAssertEqual(try XCTUnwrap(error as? DevicePairingError), .deviceDisconnected)
-        }
+        let error = await #expect(throws: DevicePairingError.self) { try await task.value }
+        #expect(error == .deviceDisconnected)
 
-        XCTAssertEqual(device.state, .disconnected)
+        #expect(device.state == .disconnected)
     }
 }

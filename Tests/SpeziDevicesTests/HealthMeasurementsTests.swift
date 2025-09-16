@@ -12,19 +12,21 @@ import SpeziBluetooth
 import SpeziBluetoothServices
 @_spi(TestingSupport)
 @testable import SpeziDevices
-import XCTest
+import Testing
 
 
-final class HealthMeasurementsTests: XCTestCase {
-    @MainActor
-    func testReceivingWeightMeasurements() async throws {
+@MainActor
+@Suite
+final class HealthMeasurementsTests {
+    @Test
+    func receivingWeightMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connecting, weightMeasurement: .mock(additionalInfo: .init(bmi: 230, height: 1790)))
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
         // just inject the same value again to trigger on change!
-        let measurement = try XCTUnwrap(device.weightScale.weightMeasurement)
+        let measurement = try #require(device.weightScale.weightMeasurement)
         device.weightScale.$weightMeasurement.inject(measurement) // first measurement should be ignored in connecting state!
 
         try await Task.sleep(for: .milliseconds(50))
@@ -33,94 +35,94 @@ final class HealthMeasurementsTests: XCTestCase {
 
         try await Task.sleep(for: .milliseconds(50))
 
-        XCTAssertTrue(measurements.shouldPresentMeasurements)
-        XCTAssertEqual(measurements.pendingMeasurements.count, 1)
+        #expect(measurements.shouldPresentMeasurements)
+        #expect(measurements.pendingMeasurements.count == 1)
 
-        let weightMeasurement = try XCTUnwrap(measurements.pendingMeasurements.first)
+        let weightMeasurement = try #require(measurements.pendingMeasurements.first)
         guard case let .weight(sample, bmi0, height0) = weightMeasurement else {
-            XCTFail("Unexpected type of measurement: \(weightMeasurement)")
+            Issue.record("Unexpected type of measurement: \(weightMeasurement)")
             return
         }
 
-        let bmi = try XCTUnwrap(bmi0)
-        let height = try XCTUnwrap(height0)
-        let expectedDate = try XCTUnwrap(device.weightScale.weightMeasurement?.timeStamp?.date)
+        let bmi = try #require(bmi0)
+        let height = try #require(height0)
+        let expectedDate = try #require(device.weightScale.weightMeasurement?.timeStamp?.date)
 
-        XCTAssertEqual(weightMeasurement.samples, [sample, bmi, height])
+        #expect(weightMeasurement.samples == [sample, bmi, height])
 
-        XCTAssertEqual(sample.quantityType, HKQuantityType(.bodyMass))
-        XCTAssertEqual(sample.startDate, expectedDate)
-        XCTAssertEqual(sample.endDate, sample.startDate)
-        XCTAssertEqual(sample.quantity.doubleValue(for: .gramUnit(with: .kilo)), 42.0)
-        XCTAssertEqual(sample.device?.name, "Mock Device")
+        #expect(sample.quantityType == HKQuantityType(.bodyMass))
+        #expect(sample.startDate == expectedDate)
+        #expect(sample.endDate == sample.startDate)
+        #expect(sample.quantity.doubleValue(for: .gramUnit(with: .kilo)) == 42.0)
+        #expect(sample.device?.name == "Mock Device")
 
 
-        XCTAssertEqual(bmi.quantityType, HKQuantityType(.bodyMassIndex))
-        XCTAssertEqual(bmi.startDate, expectedDate)
-        XCTAssertEqual(bmi.endDate, sample.startDate)
-        XCTAssertEqual(bmi.quantity.doubleValue(for: .count()), 23)
-        XCTAssertEqual(bmi.device?.name, "Mock Device")
+        #expect(bmi.quantityType == HKQuantityType(.bodyMassIndex))
+        #expect(bmi.startDate == expectedDate)
+        #expect(bmi.endDate == sample.startDate)
+        #expect(bmi.quantity.doubleValue(for: .count()) == 23)
+        #expect(bmi.device?.name == "Mock Device")
 
-        XCTAssertEqual(height.quantityType, HKQuantityType(.height))
-        XCTAssertEqual(height.startDate, expectedDate)
-        XCTAssertEqual(height.endDate, sample.startDate)
-        XCTAssertEqual(height.quantity.doubleValue(for: .meterUnit(with: .centi)), 179.0)
-        XCTAssertEqual(height.device?.name, "Mock Device")
+        #expect(height.quantityType == HKQuantityType(.height))
+        #expect(height.startDate == expectedDate)
+        #expect(height.endDate == sample.startDate)
+        #expect(height.quantity.doubleValue(for: .meterUnit(with: .centi)) == 179.0)
+        #expect(height.device?.name == "Mock Device")
     }
 
-    @MainActor
-    func testReceivingBloodPressureMeasurements() async throws {
+    @Test
+    func receivingBloodPressureMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
 
         // just inject the same value again to trigger on change!
-        let measurement = try XCTUnwrap(device.bloodPressure.bloodPressureMeasurement)
+        let measurement = try #require(device.bloodPressure.bloodPressureMeasurement)
         device.bloodPressure.$bloodPressureMeasurement.inject(measurement)
 
         try await Task.sleep(for: .milliseconds(50))
 
-        XCTAssertTrue(measurements.shouldPresentMeasurements)
-        XCTAssertEqual(measurements.pendingMeasurements.count, 1)
+        #expect(measurements.shouldPresentMeasurements)
+        #expect(measurements.pendingMeasurements.count == 1)
 
-        let bloodPressureMeasurement = try XCTUnwrap(measurements.pendingMeasurements.first)
+        let bloodPressureMeasurement = try #require(measurements.pendingMeasurements.first)
         guard case let .bloodPressure(sample, heartRate0) = bloodPressureMeasurement else {
-            XCTFail("Unexpected type of measurement: \(bloodPressureMeasurement)")
+            Issue.record("Unexpected type of measurement: \(bloodPressureMeasurement)")
             return
         }
 
-        let heartRate = try XCTUnwrap(heartRate0)
-        let expectedDate = try XCTUnwrap(device.weightScale.weightMeasurement?.timeStamp?.date)
+        let heartRate = try #require(heartRate0)
+        let expectedDate = try #require(device.weightScale.weightMeasurement?.timeStamp?.date)
 
-        XCTAssertEqual(bloodPressureMeasurement.samples, [sample, heartRate])
+        #expect(bloodPressureMeasurement.samples == [sample, heartRate])
 
 
-        XCTAssertEqual(heartRate.quantityType, HKQuantityType(.heartRate))
-        XCTAssertEqual(heartRate.startDate, expectedDate)
-        XCTAssertEqual(heartRate.endDate, sample.startDate)
-        XCTAssertEqual(heartRate.quantity.doubleValue(for: .count().unitDivided(by: .minute())), 62)
-        XCTAssertEqual(heartRate.device?.name, "Mock Device")
+        #expect(heartRate.quantityType == HKQuantityType(.heartRate))
+        #expect(heartRate.startDate == expectedDate)
+        #expect(heartRate.endDate == sample.startDate)
+        #expect(heartRate.quantity.doubleValue(for: .count().unitDivided(by: .minute())) == 62)
+        #expect(heartRate.device?.name == "Mock Device")
 
-        XCTAssertEqual(sample.objects.count, 2)
-        let systolic = try XCTUnwrap(sample.objects(for: HKQuantityType(.bloodPressureSystolic)).first as? HKQuantitySample)
-        let diastolic = try XCTUnwrap(sample.objects(for: HKQuantityType(.bloodPressureDiastolic)).first as? HKQuantitySample)
+        #expect(sample.objects.count == 2)
+        let systolic = try #require(sample.objects(for: HKQuantityType(.bloodPressureSystolic)).first as? HKQuantitySample)
+        let diastolic = try #require(sample.objects(for: HKQuantityType(.bloodPressureDiastolic)).first as? HKQuantitySample)
 
-        XCTAssertEqual(systolic.quantityType, HKQuantityType(.bloodPressureSystolic))
-        XCTAssertEqual(systolic.startDate, expectedDate)
-        XCTAssertEqual(systolic.endDate, sample.startDate)
-        XCTAssertEqual(systolic.quantity.doubleValue(for: .millimeterOfMercury()), 103.0)
-        XCTAssertEqual(systolic.device?.name, "Mock Device")
+        #expect(systolic.quantityType == HKQuantityType(.bloodPressureSystolic))
+        #expect(systolic.startDate == expectedDate)
+        #expect(systolic.endDate == sample.startDate)
+        #expect(systolic.quantity.doubleValue(for: .millimeterOfMercury()) == 103.0)
+        #expect(systolic.device?.name == "Mock Device")
 
-        XCTAssertEqual(diastolic.quantityType, HKQuantityType(.bloodPressureDiastolic))
-        XCTAssertEqual(diastolic.startDate, expectedDate)
-        XCTAssertEqual(diastolic.endDate, sample.startDate)
-        XCTAssertEqual(diastolic.quantity.doubleValue(for: .millimeterOfMercury()), 64.0)
-        XCTAssertEqual(diastolic.device?.name, "Mock Device")
+        #expect(diastolic.quantityType == HKQuantityType(.bloodPressureDiastolic))
+        #expect(diastolic.startDate == expectedDate)
+        #expect(diastolic.endDate == sample.startDate)
+        #expect(diastolic.quantity.doubleValue(for: .millimeterOfMercury()) == 64.0)
+        #expect(diastolic.device?.name == "Mock Device")
     }
 
-    @MainActor
-    func testMeasurementStorage() async throws {
+    @Test
+    func measurementStorage() async throws {
         let measurements = HealthMeasurements()
 
         measurements.configure(inMemoryStorage: true) // init model container
@@ -129,63 +131,64 @@ final class HealthMeasurementsTests: XCTestCase {
         measurements.loadMockWeightMeasurement()
         measurements.loadMockBloodPressureMeasurement()
 
-        XCTAssertEqual(measurements.pendingMeasurements.count, 2)
+        #expect(measurements.pendingMeasurements.count == 2)
 
         try measurements.refreshFetchingMeasurements() // clear pending measurements and fetch again from storage
         try await Task.sleep(for: .milliseconds(50))
 
-        XCTAssertEqual(measurements.pendingMeasurements.count, 2)
+        #expect(measurements.pendingMeasurements.count == 2)
         // tests that order stays same over storage retrieval
 
         // Restoring from disk doesn't preserve HealthKit UUIDs
         guard case .bloodPressure = measurements.pendingMeasurements.first,
               case .weight = measurements.pendingMeasurements.last else {
-            XCTFail("Order of measurements doesn't match: \(measurements.pendingMeasurements)")
+            Issue.record("Order of measurements doesn't match: \(measurements.pendingMeasurements)")
             return
         }
     }
 
-    @MainActor
-    func testDiscardingMeasurements() async throws {
+    @Test
+    func discardingMeasurements() async throws {
         let device = MockDevice.createMockDevice(state: .connected)
         let measurements = HealthMeasurements()
 
         measurements.configureReceivingMeasurements(for: device, on: \.bloodPressure)
         measurements.configureReceivingMeasurements(for: device, on: \.weightScale)
 
-        let measurement1 = try XCTUnwrap(device.weightScale.weightMeasurement)
+        let measurement1 = try #require(device.weightScale.weightMeasurement)
         device.weightScale.$weightMeasurement.inject(measurement1)
 
         try await Task.sleep(for: .milliseconds(50))
 
-        let measurement0 = try XCTUnwrap(device.bloodPressure.bloodPressureMeasurement)
+        let measurement0 = try #require(device.bloodPressure.bloodPressureMeasurement)
         device.bloodPressure.$bloodPressureMeasurement.inject(measurement0)
 
         try await Task.sleep(for: .milliseconds(50))
 
-        XCTAssertTrue(measurements.shouldPresentMeasurements)
-        XCTAssertEqual(measurements.pendingMeasurements.count, 2)
+        #expect(measurements.shouldPresentMeasurements)
+        #expect(measurements.pendingMeasurements.count == 2)
 
-        let bloodPressureMeasurement = try XCTUnwrap(measurements.pendingMeasurements.first)
+        let bloodPressureMeasurement = try #require(measurements.pendingMeasurements.first)
 
         // measurements are prepended
         guard case .bloodPressure = bloodPressureMeasurement else {
-            XCTFail("Unexpected type of measurement: \(bloodPressureMeasurement)")
+            Issue.record("Unexpected type of measurement: \(bloodPressureMeasurement)")
             return
         }
 
         measurements.discardMeasurement(bloodPressureMeasurement)
-        XCTAssertTrue(measurements.shouldPresentMeasurements)
-        XCTAssertEqual(measurements.pendingMeasurements.count, 1)
+        #expect(measurements.shouldPresentMeasurements)
+        #expect(measurements.pendingMeasurements.count == 1)
 
-        let weightMeasurement = try XCTUnwrap(measurements.pendingMeasurements.first)
+        let weightMeasurement = try #require(measurements.pendingMeasurements.first)
         guard case .weight = weightMeasurement else {
-            XCTFail("Unexpected type of measurement: \(weightMeasurement)")
+            Issue.record("Unexpected type of measurement: \(weightMeasurement)")
             return
         }
     }
 
-    func testBluetoothMeasurementCodable() throws { // swiftlint:disable:this function_body_length
+    @Test
+    func bluetoothMeasurementCodable() throws { // swiftlint:disable:this function_body_length
         let weightMeasurement =
             """
             {
@@ -216,20 +219,20 @@ final class HealthMeasurementsTests: XCTestCase {
 
         let decoder = JSONDecoder()
 
-        let weightData = try XCTUnwrap(weightMeasurement.data(using: .utf8))
-        let pressureData = try XCTUnwrap(bloodPressureMeasurement.data(using: .utf8))
+        let weightData = try #require(weightMeasurement.data(using: .utf8))
+        let pressureData = try #require(bloodPressureMeasurement.data(using: .utf8))
 
         let decodedWeight = try decoder.decode(BluetoothHealthMeasurement.self, from: weightData)
         let decodedPressure = try decoder.decode(BluetoothHealthMeasurement.self, from: pressureData)
 
         let dateTime = DateTime(year: 2024, month: .june, day: 5, hours: 12, minutes: 33, seconds: 11)
-        XCTAssertEqual(
-            decodedWeight,
+        #expect(
+            decodedWeight ==
             .weight(.init(weight: 8400, unit: .si, timeStamp: dateTime), [.bmiSupported, .multipleUsersSupported])
         )
 
-        XCTAssertEqual(
-            decodedPressure,
+        #expect(
+            decodedPressure ==
             .bloodPressure(
                 .init(
                     systolic: 103,
