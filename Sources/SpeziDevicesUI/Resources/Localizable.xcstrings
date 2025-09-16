@@ -6,7 +6,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "„%1$@“ wurde erfolgreich zu der %2$@ App hinzugefügt."
+            "value" : "\"%1$@\" wurde erfolgreich mit der %2$@-App gekoppelt."
           }
         },
         "en" : {
@@ -14,14 +14,44 @@
             "state" : "new",
             "value" : "\"%1$@\" was successfully paired with the %2$@ app."
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%1$@\" se emparejó correctamente con la aplicación %2$@."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%1$@\" har kopplats till appen %2$@."
+          }
         }
       }
     },
     "%@, %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@, %2$@"
           }
         }
@@ -32,48 +62,63 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@, Suchen"
+            "value" : "%@, Suche läuft"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@, Searching"
+            "value" : "%@, Buscando"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, Söker"
           }
         }
       }
     },
     "%lld %%, is charging" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld %%, wird geladen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld %%, cargando"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld %%, laddar"
+          }
+        }
+      }
     },
     "%lld BPM" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld BPM"
+            "value" : "%lld S/min"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld BPM"
-          }
-        }
-      }
-    },
-    "%lld cm" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld cm"
+            "value" : "%lld lpm"
           }
         },
-        "en" : {
+        "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld cm"
+            "value" : "%lld slag/min"
           }
         }
       }
@@ -83,7 +128,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld/%lld mmHg"
+            "value" : "%1$lld/%2$lld mmHg"
           }
         },
         "en" : {
@@ -91,24 +136,61 @@
             "state" : "new",
             "value" : "%1$lld/%2$lld mmHg"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld mmHg"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld mmHg"
+          }
         }
       }
     },
     "About" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Info"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acerca de"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om"
+          }
+        }
+      }
     },
     "Accessory Paired" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zubehör Hinzugefügt"
+            "value" : "Zubehör gekoppelt"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Accessory Paired"
+            "value" : "Accesorio emparejado"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tillbehör kopplat"
           }
         }
       }
@@ -118,19 +200,44 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gerät Hinzufügen"
+            "value" : "Gerät hinzufügen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add Device"
+            "value" : "Agregar dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lägg till enhet"
           }
         }
       }
     },
     "at %@" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "um %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "a las %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "kl. %@"
+          }
+        }
+      }
     },
     "Battery" : {
       "localizations" : {
@@ -140,10 +247,16 @@
             "value" : "Batterie"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Battery"
+            "value" : "Batería"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batteri"
           }
         }
       }
@@ -153,13 +266,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Fehler"
+            "value" : "Bluetooth-Fehler"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Failure"
+            "value" : "Error de Bluetooth"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth-fel"
           }
         }
       }
@@ -169,13 +288,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is erforderlich um sich mit Geräten in der Nähe zu verbinden. Bitte erlaube Bluetooth Verbindungen in deinen Privatsphäre Einstellungen."
+            "value" : "Bluetooth ist erforderlich, um eine Verbindung zu Geräten in der Nähe herzustellen. ..."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is required to make connections to a nearby device. Please allow Bluetooth connections in your Privacy settings."
+            "value" : "Se requiere Bluetooth para conectar dispositivos cercanos. ..."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth krävs för att ansluta till enheter i närheten. ..."
           }
         }
       }
@@ -185,13 +310,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is ausgeschalten. Bitte schalte Bluetooth im Kontrollzentrum oder den Einstellungen ein, um dich mit einem Gerät zu verbinden."
+            "value" : "Bluetooth ist ausgeschaltet. ..."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is turned off. Please turn on Bluetooth in Control Center or Settings, in order to connect to a nearby device."
+            "value" : "Bluetooth está apagado. ..."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth är avstängt. ..."
           }
         }
       }
@@ -201,13 +332,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is nicht unterstützt auf diesem Gerät!"
+            "value" : "Bluetooth wird auf diesem Gerät nicht unterstützt!"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth is unsupported on this device!"
+            "value" : "¡Bluetooth no es compatible con este dispositivo!"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth stöds inte på den här enheten!"
           }
         }
       }
@@ -217,13 +354,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Ausgeschalten"
+            "value" : "Bluetooth aus"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Off"
+            "value" : "Bluetooth apagado"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth av"
           }
         }
       }
@@ -233,13 +376,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Eingeschränkt"
+            "value" : "Bluetooth verboten"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Prohibited"
+            "value" : "Bluetooth prohibido"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth förbjudet"
           }
         }
       }
@@ -252,10 +401,16 @@
             "value" : "Bluetooth nicht unterstützt"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bluetooth Unsupported"
+            "value" : "Bluetooth no compatible"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bluetooth stöds ej"
           }
         }
       }
@@ -268,16 +423,41 @@
             "value" : "Abbrechen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cancel"
+            "value" : "Cancelar"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbryt"
           }
         }
       }
     },
     "Change" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ändern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ändra"
+          }
+        }
+      }
     },
     "Connected" : {
       "localizations" : {
@@ -287,10 +467,16 @@
             "value" : "Verbunden"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connected"
+            "value" : "Conectado"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansluten"
           }
         }
       }
@@ -300,13 +486,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verbinde"
+            "value" : "Verbindungsaufbau"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Connecting"
+            "value" : "Conectando"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansluter"
           }
         }
       }
@@ -316,13 +508,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geräte Details"
+            "value" : "Gerätedetails"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device Details"
+            "value" : "Detalles del dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhetsdetaljer"
           }
         }
       }
@@ -335,10 +533,16 @@
             "value" : "Geräte"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Devices"
+            "value" : "Dispositivos"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enheter"
           }
         }
       }
@@ -351,10 +555,16 @@
             "value" : "Verwerfen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discard"
+            "value" : "Descartar"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kasta"
           }
         }
       }
@@ -364,13 +574,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nicht verbunden"
+            "value" : "Trennen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disconnecting"
+            "value" : "Desconectando"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopplar från"
           }
         }
       }
@@ -380,13 +596,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suche"
+            "value" : "Suche läuft"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discovering"
+            "value" : "Descubriendo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upptäcker"
           }
         }
       }
@@ -396,13 +618,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willst du dieses Gerät wirklich ignorieren?"
+            "value" : "Möchten Sie dieses Gerät wirklich entfernen?"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Do you really want to forget this device?"
+            "value" : "¿Realmente desea olvidar este dispositivo?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vill du verkligen glömma den här enheten?"
           }
         }
       }
@@ -412,13 +640,25 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Willst du das Gerät %1$@ zur der %2$@ App hinzufügen?"
+            "value" : "Möchten Sie %1$@ mit der %2$@-App koppeln?"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Do you want to pair %1$@ with the %2$@ app?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Desea emparejar %1$@ con la aplicación %2$@?"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vill du koppla %1$@ till appen %2$@?"
           }
         }
       }
@@ -431,10 +671,16 @@
             "value" : "Fertig"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Done"
+            "value" : "Hecho"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klar"
           }
         }
       }
@@ -444,32 +690,63 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gerätename"
+            "value" : "Gerätenamen eingeben"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "enter device name"
+            "value" : "Ingrese el nombre del dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange enhetsnamn"
           }
         }
       }
     },
     "Failed to forget device" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerät konnte nicht entfernt werden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo olvidar el dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunde inte glömma enheten"
+          }
+        }
+      }
     },
     "Failed to pair accessory." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hinzufügen des Zubehörs fehlgeschlagen."
+            "value" : "Koppeln des Zubehörs fehlgeschlagen."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to pair accessory."
+            "value" : "Error al emparejar el accesorio."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppling av tillbehör misslyckades."
           }
         }
       }
@@ -479,13 +756,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gerät ignorieren"
+            "value" : "Gerät entfernen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forget Device"
+            "value" : "Olvidar dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glöm enhet"
           }
         }
       }
@@ -495,13 +778,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dieses Gerät ignorieren"
+            "value" : "Dieses Gerät entfernen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forget This Device"
+            "value" : "Olvidar este dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glöm den här enheten"
           }
         }
       }
@@ -511,13 +800,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gerät vollständig Entkoppeln"
+            "value" : "Gerät vollständig entkoppeln"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fully Unpair Device"
+            "value" : "Desemparejar completamente el dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppla från enhet helt"
           }
         }
       }
@@ -530,10 +825,16 @@
             "value" : "Eingriff erforderlich"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Intervention Required"
+            "value" : "Se requiere intervención"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Åtgärd krävs"
           }
         }
       }
@@ -543,13 +844,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ungültige Messung"
+            "value" : "Ungültige Probe"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid Sample"
+            "value" : "Muestra no válida"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogiltigt prov"
           }
         }
       }
@@ -559,13 +866,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gehe in die Bluetooth Einstellungen, um das Geräte vollständig zu entkoppeln."
+            "value" : "Stellen Sie sicher, dass Sie das Gerät in den Bluetooth-Einstellungen entfernen, um es vollständig zu entkoppeln."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Make sure to to remove the device from the Bluetooth settings to fully unpair the device."
+            "value" : "Asegúrese de eliminar el dispositivo de la configuración de Bluetooth para desemparejarlo por completo."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se till att ta bort enheten från Bluetooth-inställningarna för att koppla bort den helt."
           }
         }
       }
@@ -575,13 +888,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neue Messung"
+            "value" : "Messung gespeichert"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Measurement Recorded"
+            "value" : "Medición registrada"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mätning registrerad"
           }
         }
       }
@@ -594,10 +913,16 @@
             "value" : "Modell"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Model"
+            "value" : "Modelo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell"
           }
         }
       }
@@ -610,10 +935,16 @@
             "value" : "Name"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name"
+            "value" : "Nombre"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namn"
           }
         }
       }
@@ -626,10 +957,16 @@
             "value" : "Keine Geräte"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No Devices"
+            "value" : "Sin dispositivos"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga enheter"
           }
         }
       }
@@ -639,13 +976,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keine neuen Messungen"
+            "value" : "Keine ausstehenden Messungen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No Pending Measurements"
+            "value" : "No hay mediciones pendientes"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inga väntande mätningar"
           }
         }
       }
@@ -658,7 +1001,13 @@
             "value" : "OK"
           }
         },
-        "en" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "sv" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
@@ -668,10 +1017,28 @@
     },
     "on %@ at %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "am %1$@ um %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "on %1$@ at %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el %1$@ a las %2$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "den %1$@ kl. %2$@"
           }
         }
       }
@@ -681,13 +1048,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Öffne Einstellungen"
+            "value" : "Einstellungen öffnen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open Settings"
+            "value" : "Abrir configuración"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öppna inställningar"
           }
         }
       }
@@ -697,13 +1070,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hinzufügen"
+            "value" : "Koppeln"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair"
+            "value" : "Emparejar"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppla"
           }
         }
       }
@@ -713,13 +1092,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zubehör hinzufügen"
+            "value" : "Zubehör koppeln"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair Accessory"
+            "value" : "Emparejar accesorio"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppla tillbehör"
           }
         }
       }
@@ -729,13 +1114,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Neues Gerät Hinzufügen"
+            "value" : "Neues Gerät koppeln"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pair New Device"
+            "value" : "Emparejar nuevo dispositivo"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppla ny enhet"
           }
         }
       }
@@ -745,13 +1136,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Geräte, die du hinzugefügt hast, werden hier angezeigt."
+            "value" : "Gekoppelte Geräte werden hier angezeigt, sobald sie eingerichtet sind."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paired devices will appear here once set up."
+            "value" : "Los dispositivos emparejados aparecerán aquí una vez configurados."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopplade enheter visas här när de är inställda."
           }
         }
       }
@@ -761,13 +1158,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hinzufügen Fehlgeschlagen"
+            "value" : "Kopplung fehlgeschlagen"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pairing Failed"
+            "value" : "Emparejamiento fallido"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koppling misslyckades"
           }
         }
       }
@@ -777,13 +1180,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eingriff erforderlich"
+            "value" : "Erfordert Aufmerksamkeit"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Requires Attention"
+            "value" : "Requiere atención"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kräver uppmärksamhet"
           }
         }
       }
@@ -796,10 +1205,16 @@
             "value" : "Speichern"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save"
+            "value" : "Guardar"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spara"
           }
         }
       }
@@ -809,13 +1224,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronisiere ..."
+            "value" : "Synchronisieren ..."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Synchronizing ..."
+            "value" : "Sincronizando ..."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synkroniserar ..."
           }
         }
       }
@@ -825,13 +1246,19 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The Gerätename kann nicht länger als 50 Zeichen sein."
+            "value" : "Der Gerätename darf nicht länger als 50 Zeichen sein."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The device name cannot be longer then 50 characters."
+            "value" : "El nombre del dispositivo no puede tener más de 50 caracteres."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enhetsnamnet får inte vara längre än 50 tecken."
           }
         }
       }
@@ -841,53 +1268,41 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktuelle gibt es keine neuen Messungen. Stelle sicher, dass du dein Gerät benutzt während es in der Nähe ist."
+            "value" : "Derzeit liegen keine ausstehenden Messungen vor. Führen Sie eine Messung mit einem gekoppelten Gerät in der Nähe durch."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There are currently no pending measurements. Conduct a measurement with a paired device while nearby."
+            "value" : "Actualmente no hay mediciones pendientes. Realice una medición con un dispositivo emparejado cercano."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det finns för närvarande inga väntande mätningar. Utför en mätning med en kopplad enhet i närheten."
           }
         }
       }
-    },
-    "This accessory seems to not be managed by the AccessorySetupKit!" : {
-
     },
     "This device was last seen %@." : {
-
-    },
-    "This device was last seen at %@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dieses Gerät wurde zuletzt gesehen um %@"
+            "value" : "Dieses Gerät wurde zuletzt gesehen %@."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This device was last seen at %@"
-          }
-        }
-      }
-    },
-    "This device was last seen on %@ at %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diese Geräte wurde zuletzt gesehen am %1$@ um %2$@"
+            "value" : "Este dispositivo fue visto por última vez %@."
           }
         },
-        "en" : {
+        "sv" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This device was last seen on %1$@ at %2$@"
+            "state" : "translated",
+            "value" : "Den här enheten sågs senast %@."
           }
         }
       }
@@ -900,36 +1315,64 @@
             "value" : "Heute, %@"
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Today, %@"
+            "value" : "Hoy, %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idag, %@"
           }
         }
       }
-    },
-    "Unsupported" : {
-
     },
     "We have trouble with the Bluetooth communication. Please try again." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es gab Probleme mit der Bluetooth Kommunikation. Bitte versuche es erneut."
+            "value" : "Es gibt Probleme mit der Bluetooth-Verbindung. Bitte versuchen Sie es erneut."
           }
         },
-        "en" : {
+        "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "We have trouble with the Bluetooth communication. Please try again."
+            "value" : "Tenemos problemas con la comunicación Bluetooth. Inténtelo de nuevo."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vi har problem med Bluetooth-kommunikationen. Försök igen."
           }
         }
       }
     },
     "yesterday, %@" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gestern, %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ayer, %@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "igår, %@"
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version" : "1.1"
 }

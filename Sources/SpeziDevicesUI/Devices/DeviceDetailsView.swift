@@ -41,34 +41,24 @@ public struct DeviceDetailsView: View {
 
     public var body: some View {
         List {
-            Section {
-                imageHeader
-            }
-
-            if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
-                Section("Name") {
-                    AccessoryRenameButton(deviceInfo: deviceInfo)
-                }
-            } else {
-                Section {
-                    DeviceNameRow(deviceInfo: deviceInfo)
-                    DeviceModelRow(deviceInfo: deviceInfo)
-                }
-            }
-
-
-            if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
-                Section("About") {
-                    DeviceBatteryInfoRow(deviceInfo: deviceInfo)
-                    DeviceModelRow(deviceInfo: deviceInfo)
-                }
-            }
-
+            deviceInformation
             Section {
                 AsyncButton(state: $viewState) {
                     presentForgetConfirmation = true
                 } label: {
                     Text("Forget This Device", bundle: .module)
+                }
+                .confirmationDialog(
+                    Text("Do you really want to forget this device?", bundle: .module),
+                    isPresented: $presentForgetConfirmation,
+                    titleVisibility: .visible
+                ) {
+                    Button(role: .destructive, action: scheduleForgetDevice) {
+                        Text("Forget Device", bundle: .module)
+                    }
+                    Button(role: .cancel) {} label: {
+                        Text("Cancel", bundle: .module)
+                    }
                 }
             } footer: {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
@@ -96,18 +86,6 @@ public struct DeviceDetailsView: View {
 
                 self.events = AsyncStream.makeStream() // make sure onAppear works repeatedly.
             }
-            .confirmationDialog(
-                Text("Do you really want to forget this device?", bundle: .module),
-                isPresented: $presentForgetConfirmation,
-                titleVisibility: .visible
-            ) {
-                Button(action: scheduleForgetDevice) {
-                    Text("Forget Device", bundle: .module)
-                }
-                Button(role: .cancel) {} label: {
-                    Text("Cancel", bundle: .module)
-                }
-            }
             .toolbar {
                 if pairedDevices.isConnected(device: deviceInfo.id) {
                     ToolbarItem(placement: .primaryAction) {
@@ -115,6 +93,30 @@ public struct DeviceDetailsView: View {
                     }
                 }
             }
+    }
+    
+    @ViewBuilder private var deviceInformation: some View {
+        Section {
+            imageHeader
+        }
+
+        if #available(iOS 18, visionOS 2.0, *), deviceInfo.managedByAccessorySetupKit {
+            Section("Name") {
+                AccessoryRenameButton(deviceInfo: deviceInfo)
+            }
+        } else {
+            Section {
+                DeviceNameRow(deviceInfo: deviceInfo)
+                DeviceModelRow(deviceInfo: deviceInfo)
+            }
+        }
+
+        if deviceInfo.lastBatteryPercentage != nil || shouldShowModelSeparately {
+            Section("About") {
+                DeviceBatteryInfoRow(deviceInfo: deviceInfo)
+                DeviceModelRow(deviceInfo: deviceInfo)
+            }
+        }
     }
 
     @ViewBuilder private var imageHeader: some View {
@@ -149,11 +151,16 @@ public struct DeviceDetailsView: View {
         viewState = .processing
 
         do {
+            #if !targetEnvironment(macCatalyst)
             let managedByAccessorySetupKit = if #available(iOS 18, visionOS 2, *), AccessorySetupKit.supportedProtocols.contains(.bluetooth) {
                 true
             } else {
                 false
             }
+            #else
+            let managedByAccessorySetupKit = false
+            #endif
+            
             try await pairedDevices.forgetDevice(id: deviceInfo.id)
             if !managedByAccessorySetupKit {
                 ForgetDeviceTip.hasRemovedPairedDevice = true
