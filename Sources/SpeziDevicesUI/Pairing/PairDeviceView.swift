@@ -30,10 +30,15 @@ struct PairDeviceView<Collection: RandomAccessCollection>: View where Collection
 
     private var forcedUnwrappedDeviceId: Binding<UUID> {
         Binding {
-            guard let selectedDeviceId = selectedDeviceId ?? devices.first?.id else {
-                preconditionFailure("Entered code path where selectedMeasurement was not set.")
+            // A TabView might crash if its selection doesn't match one of its tabs (e.g., if the selected device was removed),
+            // so we fall back to the first device in that case.
+            if let selectedDeviceId, devices.contains(where: { $0.id == selectedDeviceId }) {
+                return selectedDeviceId
             }
-            return selectedDeviceId
+            guard let firstDeviceId = devices.first?.id else {
+                preconditionFailure("Entered code path where selectedDeviceId was not set.")
+            }
+            return firstDeviceId
         } set: { newValue in
             selectedDeviceId = newValue
         }
