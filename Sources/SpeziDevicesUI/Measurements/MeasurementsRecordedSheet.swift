@@ -57,10 +57,15 @@ public struct MeasurementsRecordedSheet: View {
 
     @MainActor private var forcedUnwrappedMeasurement: Binding<HealthKitMeasurement> {
         Binding {
-            guard let selectedMeasurement = selectedMeasurement ?? measurements.pendingMeasurements.first else {
+            // A TabView might crash if its selection doesn't match one of its tabs (e.g., if the selected measurement was
+            // already saved or discarded), so we fall back to the first pending measurement in that case.
+            if let selectedMeasurement, measurements.pendingMeasurements.contains(selectedMeasurement) {
+                return selectedMeasurement
+            }
+            guard let firstMeasurement = measurements.pendingMeasurements.first else {
                 preconditionFailure("Entered code path where selectedMeasurement was not set.")
             }
-            return selectedMeasurement
+            return firstMeasurement
         } set: { newValue in
             selectedMeasurement = newValue
         }
